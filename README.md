@@ -9,7 +9,7 @@ Finally, the software allows the user to save the sound, the plot and a text fil
 If you installed previously the soft at your computer, do not take into account this section. If not, the next steps are the libraries installation.
 1.	Go to the Ubuntu terminal and execute the ‘python’ command:
 2.	If the version is 3.x.x, type exit() and check with ‘python2’. If the version here is 2.7.x we can continue with the following steps, if not, you must  install or update python 2.7 in the operating system, using the command:
-2. a.	sudo apt-get install --upgrade python
+ a.	sudo apt-get install --upgrade python
 3.	Once that we checked that we have python 2.7 installed (is called python2 in this instructive), we can proceed with the libraries installation.
 4.	First you have to type:
 4.a.	sudo apt update
