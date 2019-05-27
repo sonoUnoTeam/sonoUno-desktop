@@ -1,0 +1,2 @@
+# sonoUno
+SonoUno is a sonification software for two column tables of astronomical data. The develop language is Python and we use modular design, in order to do collaborative work. The sonoUno now is multiplatform, tested on windows, Ubuntu y Mac High Sierra; the development team work continuously to maintain this benefit. The principal goal of the SonoUno is to allow the user to open data files (txt or csv extension), reproduce the plot and sonification of the data. At the moment, the sonification is perform by variation of pitch in differents instruments.
