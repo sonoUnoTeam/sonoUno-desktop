@@ -624,11 +624,18 @@ class core (gui.Sonorizador):
         elif 11<self._dataGrid.GetNumberRows():
             self._dataGrid.DeleteRows( numRows=(self._dataGrid.GetNumberRows()-11) )
         #Lo coloco en la grilla
-        for j in range (0,11):
-            for i in range (0,data.shape[1]):
-                self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
-                if not j == 0:
-                    self._dataGrid.SetReadOnly(j, i, isReadOnly=True)            
+        if data.shape[0] < 11:
+            for j in range (0,data.shape[0]):
+                for i in range (0,data.shape[1]):
+                    self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
+                    if not j == 0:
+                        self._dataGrid.SetReadOnly(j, i, isReadOnly=True)      
+        else:
+            for j in range (0,11):
+                for i in range (0,data.shape[1]):
+                    self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
+                    if not j == 0:
+                        self._dataGrid.SetReadOnly(j, i, isReadOnly=True)            
         self._axisChoiceX.Clear()
         self._axisChoiceY.Clear()
         #Inserto los titulos de los ejes en los cuadros de opciones de ejes
