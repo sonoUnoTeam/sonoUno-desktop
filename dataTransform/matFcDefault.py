@@ -28,12 +28,11 @@ class matFcDefault (object):
         try:
             xStandard = x
             yStandard = (np.amax(y) - y) + np.amin(y)
+            print (y)
+            print (yStandard)
         except Exception as e:
             self.expErr.writeException(e)
         return xStandard, yStandard
-    
-    def mfPlayBack (self, x, y):
-        return x, y
     
     def mfSquare (self, x, y):
         try:

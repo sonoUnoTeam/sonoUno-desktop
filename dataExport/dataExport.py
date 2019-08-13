@@ -7,10 +7,17 @@ import pandas as pd
 import wx
 import os
 import datetime
+#from oct2py import Oct2Py, get_log
 
 
 class dataExport (object):
     def __init__(self):
+        
+#        #To print from oct2py
+#        self.oc = Oct2Py(logger=get_log())
+#        self.oc.logger = get_log('new_log')
+#        self.oc.logger.setLevel(logging.DEBUG)
+        
         #crear archivo para salvar errores
         self.now = datetime.datetime.now()
         time = self.now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -68,7 +75,6 @@ class dataExport (object):
                         print(time+": El sistema operativo es desconocido, no se pudo crear el outputFile.")
         except:
             print (time+": Error al generar el archivo para imprimir consola")
-
     
     #metodo para imprimir informacion    
     def writeInfo(self, info):

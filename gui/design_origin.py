@@ -32,7 +32,7 @@ class Sonorizador ( wx.Frame ):
 	
     def __init__( self ):
         #crea la ventana principal | create principal windows
-        wx.Frame.__init__ ( self, None, -1, title = u" Sono Uno", pos = wx.DefaultPosition, size = wx.Size( 850,550 ), style = wx.CAPTION|wx.DEFAULT_FRAME_STYLE|wx.SYSTEM_MENU|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, None, -1, title = u" Sono Uno", pos = ( 1, 1 ), size=( 850,550 ), style = wx.CAPTION|wx.DEFAULT_FRAME_STYLE|wx.SYSTEM_MENU|wx.TAB_TRAVERSAL )
         self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
         self._createMenuBar()
@@ -90,6 +90,11 @@ class Sonorizador ( wx.Frame ):
         self._mainRightSizer.Fit( self._rightPanel )
         _mainFgSizer.Add( self._rightPanel, 1, wx.EXPAND |wx.ALL, 5 )
         
+##Crea el panel de Retrieve from octave expandido
+#        self.replotFromOctavePanel(self._mainScrolledWindow)
+#        _mainFgSizer.Add( self.retrieveFromOctavePanel, 1, wx.EXPAND|wx.ALL, 5)
+#        self.retrieveFromOctavePanel.Hide()
+        
         #Relaciona la ventana principal con su sizer y la agrega al sizer inicial
         self._mainScrolledWindow.SetSizer( _mainFgSizer )
         self._mainScrolledWindow.Layout()
@@ -99,6 +104,11 @@ class Sonorizador ( wx.Frame ):
         self.SetSizer( _mainSizer )
         self.Layout()
         self.Centre( wx.BOTH )
+        
+        #Crea la tabla de atajos de teclado, aquí se pueden agregar botones o funciones que no estén en el menu
+        self.accel_tbl = wx.AcceleratorTable([(wx.ACCEL_NORMAL, wx.WXK_SPACE, self._playMenuItem.GetId())
+                                             ])
+        self.SetAcceleratorTable(self.accel_tbl)
 
     
     def _createMenuBar(self):
@@ -111,11 +121,15 @@ class Sonorizador ( wx.Frame ):
         self._menuFile.Append( self._openMenuItem )
         self.Bind( wx.EVT_MENU, self._eventOpen, id = self._openMenuItem.GetId() )
         #crea el menuItem Open y lo agrega a menu File | create menuItem Open and append this to menu File
-        self._deleteAllMarksMenuItem = wx.MenuItem( self._menuFile, wx.ID_ANY, u"Delete all marks"+ u"\t" + u"Ctrl+Alt+D", wx.EmptyString, wx.ITEM_NORMAL )
+        self._deleteAllMarksMenuItem = wx.MenuItem( self._menuFile, wx.ID_ANY, u"Delete all marks"+ u"\t" + u"Ctrl+Alt+E", wx.EmptyString, wx.ITEM_NORMAL )
         self._menuFile.Append( self._deleteAllMarksMenuItem )
         self.Bind( wx.EVT_MENU, self._eventDeleteAllMark, id = self._deleteAllMarksMenuItem.GetId() )
     #crea el submenu Save | create submenu Save
         self._saveSubMenu = wx.Menu()
+        #crea el menuItem Save Marks y lo agrega al submenu Save | create menuItem Save Marks and append this to submenu Save
+        self._saveDataMenuItem = wx.MenuItem( self._saveSubMenu, wx.ID_ANY, u"&Save Data"+ u"\t" + u"Ctrl+Alt+A", wx.EmptyString, wx.ITEM_NORMAL )
+        self._saveSubMenu.Append( self._saveDataMenuItem )
+        self.Bind( wx.EVT_MENU, self._eventSaveData, id = self._saveDataMenuItem.GetId() )
         #crea el menuItem Save Marks y lo agrega al submenu Save | create menuItem Save Marks and append this to submenu Save
         self._saveMarksMenuItem = wx.MenuItem( self._saveSubMenu, wx.ID_ANY, u"&Save Marks"+ u"\t" + u"Ctrl+Alt+M", wx.EmptyString, wx.ITEM_NORMAL )
         self._saveSubMenu.Append( self._saveMarksMenuItem )
@@ -148,13 +162,13 @@ class Sonorizador ( wx.Frame ):
         self._menuDisplay.Append( self._tempoMenuItem )
         self.Bind( wx.EVT_MENU, self._eventTempoSelect, id = self._tempoMenuItem.GetId() )
         #Crea el menuItem Play y lo agrega al menu Data Display
-        self._playMenuItem = wx.MenuItem( self._menuDisplay, wx.ID_ANY, u"&Play"+ u"\t" + u"Alt+Shift+P", wx.EmptyString, wx.ITEM_NORMAL )
+        self._playMenuItem = wx.MenuItem( self._menuDisplay, wx.ID_ANY, u"&Play", wx.EmptyString, wx.ITEM_CHECK )
         self._menuDisplay.Append( self._playMenuItem )
         self.Bind( wx.EVT_MENU, self._eventPlay, id = self._playMenuItem.GetId() )
-        #Crea el menuItem Pause y lo agrega al menu Data Display
-        self._pauseMenuItem = wx.MenuItem( self._menuDisplay, wx.ID_ANY, u"Paus&e"+ u"\t" + u"Alt+Shift+E", wx.EmptyString, wx.ITEM_NORMAL )
-        self._menuDisplay.Append( self._pauseMenuItem )
-        self.Bind( wx.EVT_MENU, self._eventPause, id = self._pauseMenuItem.GetId() )
+#        #Crea el menuItem Pause y lo agrega al menu Data Display
+#        self._pauseMenuItem = wx.MenuItem( self._menuDisplay, wx.ID_ANY, u"Paus&e"+ u"\t" + u"Alt+Shift+E", wx.EmptyString, wx.ITEM_NORMAL )
+#        self._menuDisplay.Append( self._pauseMenuItem )
+#        self.Bind( wx.EVT_MENU, self._eventPause, id = self._pauseMenuItem.GetId() )
         #Crea el menuItem Stop y lo agrega al menu Data Display
         self._stopMenuItem = wx.MenuItem( self._menuDisplay, wx.ID_ANY, u"&Stop"+ u"\t" + u"Alt+Shift+S", wx.EmptyString, wx.ITEM_NORMAL )
         self._menuDisplay.Append( self._stopMenuItem )
@@ -168,9 +182,9 @@ class Sonorizador ( wx.Frame ):
         self._menuDisplay.Append( self._deleteLastMarkMenuItem )
         self.Bind( wx.EVT_MENU, self._eventDeleteLastMark, id = self._deleteLastMarkMenuItem.GetId() )
         #Crea el menuItem Stop y lo agrega al menu Data Display
-        self._dataParamPlotMenuItem = wx.MenuItem( self._menuDisplay, wx.ID_ANY, u"&Data Parameters Panel"+ u"\t" + u"", wx.EmptyString, wx.ITEM_CHECK )
-        self._menuDisplay.Append( self._dataParamPlotMenuItem )
-        self.Bind( wx.EVT_MENU, self._eventDataParamPlot, id = self._dataParamPlotMenuItem.GetId() )
+        self._dataGridMenuItem = wx.MenuItem( self._menuDisplay, wx.ID_ANY, u"&Data Grid"+ u"\t" + u"Alt+Shift+G", wx.EmptyString, wx.ITEM_CHECK )
+        self._menuDisplay.Append( self._dataGridMenuItem )
+        self.Bind( wx.EVT_MENU, self._eventDataParamPlot, id = self._dataGridMenuItem.GetId() )
         
 #Agrega el menu Data Display a la menuBar
         self._menubar.Append( self._menuDisplay, u"Data Display" ) 
@@ -230,10 +244,10 @@ class Sonorizador ( wx.Frame ):
         self._logMFMenuItem = wx.MenuItem( self._matFuncSubMenu, wx.ID_ANY, u"Logarithm"+ u"\t" + u"Alt+Shift+L", wx.EmptyString, wx.ITEM_NORMAL )
         self._matFuncSubMenu.Append( self._logMFMenuItem )
         self.Bind( wx.EVT_MENU, self._eventMFLog, id = self._logMFMenuItem.GetId() )
-#        #Crea el menuItem Python y lo agrega al submenu Mathematical Functions
-#        self._octaveMenuItem = wx.MenuItem( self._matFuncSubMenu, wx.ID_ANY, u"Python console"+ u"\t" + u"Alt+Shift+Y", wx.EmptyString, wx.ITEM_NORMAL )
-#        self._matFuncSubMenu.Append( self._octaveMenuItem )
-#        self.Bind( wx.EVT_MENU, self._eventOctaveSelect, id = self._octaveMenuItem.GetId() )
+        #Crea el menuItem Octave y lo agrega al submenu Mathematical Functions
+        self._octaveMenuItem = wx.MenuItem( self._matFuncSubMenu, wx.ID_ANY, u"Octave"+ u"\t" + u"Alt+Shift+Y", wx.EmptyString, wx.ITEM_NORMAL )
+        self._matFuncSubMenu.Append( self._octaveMenuItem )
+        self.Bind( wx.EVT_MENU, self._eventOctaveSelect, id = self._octaveMenuItem.GetId() )
         #Crea el subsubmenu Average
         self._avFuncSubMenu = wx.Menu()
         #Crea el menuItem Number of Points y lo agrega al subsubmenu Average
@@ -269,16 +283,20 @@ class Sonorizador ( wx.Frame ):
         self._menuConfigPanels.Append( self._cpDataDisplayMenuItem )
         self.Bind( wx.EVT_MENU, self._eventCPDataDisplaySelect, id = self._cpDataDisplayMenuItem.GetId() )
         self._cpDataDisplayMenuItem.Check(True)
+        #Crea el data parameters panel
+        self._dataParamPlotMenuItem = wx.MenuItem( self._menuConfigPanels, wx.ID_ANY, u"&Data Parameters"+ u"\t" + u"Alt+Shift+G", wx.EmptyString, wx.ITEM_CHECK )
+        self._menuConfigPanels.Append( self._dataParamPlotMenuItem )
+        self.Bind( wx.EVT_MENU, self._eventDataParamPlot, id = self._dataParamPlotMenuItem.GetId() )
     #Crea el submenu Data Operations
         self._cpDataOpSubMenu = wx.Menu()
-#        #Crea el menuItem All Data Operations y lo agrega al submenu Data Operations
-#        self._cpDataOpMenuItem = wx.MenuItem( self._cpDataOpSubMenu, wx.ID_ANY, u"All Data Operations"+ u"\t" + u"Ctrl+Alt+T", wx.EmptyString, wx.ITEM_CHECK )
-#        self._cpDataOpSubMenu.Append( self._cpDataOpMenuItem )
-#        self.Bind( wx.EVT_MENU, self._eventCPDataOpSelect, id = self._cpDataOpMenuItem.GetId() )
-#        #Crea el menuItem Octave y lo agrega al submenu Data Operations
-#        self._cpDOOctaveMenuItem = wx.MenuItem( self._cpDataOpSubMenu, wx.ID_ANY, u"Python console"+ u"\t" + u"Ctrl+Alt+Y", wx.EmptyString, wx.ITEM_CHECK )
-#        self._cpDataOpSubMenu.Append( self._cpDOOctaveMenuItem )
-#        self.Bind( wx.EVT_MENU, self._eventCPDOOctaveSelect, id = self._cpDOOctaveMenuItem.GetId() )
+        #Crea el menuItem All Data Operations y lo agrega al submenu Data Operations
+        self._cpDataOpMenuItem = wx.MenuItem( self._cpDataOpSubMenu, wx.ID_ANY, u"All Data Operations"+ u"\t" + u"Ctrl+Alt+T", wx.EmptyString, wx.ITEM_CHECK )
+        self._cpDataOpSubMenu.Append( self._cpDataOpMenuItem )
+        self.Bind( wx.EVT_MENU, self._eventCPDataOpSelect, id = self._cpDataOpMenuItem.GetId() )
+        #Crea el menuItem Octave y lo agrega al submenu Data Operations
+        self._cpDOOctaveMenuItem = wx.MenuItem( self._cpDataOpSubMenu, wx.ID_ANY, u"Octave"+ u"\t" + u"Alt+Shift+Y", wx.EmptyString, wx.ITEM_CHECK )
+        self._cpDataOpSubMenu.Append( self._cpDOOctaveMenuItem )
+        self.Bind( wx.EVT_MENU, self._eventCPDOOctaveSelect, id = self._cpDOOctaveMenuItem.GetId() )
         #Crea el menuItem Sliders and Mathematical Functions y lo agrega al submenu Data Operations
         self._cpDOSliderMenuItem = wx.MenuItem( self._cpDataOpSubMenu, wx.ID_ANY, u"Sliders and Mathematical Functions"+ u"\t" + u"Ctrl+Alt+X", wx.EmptyString, wx.ITEM_CHECK )
         self._cpDataOpSubMenu.Append( self._cpDOSliderMenuItem )
@@ -362,11 +380,11 @@ class Sonorizador ( wx.Frame ):
 #Crea el menu Help
         self._menuHelp = wx.Menu()
         #Crea el menuItem About y lo agrega al menu Help
-        self._aboutMenuItem = wx.MenuItem( self._menuHelp, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
+        self._aboutMenuItem = wx.MenuItem( self._menuHelp, wx.ID_ANY, u"About"+u"\t"+u"Ctrl+Alt+H", wx.EmptyString, wx.ITEM_NORMAL )
         self._menuHelp.Append( self._aboutMenuItem )
         self.Bind( wx.EVT_MENU, self._eventHAbout, id = self._aboutMenuItem.GetId() )
         #Crea el menuItem User manual y lo agrega al menu Help
-        self._manualMenuItem = wx.MenuItem( self._menuHelp, wx.ID_ANY, u"User manual", wx.EmptyString, wx.ITEM_NORMAL )
+        self._manualMenuItem = wx.MenuItem( self._menuHelp, wx.ID_ANY, u"User manual"+u"\t"+u"Ctrl+Alt+U", wx.EmptyString, wx.ITEM_NORMAL )
         self._menuHelp.Append( self._manualMenuItem )
         self.Bind( wx.EVT_MENU, self._eventHManual, id = self._manualMenuItem.GetId() )
 #Agrega el menu Help a la menubar
@@ -393,11 +411,11 @@ class Sonorizador ( wx.Frame ):
         self._displayToggleBtn.Bind( wx.EVT_TOGGLEBUTTON, self._eventGDisplay )
         self._toolBar.AddControl( self._displayToggleBtn )
         self._toolBar.AddSeparator()
-#        self._octaveToggleBtn = wx.ToggleButton( self._toolBar, wx.ID_ANY, u"Show Python console", wx.DefaultPosition, wx.DefaultSize, 0 )
-#        self._octaveToggleBtn.SetValue( False ) 
-#        self._octaveToggleBtn.Bind( wx.EVT_TOGGLEBUTTON, self._eventOctaveToggle)
-#        self._toolBar.AddControl( self._octaveToggleBtn )
-#        self._toolBar.AddSeparator()
+        self._octaveToggleBtn = wx.ToggleButton( self._toolBar, wx.ID_ANY, u"Show octave", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._octaveToggleBtn.SetValue( False ) 
+        self._octaveToggleBtn.Bind( wx.EVT_TOGGLEBUTTON, self._eventOctaveToggle)
+        self._toolBar.AddControl( self._octaveToggleBtn )
+        self._toolBar.AddSeparator()
         self._sliderToggleBtn = wx.ToggleButton( self._toolBar, wx.ID_ANY, u"Show Sliders and Math Functions", wx.DefaultPosition, wx.DefaultSize, 0 )
         self._sliderToggleBtn.SetValue( False ) 
         self._sliderToggleBtn.Bind( wx.EVT_TOGGLEBUTTON, self._eventSliderToggle)
@@ -409,7 +427,7 @@ class Sonorizador ( wx.Frame ):
     def _createFilePanel(self, panel):
         #crea el panel File con su sizer(row(5)col(2)) sin seccion expandida
         self._filePanel = wx.Panel( panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        _fileFgSizer = wx.FlexGridSizer( 5, 1, 0, 0 )
+        _fileFgSizer = wx.FlexGridSizer( 6, 1, 0, 0 )
         _fileFgSizer.SetFlexibleDirection( wx.BOTH )
         _fileFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
     #Crea el boton Open y lo agrega al sizer del panel File
@@ -420,6 +438,10 @@ class Sonorizador ( wx.Frame ):
         self._deleteAllMarksButton = wx.Button( self._filePanel, wx.ID_ANY, u"&Delete all marks", wx.DefaultPosition, wx.DefaultSize, 0 )
         self._deleteAllMarksButton.Bind( wx.EVT_BUTTON, self._eventDeleteAllMark )
         _fileFgSizer.Add( self._deleteAllMarksButton, 0, wx.ALL, 5 )
+    #Crea el boton Save Data y lo agrega al sizer del panel File
+        self._saveDataButton = wx.Button( self._filePanel, wx.ID_ANY, u"Save &Data", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._saveDataButton.Bind( wx.EVT_BUTTON, self._eventSaveData )
+        _fileFgSizer.Add( self._saveDataButton, 0, wx.ALL, 5 )
     #Crea el boton Save Marks y lo agrega al sizer del panel File
         self._saveMarksButton = wx.Button( self._filePanel, wx.ID_ANY, u"Save &Marks", wx.DefaultPosition, wx.DefaultSize, 0 )
         self._saveMarksButton.Bind( wx.EVT_BUTTON, self._eventSaveMarks )
@@ -454,14 +476,14 @@ class Sonorizador ( wx.Frame ):
         _soundFontFgSizer.SetFlexibleDirection( wx.BOTH )
         _soundFontFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Crea el espacio de texto con el label Sound Font y lo agrega al sizer del panel de configuración de sonido
-        self._soundFontTextCtrl = wx.TextCtrl( self._soundFontPanel, wx.ID_ANY, u"Sound Font:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._soundFontTextCtrl = wx.TextCtrl( self._soundFontPanel, wx.ID_ANY, u"Sound Font:", wx.DefaultPosition, wx.Size( 90,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
         self._soundFontTextCtrl.SetEditable(0)
         _soundFontFgSizer.Add( self._soundFontTextCtrl, 0, wx.ALL, 5 )
         #Crea el espacio de texto donde se indicara la fuente de sonido que utiliza el programa para generar sonido y lo agrega al sizer del panel de configuración de sonido
         self._sFontTextCtrl = wx.TextCtrl( self._soundFontPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_READONLY )
         _soundFontFgSizer.Add( self._sFontTextCtrl, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
         #Crea el espacio de texto con el label Select Instrument y lo agrega al sizer del panel de configuración de sonido
-        self._instTextCtrl = wx.TextCtrl( self._soundFontPanel, wx.ID_ANY, u"Select Instrument:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._instTextCtrl = wx.TextCtrl( self._soundFontPanel, wx.ID_ANY, u"Select Instrument:", wx.DefaultPosition, wx.Size( 130,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
         self._instTextCtrl.SetEditable(0)
         _soundFontFgSizer.Add( self._instTextCtrl, 0, wx.ALL, 5 )
         #Crea un panel desplegable con una lista para poder seleccionar entre los instrumentos disponibles, y lo agrega al sizer del panel de configuración de sonido
@@ -486,7 +508,8 @@ class Sonorizador ( wx.Frame ):
         _configPlotFgSizer.SetFlexibleDirection( wx.BOTH )
         _configPlotFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Crea el texto estatico Line Style y lo agrega al sizer del panel de configuraciones del grafico
-        self._lineStileTextCtrl = wx.TextCtrl( self._configPlotPanel, wx.ID_ANY, u"Line Style:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._lineStileTextCtrl = wx.TextCtrl( self._configPlotPanel, wx.ID_ANY, u"Line Style:", wx.DefaultPosition, wx.Size( 90,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._lineStileTextCtrl.SetEditable(0)
         _configPlotFgSizer.Add( self._lineStileTextCtrl, 0, wx.ALL, 5 )
         #Crea el cuadro de seleccion entre opciones de estilo de linea para el grafico, setea una eleccion por defecto y lo agrega al sizer del panel de configuraciones del grafico
         _lineStyleChoiceChoices = [ u"Discreet", u"Solid line", u"Dashed line", u"Dash-dot line", u"Dotted line" ]
@@ -495,7 +518,8 @@ class Sonorizador ( wx.Frame ):
         self._lineStyleChoice.SetSelection( 1 )
         _configPlotFgSizer.Add( self._lineStyleChoice, 0, wx.ALL, 5 )
         #Crea el texto estatico Marker Style y lo agrega al sizer del panel de configuraciones del grafico
-        self._markerTextCtrl = wx.TextCtrl( self._configPlotPanel, wx.ID_ANY, u"Marker Style:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._markerTextCtrl = wx.TextCtrl( self._configPlotPanel, wx.ID_ANY, u"Marker Style:", wx.DefaultPosition, wx.Size( 90,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._markerTextCtrl.SetEditable(0)
         _configPlotFgSizer.Add( self._markerTextCtrl, 0, wx.ALL, 5 )
         #Crea el cuadro de seleccion entre opciones de estilo de marcadores para el grafico, setea una eleccion por defecto y lo agrega al sizer del panel de configuraciones del grafico
         _markerStyleChoiceChoices = [ u"Point", u"Pixel", u"Circle", u"Triangle down", u"Triangle up", u"Triangle left", u"Triangle right", u"Tri down", u"Tri up", u"Tri left", u"Tri right", u"Square", u"Pentagon", u"Star", u"Hexagon 1", u"Hexagon 2", u"Plus", u"X", u"Diamond", u"Thin diamond", u"Vertical line", u"Horizontal line", u"Any" ]
@@ -505,7 +529,8 @@ class Sonorizador ( wx.Frame ):
         _configPlotFgSizer.Add( self._markerStyleChoice, 0, wx.ALL, 5 )
         #Crea el texto estatico Color Style y lo agrega al sizer del panel de configuraciones del grafico
         #Cambiar static text
-        self._colorTextCtrl = wx.TextCtrl( self._configPlotPanel, wx.ID_ANY, u"Color Style:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._colorTextCtrl = wx.TextCtrl( self._configPlotPanel, wx.ID_ANY, u"Color Style:", wx.DefaultPosition, wx.Size( 90,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._colorTextCtrl.SetEditable(0)
         _configPlotFgSizer.Add( self._colorTextCtrl, 0, wx.ALL, 5 )
         #Crea el cuadro de seleccion entre opciones de colores para el grafico, setea una eleccion por defecto y lo agrega al sizer del panel de configuraciones del grafico
         _colorStyleChoiceChoices = [ u"Blue", u"Green", u"Red", u"Cyan", u"Magenta", u"Yellow", u"Black" ]
@@ -524,7 +549,8 @@ class Sonorizador ( wx.Frame ):
         _plotGridFgSizer.SetFlexibleDirection( wx.BOTH )
         _plotGridFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Color style
-        self._gridColorTextCtrl = wx.TextCtrl( self._plotGridPanel, wx.ID_ANY, u"Color:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._gridColorTextCtrl = wx.TextCtrl( self._plotGridPanel, wx.ID_ANY, u"Color:", wx.DefaultPosition, wx.Size( 50,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._gridColorTextCtrl.SetEditable(0)
         _plotGridFgSizer.Add( self._gridColorTextCtrl, 0, wx.ALL, 5 )
         _gridColorChoiceChoices = [ u"Blue", u"Green", u"Red", u"Cyan", u"Magenta", u"Yellow", u"Black", u"White" ]
         self._gridColorChoice = wx.Choice( self._plotGridPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, _gridColorChoiceChoices, 0 )
@@ -532,7 +558,8 @@ class Sonorizador ( wx.Frame ):
         self._gridColorChoice.SetSelection( 6 )
         _plotGridFgSizer.Add( self._gridColorChoice, 0, wx.ALL, 5 )
         #Line style
-        self._gridLineTextCtrl = wx.TextCtrl( self._plotGridPanel, wx.ID_ANY, u"Line:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._gridLineTextCtrl = wx.TextCtrl( self._plotGridPanel, wx.ID_ANY, u"Line:", wx.DefaultPosition, wx.Size( 50,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._gridLineTextCtrl.SetEditable(0)
         _plotGridFgSizer.Add( self._gridLineTextCtrl, 0, wx.ALL, 5 )
         _gridLineChoiceChoices = [ u"Solid line", u"Dashed line", u"Dash-dot line", u"Dotted line" ]
         self._gridLineChoice = wx.Choice( self._plotGridPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, _gridLineChoiceChoices, 0 )
@@ -540,7 +567,8 @@ class Sonorizador ( wx.Frame ):
         self._gridLineChoice.SetSelection( 1 )
         _plotGridFgSizer.Add( self._gridLineChoice, 0, wx.ALL, 5 )
         #Ancho
-        self._gridWidthTextCtrl = wx.TextCtrl( self._plotGridPanel, wx.ID_ANY, u"Width:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._gridWidthTextCtrl = wx.TextCtrl( self._plotGridPanel, wx.ID_ANY, u"Width:", wx.DefaultPosition, wx.Size( 50,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._gridWidthTextCtrl.SetEditable(0)
         _plotGridFgSizer.Add( self._gridWidthTextCtrl, 0, wx.ALL, 5 )
         self._gridWidthSpinCtrl = wx.SpinCtrlDouble( self._plotGridPanel, wx.ID_ANY, u" ", wx.DefaultPosition, wx.Size( 70,-1 ), wx.SP_ARROW_KEYS|wx.TE_PROCESS_ENTER, 0, 100, 0.5, 0.1, name=u"Grid width spin control" )
         self._gridWidthSpinCtrl.Bind( wx.EVT_SPINCTRLDOUBLE, self._eventGridWidthSpinCtrl )
@@ -565,7 +593,7 @@ class Sonorizador ( wx.Frame ):
     def _createDisplayPanel(self, panel):
         #Crea el panel Display con su sizer(row(3)col(1)) y con el cuadro (row(0)col(0)) expandido
         self._displayPanel = wx.Panel( panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        _displayFgSizer = wx.FlexGridSizer( 4, 1, 0, 0 )
+        _displayFgSizer = wx.FlexGridSizer( 3, 1, 0, 0 )
         _displayFgSizer.AddGrowableCol( 0 )
         _displayFgSizer.AddGrowableRow( 0 )
         _displayFgSizer.SetFlexibleDirection( wx.BOTH )
@@ -587,7 +615,6 @@ class Sonorizador ( wx.Frame ):
         self._figure = Figure()
         self._axes = self._figure.add_subplot(111)
         self._canvas = FigureCanvas(self._graphicPanel, -1, self._figure)
-        self._canvas.SetToolTip( u"Displays the plot of the data opened by the user." )
         #Agrega el canvas que relaciona la figura con el panel al sizer del panel del grafico
         _matplotlibSizer.Add( self._canvas, 1, wx.EXPAND |wx.ALL, 5 )
         
@@ -605,13 +632,11 @@ class Sonorizador ( wx.Frame ):
         _absPosFgSizer.SetFlexibleDirection( wx.BOTH )
         _absPosFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Crea un espacio de texto con el label Abscissa Position y lo agrega al sizer de objetos relacionados con la posicion de abscisas.
-        self._absPosTextCtrl = wx.TextCtrl( self._displayPanel, wx.ID_ANY, u"Abscissa Position:", wx.DefaultPosition, wx.Size( -1,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._absPosTextCtrl = wx.TextCtrl( self._displayPanel, wx.ID_ANY, u"Abscissa Position:", wx.DefaultPosition, wx.Size( 125,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
         self._absPosTextCtrl.SetEditable(0)
-        self._absPosTextCtrl.SetToolTip( u"Abscissa position label." )
         _absPosFgSizer.Add( self._absPosTextCtrl, 0, wx.ALIGN_RIGHT|wx.ALL, 5 )
         #Crea la slider para setear la posicion en abscisas y la agrega al sizer correspondiente.
         self._absPosSlider = wx.Slider( self._displayPanel, wx.ID_ANY, 0, 0, 100, wx.DefaultPosition, wx.Size( -1,-1 ), wx.SL_HORIZONTAL | wx.SL_LABELS )
-        self._absPosSlider.SetToolTip( u"" )
         #self._absPosSlider.Bind( wx.EVT_KEY_UP, self._eventAbsPos )
         self._absPosSlider.Bind( wx.EVT_SCROLL, self._eventAbsPos )
         self._absPosSlider.Bind( wx.EVT_SLIDER, self._eventAbsPos )
@@ -625,7 +650,7 @@ class Sonorizador ( wx.Frame ):
         _soundVelFgSizer.SetFlexibleDirection( wx.BOTH )
         _soundVelFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Crea un espacio de texto con el label Tempo y lo agrega al sizer contenedor de los objetos tempo
-        self._soundVelTextCtrl = wx.TextCtrl( self._displayPanel, wx.ID_ANY, u"Tempo:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._soundVelTextCtrl = wx.TextCtrl( self._displayPanel, wx.ID_ANY, u"Tempo:", wx.DefaultPosition, wx.Size( 60,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
         self._soundVelTextCtrl.SetEditable(0)
         self._soundVelTextCtrl.NavigateIn()
         _soundVelFgSizer.Add( self._soundVelTextCtrl, 0, wx.ALIGN_RIGHT|wx.ALL, 5 )
@@ -640,17 +665,18 @@ class Sonorizador ( wx.Frame ):
         _displayFgSizer.Add( _sliderDisplayGSizer, 1, wx.EXPAND, 5 )
         
     #Crea el sizer de los botones de control de reproduccion sin panel contenedor (row(1)col(5))
-        _buttonDisplayFgSizer = wx.FlexGridSizer( 2, 3, 0, 0 )
+        _buttonDisplayFgSizer = wx.FlexGridSizer( 1, 5, 0, 0 )
         _buttonDisplayFgSizer.SetFlexibleDirection( wx.BOTH )
         _buttonDisplayFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Crea el boton Play y lo agrega al sizer de botones de control de reproduccion
-        self._playButton = wx.Button( self._displayPanel, wx.ID_ANY, u"Play", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self._playButton.Bind( wx.EVT_BUTTON, self._eventPlay )
+        self._playButton = wx.ToggleButton( self._displayPanel, wx.ID_ANY, u"Play", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._playButton.SetValue(False)
+        self._playButton.Bind( wx.EVT_TOGGLEBUTTON, self._eventPlay )
         _buttonDisplayFgSizer.Add( self._playButton, 0, wx.ALL, 5 )
-        #Crea el boton Pause y lo agrega al sizer de botones de control de reproduccion
-        self._pauseButton = wx.Button( self._displayPanel, wx.ID_ANY, u"Pause", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self._pauseButton.Bind( wx.EVT_BUTTON, self._eventPause )
-        _buttonDisplayFgSizer.Add( self._pauseButton, 0, wx.ALL, 5 )
+#        #Crea el boton Pause y lo agrega al sizer de botones de control de reproduccion
+#        self._pauseButton = wx.Button( self._displayPanel, wx.ID_ANY, u"Pause", wx.DefaultPosition, wx.DefaultSize, 0 )
+#        self._pauseButton.Bind( wx.EVT_BUTTON, self._eventPause )
+#        _buttonDisplayFgSizer.Add( self._pauseButton, 0, wx.ALL, 5 )
         #Crea el boton Stop y lo agrega al sizer de botones de control de reproduccion
         self._stopButton = wx.Button( self._displayPanel, wx.ID_ANY, u"Stop", wx.DefaultPosition, wx.DefaultSize, 0 )
         self._stopButton.Bind( wx.EVT_BUTTON, self._eventStop )
@@ -679,30 +705,126 @@ class Sonorizador ( wx.Frame ):
     def _createOperationPanel(self, panel):
         #Crea el panel Operation con su sizer(row(2)col(1)) y con el cuadro (row(0)col(0)) expandido
         self._operationPanel = wx.Panel( panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        _operationFgSizer = wx.FlexGridSizer( 2, 1, 0, 0 )
+        _operationFgSizer = wx.FlexGridSizer( 3, 1, 0, 0 )
         _operationFgSizer.AddGrowableCol( 0 )
-        _operationFgSizer.AddGrowableRow( 0 )
+        _operationFgSizer.AddGrowableRow( 1 )
         _operationFgSizer.SetFlexibleDirection( wx.BOTH )
         _operationFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-    #Crea el panel Gnu Octave con su sizer (row(2)col(1)) y con el cuadro (row(1)col(0)) expandido
+        
+    #Crea el panel de la shell que se mantendrá oculto.
+        self._pythonShellPanel = wx.Panel( self._operationPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        _pythonShellFgSizer = wx.FlexGridSizer( 1, 1, 0, 0 )
+        _pythonShellFgSizer.AddGrowableCol( 0 )
+        _pythonShellFgSizer.SetFlexibleDirection( wx.BOTH )
+        _pythonShellFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+        self._createShell(self._pythonShellPanel)
+        _pythonShellFgSizer.Add( self._pythonShell, 1, wx.EXPAND |wx.ALL, 5 )
+        self._pythonShellPanel.Hide()
+        #Relaciona el panel de operaciones con su sizer y lo agrega al sizer del panel principal derecho
+        self._pythonShellPanel.SetSizer( _pythonShellFgSizer )
+        self._pythonShellPanel.Layout()
+        _pythonShellFgSizer.Fit( self._pythonShellPanel )
+        _operationFgSizer.Add( self._pythonShellPanel, 1, wx.EXPAND |wx.ALL, 5 )
+        
+    #Crea el panel Gnu Octave con su sizer (row(1)col(2)) y con el cuadro (row(1)col(0)) expandido
         self._gnuOctavePanel = wx.Panel( self._operationPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        _octaveFgSizer = wx.FlexGridSizer( 1, 1, 0, 0 )
+        _octaveFgSizer = wx.FlexGridSizer( 1, 2, 0, 0 )
         _octaveFgSizer.AddGrowableCol( 0 )
-        _octaveFgSizer.AddGrowableRow( 0 )
         _octaveFgSizer.SetFlexibleDirection( wx.BOTH )
         _octaveFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         
-        self._createShell(self._gnuOctavePanel)
-        _octaveFgSizer.Add( self._pythonShell, 1, wx.EXPAND |wx.ALL, 5 )       
+        #Crea el sizer de los elementos izquierdos
+        _octaveLeftFgSizer = wx.FlexGridSizer( 2, 2, 0, 0 )
+        _octaveLeftFgSizer.AddGrowableCol( 1 )
+        _octaveLeftFgSizer.AddGrowableRow( 1 )
+        _octaveLeftFgSizer.SetFlexibleDirection( wx.BOTH )
+        _octaveLeftFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+        #Crea el espacio de texto con el label Octave y lo agrega al sizer de GNU Octave
+        self._octaveLabelInputTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u"Octave command:", wx.DefaultPosition, wx.Size( 120,20 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        _octaveLeftFgSizer.Add( self._octaveLabelInputTextCtrl, 0, wx.EXPAND | wx.ALL, 5 ) 
+        self._octaveLabelInputTextCtrl.SetToolTip( u"" )
+        self._octaveLabelInputTextCtrl.SetEditable(0)
+        self._octaveInputTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u" ", wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
+        self._octaveInputTextCtrl.Bind( wx.EVT_TEXT_ENTER, self._eventOctaveInput )
+        _octaveLeftFgSizer.Add( self._octaveInputTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )
+        self._octaveLabelOutputTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u"Octave info:", wx.DefaultPosition, wx.Size( 120,20 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        _octaveLeftFgSizer.Add( self._octaveLabelOutputTextCtrl, 0, wx.EXPAND | wx.ALL, 5 ) 
+        self._octaveLabelOutputTextCtrl.SetToolTip( u"" )
+        self._octaveLabelOutputTextCtrl.SetEditable(0)
+        self._octaveOutputTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u" ", wx.DefaultPosition, wx.Size( -1,60 ), style=wx.TE_MULTILINE )
+        _octaveLeftFgSizer.Add( self._octaveOutputTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )    
+        self._octaveOutputTextCtrl.SetEditable(0)    
+        #Relaciona el sizer de la izquierda con el de octave
+        _octaveFgSizer.Add( _octaveLeftFgSizer, 1, wx.EXPAND | wx.ALL, 5 )
+
+#Se descartará esta parte por el momento para probar una forma más facil de comunicación.
+        #Crea el sizer de los elementos derechos
+        _octaveRightFgSizer = wx.FlexGridSizer( 3, 1, 0, 0 )
+        _octaveRightFgSizer.SetFlexibleDirection( wx.BOTH )
+        _octaveRightFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+        
+#        #Crea el sizer para la parte superior
+#        _octaveTopRightFgSizer = wx.FlexGridSizer( 1, 2, 0, 0 )
+#        _octaveTopRightFgSizer.SetFlexibleDirection( wx.BOTH )
+#        _octaveTopRightFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+#        #Crea los elementos para push
+#        self._sendToOctaveLabelTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u"Send to octave: ", wx.DefaultPosition, wx.Size( -1,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+#        _octaveTopRightFgSizer.Add( self._sendToOctaveLabelTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )    
+#        self._sendToOctaveLabelTextCtrl.SetEditable(0)
+#        self._sendToOctaveListBox = wx.ListBox( self._gnuOctavePanel, wx.ID_ANY, wx.DefaultPosition, wx.Size(-1,40), [""], 0 )
+##        self._sendToOctaveListBox.Bind( wx.EVT_LISTBOX, self._eventSendToOctave )
+#        self._sendToOctaveListBox.SetSelection( 0 )
+#        _octaveTopRightFgSizer.Add( self._sendToOctaveListBox, 0, wx.ALL|wx.FIXED_MINSIZE, 5 )
+#        #Relaciona el sizer de la parte superior con el de la derecha
+#        _octaveRightFgSizer.Add( _octaveTopRightFgSizer, 1, wx.EXPAND | wx.ALL, 5 )
+        
+        #Crea el label de la parte central
+        self._retFromOctaveLabelTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u"Retrieve from octave:", wx.DefaultPosition, wx.Size( 120,20 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        _octaveRightFgSizer.Add( self._retFromOctaveLabelTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )    
+        self._retFromOctaveLabelTextCtrl.SetEditable(0)
+        
+        #Crea el sizer para la parte central
+        _octaveCenterRightFgSizer = wx.FlexGridSizer( 2, 2, 0, 0 )
+        _octaveCenterRightFgSizer.SetFlexibleDirection( wx.BOTH )
+        _octaveCenterRightFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+        #Crea los elementos para pull
+        self._xFromOctaveLabelTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u"Name of x array: ", wx.DefaultPosition, wx.Size( 120,20 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        _octaveCenterRightFgSizer.Add( self._xFromOctaveLabelTextCtrl, 0, wx.ALL, 5 )    
+        self._xFromOctaveLabelTextCtrl.SetEditable(0)
+        self._xFromOctaveTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
+        self._xFromOctaveTextCtrl.Bind( wx.EVT_TEXT_ENTER, self._eventXFromOctave )
+        _octaveCenterRightFgSizer.Add( self._xFromOctaveTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )
+        self._yFromOctaveLabelTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u"Name of y array: ", wx.DefaultPosition, wx.Size( 120,20 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        _octaveCenterRightFgSizer.Add( self._yFromOctaveLabelTextCtrl, 0, wx.ALL, 5 )    
+        self._yFromOctaveLabelTextCtrl.SetEditable(0)
+        self._yFromOctaveTextCtrl = wx.TextCtrl( self._gnuOctavePanel, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
+        self._yFromOctaveTextCtrl.Bind( wx.EVT_TEXT_ENTER, self._eventYFromOctave )
+        _octaveCenterRightFgSizer.Add( self._yFromOctaveTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )
+        #Relaciona el sizer de la parte central con el de la derecha
+        _octaveRightFgSizer.Add( _octaveCenterRightFgSizer, 1, wx.EXPAND | wx.ALL, 5 )
+        
+        #Crea el botón para reiniciar la session
+        self._octaveReplotButton = wx.Button( self._gnuOctavePanel, wx.ID_ANY, u"Refresh the plot", wx.DefaultPosition, wx.DefaultSize, 0 )
+#        self._octaveReplotButton.Bind( wx.EVT_BUTTON, self._eventOctaveReplot )
+        self._octaveReplotButton.Bind( wx.EVT_BUTTON, self._eventContinueReplotFromOctave )
+        _octaveRightFgSizer.Add( self._octaveReplotButton, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+        
+        #Realciona el sizer de la derecha con el de octave
+        _octaveFgSizer.Add( _octaveRightFgSizer, 1, wx.EXPAND | wx.ALL, 5 )
+        
+#        #Crea el botón para reiniciar la session
+#        self._octaveReplotButton = wx.Button( self._gnuOctavePanel, wx.ID_ANY, u"Refresh the plot", wx.DefaultPosition, wx.DefaultSize, 0 )
+#        self._octaveReplotButton.Bind( wx.EVT_BUTTON, self._eventOctaveReplot )
+#        _octaveFgSizer.Add( self._octaveReplotButton, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
         
         #Relaciona el panel GNU Octave con su sizer y lo agrega al sizer del panel operaciones
         self._gnuOctavePanel.SetSizer( _octaveFgSizer )
         self._gnuOctavePanel.Layout()
         _octaveFgSizer.Fit( self._gnuOctavePanel )
-        _operationFgSizer.Add( self._gnuOctavePanel, 1, wx.EXPAND |wx.ALL, 5 )
+        _operationFgSizer.Add( self._gnuOctavePanel, 1, wx.EXPAND | wx.ALL, 5 )
         self._gnuOctavePanel.Hide()
-
+        
+        
     #Crea el panel de las funciones matematicas, se llama sizer porque contendra sizers dentro de sizers, crea el sizer correspondiente(row(1)col(2)) y con el cuadro (row(0)col(0)) expandido
         self._sizersMFPanel = wx.Panel( self._operationPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         _itemsOpFgSizer = wx.FlexGridSizer( 1, 2, 0, 0 )
@@ -717,7 +839,7 @@ class Sonorizador ( wx.Frame ):
         _axisFgSizer.SetFlexibleDirection( wx.BOTH )
         _axisFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 #        #Crea el cuadro de texto con el label Vertical Axis y lo agrega al sizer del panel de las sliders
-#        self._vAxisTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Vertical Axis:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+#        self._vAxisTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Vertical Axis:", wx.DefaultPosition, wx.DefaultSize, style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
 #        _axisFgSizer.Add( self._vAxisTextCtrl, 0, wx.ALL, 5 )
 #        #Crea un sizer (row(2)col(2)) para contener las slider del limite vertical, con la col(1) expandida
 #        _vAxisFgSizer = wx.FlexGridSizer( 2, 2, 0, 0 )
@@ -725,7 +847,7 @@ class Sonorizador ( wx.Frame ):
 #        _vAxisFgSizer.SetFlexibleDirection( wx.BOTH )
 #        _vAxisFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 #        #Crea un cuadro de texto con el label Lower Limit y lo agrega al sizer del limite vertical
-#        self._lvLimitTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Lower Limit:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+#        self._lvLimitTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Lower Limit:", wx.DefaultPosition, wx.DefaultSize, style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
 #        _vAxisFgSizer.Add( self._lvLimitTextCtrl, 0, wx.ALL, 5 )
 #        #Crea una slider para indicar el parametro minimo de corte vertical y lo agrega al sizer del limite vertical
 #        self._lVLimitSlider = wx.Slider( self._sizersPanel, wx.ID_ANY, 0, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL | wx.SL_LABELS)
@@ -733,7 +855,7 @@ class Sonorizador ( wx.Frame ):
 #        self._lVLimitSlider.Bind( wx.EVT_SCROLL, self._eventLVLimitSlider )
 #        _vAxisFgSizer.Add( self._lVLimitSlider, 0, wx.EXPAND, 5 )
 #        #Crea un cuadro de texto con el label Upper Limit y lo agrega al sizer del limite vertical
-#        self._uvLimitTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Upper Limit:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+#        self._uvLimitTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Upper Limit:", wx.DefaultPosition, wx.DefaultSize, style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
 #        _vAxisFgSizer.Add( self._uvLimitTextCtrl, 0, wx.ALL, 5 )
 #        #Crea una slider para indicar el parametro maximo de corte vertical y lo agrega al sizer del limite vertical
 #        self._uVLimitSlider = wx.Slider( self._sizersPanel, wx.ID_ANY, 0, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL | wx.SL_LABELS)
@@ -743,7 +865,8 @@ class Sonorizador ( wx.Frame ):
 #        #Relaciona el sizer de corte vertical con el sizer que contiene todas las slider de corte
 #        _axisFgSizer.Add( _vAxisFgSizer, 1, wx.EXPAND, 5 )
         #Crea el cuadro de texto con el label Horizontal Axis y lo agrega al sizer del panel de las sliders de corte
-        self._hAxisTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Horizontal Axis:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._hAxisTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Horizontal Axis:", wx.DefaultPosition, wx.Size( 110,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._hAxisTextCtrl.SetEditable(0)
         _axisFgSizer.Add( self._hAxisTextCtrl, 0, wx.ALL, 5 )
         #Crea un sizer (row(2)col(2)) para contener las slider del limite horizontal, con la col(1) expandida
         _hAxisFgSizer = wx.FlexGridSizer( 2, 2, 0, 0 )
@@ -751,7 +874,8 @@ class Sonorizador ( wx.Frame ):
         _hAxisFgSizer.SetFlexibleDirection( wx.BOTH )
         _hAxisFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Crea un cuadro de texto con el label Lower Limit y lo agrega al sizer del limite horizontal
-        self._lhLimitTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Lower Limit:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._lhLimitTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Lower Limit:", wx.DefaultPosition, wx.Size( 90,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._lhLimitTextCtrl.SetEditable(0)
         _hAxisFgSizer.Add( self._lhLimitTextCtrl, 0, wx.ALL, 5 )
         #Crea una slider para indicar el parametro minimo de corte horizontal y lo agrega al sizer del limite horizontal
         self._lHLimitSlider = wx.Slider( self._sizersPanel, wx.ID_ANY, 0, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL | wx.SL_LABELS )
@@ -759,7 +883,8 @@ class Sonorizador ( wx.Frame ):
         self._lHLimitSlider.Bind( wx.EVT_SCROLL, self._eventLHLimitSlider )
         _hAxisFgSizer.Add( self._lHLimitSlider, 0, wx.EXPAND, 5 )
         #Crea un cuadro de texto con el label Upper Limit y lo agrega al sizer del limite horizontal
-        self._uhLimitTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Upper Limit:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._uhLimitTextCtrl = wx.TextCtrl( self._sizersPanel, wx.ID_ANY, u"Upper Limit:", wx.DefaultPosition, wx.Size( 90,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._uhLimitTextCtrl.SetEditable(0)
         _hAxisFgSizer.Add( self._uhLimitTextCtrl, 0, wx.ALL, 5 )
         #Crea una slider para indicar el parametro maximo de corte horizontal y lo agrega al sizer del limite horizontal
         self._uHLimitSlider = wx.Slider( self._sizersPanel, wx.ID_ANY, 0, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL | wx.SL_LABELS )
@@ -781,7 +906,8 @@ class Sonorizador ( wx.Frame ):
         _matFcFgSizer.SetFlexibleDirection( wx.BOTH )
         _matFcFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Crea un cuadro de texto con el label Mathematical Functions y lo agrega al sizer de las funciones matematicas predefinidas
-        self._matFcTextCtrl = wx.TextCtrl( self._matFcPanel, wx.ID_ANY, u"Mathematical Functions:", wx.DefaultPosition, wx.Size( -1,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._matFcTextCtrl = wx.TextCtrl( self._matFcPanel, wx.ID_ANY, u"Mathematical Functions:", wx.DefaultPosition, wx.Size( 170,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_LEFT )
+        self._matFcTextCtrl.SetEditable(0)
         _matFcFgSizer.Add( self._matFcTextCtrl, 0, wx.ALL, 5 )
         #Crea una lista de funciones matematicas predefinidas, las carga en una lista desplegable y la agrega al sizer de las funciones matematicas predefinidas
         _matFcListBoxChoices = [ u"Last limits cut", u"Original", u"Inverse", u"Square", u"Square root", u"Logarithm", u"Average" ] #u"Play Backward",
@@ -789,7 +915,8 @@ class Sonorizador ( wx.Frame ):
         self._matFcListBox.Bind( wx.EVT_LISTBOX, self._eventMatFc )
         _matFcFgSizer.Add( self._matFcListBox, 0, wx.ALL|wx.EXPAND, 5 )
         #Crea un cuadro de texto con el label Average number of points y lo agrega al sizer de las funciones matematicas predefinidas
-        self._avNPointsTextCtrl = wx.TextCtrl( self._matFcPanel, wx.ID_ANY, u"Average number of points:", wx.DefaultPosition, wx.Size( -1,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )#, u"Average number of points:" )
+        self._avNPointsTextCtrl = wx.TextCtrl( self._matFcPanel, wx.ID_ANY, u"Average number of points:", wx.DefaultPosition, wx.Size( 120,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_LEFT )#, u"Average number of points:" )
+        self._avNPointsTextCtrl.SetEditable(0)
         _matFcFgSizer.Add( self._avNPointsTextCtrl, 0, wx.ALL, 5 )
         #Crea un campo de texto editable con botones para subir y bajar el valor, lo presetea en 1 y lo agrega al sizer de las funciones matematicas predefinidas
         self._avNPointsspinCtrl = wx.SpinCtrl( self._matFcPanel, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS|wx.TE_PROCESS_ENTER, 1, 1000, 0 )
@@ -812,10 +939,53 @@ class Sonorizador ( wx.Frame ):
         self._operationPanel.SetSizer( _operationFgSizer )
         self._operationPanel.Layout()
         _operationFgSizer.Fit( self._operationPanel )
+        
+    def replotFromOctavePanel(self, panel):
+        #Crea el panel
+        self.retrieveFromOctavePanel = wx.Panel( panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        #Crea el sizer para todo el dialog
+        _retrieveFgSizer = wx.FlexGridSizer( 3, 2, 0, 0 )
+        _retrieveFgSizer.SetFlexibleDirection( wx.BOTH )
+        _retrieveFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+        #Crea los elementos para pull
+        self._xFromOctaveLabelTextCtrl = wx.TextCtrl( self.retrieveFromOctavePanel, wx.ID_ANY, u"Name of x array: ", wx.DefaultPosition, wx.Size( 130,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        _retrieveFgSizer.Add( self._xFromOctaveLabelTextCtrl, 0, wx.ALL, 5 )    
+        self._xFromOctaveLabelTextCtrl.SetEditable(0)
+        self._xFromOctaveTextCtrl = wx.TextCtrl( self.retrieveFromOctavePanel, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
+        self._xFromOctaveTextCtrl.Bind( wx.EVT_TEXT_ENTER, self._eventXFromOctave )
+        _retrieveFgSizer.Add( self._xFromOctaveTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )
+        self._yFromOctaveLabelTextCtrl = wx.TextCtrl( self.retrieveFromOctavePanel, wx.ID_ANY, u"Name of y array: ", wx.DefaultPosition, wx.Size( 130,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        _retrieveFgSizer.Add( self._yFromOctaveLabelTextCtrl, 0, wx.ALL, 5 )    
+        self._yFromOctaveLabelTextCtrl.SetEditable(0)
+        self._yFromOctaveTextCtrl = wx.TextCtrl( self.retrieveFromOctavePanel, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
+        self._yFromOctaveTextCtrl.Bind( wx.EVT_TEXT_ENTER, self._eventYFromOctave )
+        _retrieveFgSizer.Add( self._yFromOctaveTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )
+        
+        #Crea el botón ok
+        self._continueButton = wx.Button( self.retrieveFromOctavePanel, wx.ID_ANY, u"Continue", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._continueButton.Bind( wx.EVT_BUTTON, self._eventContinueReplotFromOctave )
+        _retrieveFgSizer.Add( self._continueButton, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+        
+        #Crea el botón Close
+        self._closeButton = wx.Button( self.retrieveFromOctavePanel, wx.ID_ANY, u"Close", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._closeButton.Bind( wx.EVT_BUTTON, self._eventCloseReplotFromOctave )
+        _retrieveFgSizer.Add( self._closeButton, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+        
+        #Relaciona el panel GNU Octave con su sizer y lo agrega al sizer del panel operaciones
+        self.retrieveFromOctavePanel.SetSizer( _retrieveFgSizer )
+        self.retrieveFromOctavePanel.Layout()
+        _retrieveFgSizer.Fit( self.retrieveFromOctavePanel )
+
     
     def _createInputDataDisplayPanel(self, panel):
         #Crea el panel del botón Open
-        self._openPanel = wx.Panel( panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        #self._openPanel = wx.Panel( panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self._openPanel = wx.ScrolledWindow( panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL|wx.TAB_TRAVERSAL )
+        self._openPanel.SetScrollRate( 5, 5 )
+        #self._openPanel.SetScrollbars(1, 1, 1, 1)
+        self._openPanel.SetMinSize( wx.Size( 350,200 ) )
         _openButFgSizer = wx.FlexGridSizer( 5, 1, 0, 0 )
         _openButFgSizer.SetFlexibleDirection( wx.BOTH )
         _openButFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -826,7 +996,7 @@ class Sonorizador ( wx.Frame ):
         _titleDataFgSizer.SetFlexibleDirection( wx.BOTH )
         _titleDataFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         
-        self._titleDataTextCtrl = wx.TextCtrl( self._openPanel, wx.ID_ANY, u"Data title:", wx.DefaultPosition, wx.Size( -1,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._titleDataTextCtrl = wx.TextCtrl( self._openPanel, wx.ID_ANY, u"Data title:", wx.DefaultPosition, wx.Size( 70,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
         self._titleDataTextCtrl.SetEditable(0)
         _titleDataFgSizer.Add( self._titleDataTextCtrl, 0, wx.ALL, 5 )
         self._titleEdDataTextCtrl = wx.TextCtrl( self._openPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
@@ -838,6 +1008,7 @@ class Sonorizador ( wx.Frame ):
         self._askLabelDataCheckBox = wx.CheckBox( self._openPanel, wx.ID_ANY, u"Is the first line the columns title?", wx.DefaultPosition, wx.DefaultSize, 0 )
         self._askLabelDataCheckBox.Bind( wx.EVT_CHECKBOX, self._eventAskLabelData )
         _openButFgSizer.Add( self._askLabelDataCheckBox, 0, wx.ALL, 5 )
+        self._askLabelDataCheckBox.Hide()
         
         #Create the grid for the data
         self._dataGrid = wx.grid.Grid( self._openPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -863,9 +1034,24 @@ class Sonorizador ( wx.Frame ):
         self._dataGrid.SetMaxSize( wx.Size( 300,100 ) )
         _openButFgSizer.Add( self._dataGrid, 0, wx.EXPAND | wx.ALL, 5 )
         
-        self._addGridChangesButton = wx.Button( self._openPanel, wx.ID_ANY, u"Apply Changes", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #Crea el sizer para los botones de la grilla
+        _buttonsDataFgSizer = wx.FlexGridSizer( 1, 3, 0, 0 )
+        _buttonsDataFgSizer.SetFlexibleDirection( wx.BOTH )
+        _buttonsDataFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+        
+        self._addGridChangesButton = wx.Button( self._openPanel, wx.ID_ANY, u"Update Column\n Names", wx.DefaultPosition, wx.DefaultSize, 0 )
         self._addGridChangesButton.Bind( wx.EVT_BUTTON, self._eventAddGridChanges )
-        _openButFgSizer.Add( self._addGridChangesButton, 0, wx.ALL, 5 )
+        _buttonsDataFgSizer.Add( self._addGridChangesButton, 0, wx.ALL, 5 )
+        
+        self._addGridUpdateButton = wx.Button( self._openPanel, wx.ID_ANY, u"Update Grid", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._addGridUpdateButton.Bind( wx.EVT_BUTTON, self._eventUpdateGrid )
+        _buttonsDataFgSizer.Add( self._addGridUpdateButton, 0, wx.ALL, 5 )
+        
+        self._addGridOriginalButton = wx.Button( self._openPanel, wx.ID_ANY, u"Original Array", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._addGridOriginalButton.Bind( wx.EVT_BUTTON, self._eventOriginalGrid )
+        _buttonsDataFgSizer.Add( self._addGridOriginalButton, 0, wx.ALL, 5 )
+        
+        _openButFgSizer.Add( _buttonsDataFgSizer, 0, wx.EXPAND, 5 )
         
     #Crea el sizer de los desplegables para elegir los ejes
         _axisChoiceFgSizer = wx.FlexGridSizer( 2, 2, 0, 0 )
@@ -873,22 +1059,22 @@ class Sonorizador ( wx.Frame ):
         _axisChoiceFgSizer.SetFlexibleDirection( wx.BOTH )
         _axisChoiceFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         
-        self._axisChoiceXTextCtrl = wx.TextCtrl( self._openPanel, wx.ID_ANY, u"Axis X selection:", wx.DefaultPosition, wx.Size( 85,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._axisChoiceXTextCtrl = wx.TextCtrl( self._openPanel, wx.ID_ANY, u"Axis X selection:", wx.DefaultPosition, wx.Size( 120,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
         self._axisChoiceXTextCtrl.SetEditable(0)
         self._axisChoiceXTextCtrl.NavigateIn()
         _axisChoiceFgSizer.Add( self._axisChoiceXTextCtrl, 0, wx.ALL|wx.FIXED_MINSIZE, 5 )
         
-        self._axisChoiceX = wx.ListBox( self._openPanel, wx.ID_ANY, wx.DefaultPosition, wx.Size(-1,40), [""], 0 )
+        self._axisChoiceX = wx.ListBox( self._openPanel, wx.ID_ANY, wx.DefaultPosition, wx.Size(120,60), [""], 0 )
         self._axisChoiceX.Bind( wx.EVT_LISTBOX, self._eventAxisChoiceX )
         self._axisChoiceX.SetSelection( 0 )
         _axisChoiceFgSizer.Add( self._axisChoiceX, 0, wx.ALL|wx.FIXED_MINSIZE, 5 )
         
-        self._axisChoiceYTextCtrl = wx.TextCtrl( self._openPanel, wx.ID_ANY, u"Axis Y selection:", wx.DefaultPosition, wx.Size( 85,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        self._axisChoiceYTextCtrl = wx.TextCtrl( self._openPanel, wx.ID_ANY, u"Axis Y selection:", wx.DefaultPosition, wx.Size( 120,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
         self._axisChoiceYTextCtrl.SetEditable(0)
         self._axisChoiceYTextCtrl.NavigateIn()
         _axisChoiceFgSizer.Add( self._axisChoiceYTextCtrl, 0, wx.ALL|wx.FIXED_MINSIZE, 5 )
         
-        self._axisChoiceY = wx.ListBox( self._openPanel, wx.ID_ANY, wx.DefaultPosition, wx.Size(-1,40), [""], 0 )
+        self._axisChoiceY = wx.ListBox( self._openPanel, wx.ID_ANY, wx.DefaultPosition, wx.Size(120,60), [""], 0 )
         self._axisChoiceY.Bind( wx.EVT_LISTBOX, self._eventAxisChoiceY )
         self._axisChoiceY.SetSelection( 0 )
         _axisChoiceFgSizer.Add( self._axisChoiceY, 0, wx.ALL|wx.FIXED_MINSIZE, 5 )
@@ -900,7 +1086,7 @@ class Sonorizador ( wx.Frame ):
         self._openPanel.Layout()
         _openButFgSizer.Fit( self._openPanel )
         return self._openPanel
-
+    
     def _createShell(self, panel):
         #Crea la shell
         all = dict(globals())
@@ -925,8 +1111,17 @@ class Sonorizador ( wx.Frame ):
     
     def _eventAddGridChanges( self, event ):
         event.Skip()
+        
+    def _eventUpdateGrid( self, event ):
+        event.Skip()
+        
+    def _eventOriginalGrid( self, event ):
+        event.Skip()
     
     def _eventDeleteAllMark( self, event ):
+        event.Skip()
+        
+    def _eventSaveData( self, event ):
         event.Skip()
         
     def _eventSaveMarks( self, event ):
@@ -953,8 +1148,8 @@ class Sonorizador ( wx.Frame ):
     def _eventPlay( self, event ):
         event.Skip()
 
-    def _eventPause( self, event ):
-        event.Skip()
+#    def _eventPause( self, event ):
+#        event.Skip()
         
     def _eventStop( self, event ):
         event.Skip()
@@ -1007,8 +1202,8 @@ class Sonorizador ( wx.Frame ):
     def _eventMFLastCut( self, event ):
         event.Skip()
 
-#    def _eventOctaveSelect( self, event ):
-#        event.Skip()
+    def _eventOctaveSelect( self, event ):
+        event.Skip()
 
     def _eventCPFileSelect( self, event ):
         event.Skip()
@@ -1016,11 +1211,11 @@ class Sonorizador ( wx.Frame ):
     def _eventCPDataDisplaySelect( self, event ):
         event.Skip()
 
-#    def _eventCPDataOpSelect( self, event ):
-#        event.Skip()
+    def _eventCPDataOpSelect( self, event ):
+        event.Skip()
 
-#    def _eventCPDOOctaveSelect( self, event ):
-#        event.Skip()
+    def _eventCPDOOctaveSelect( self, event ):
+        event.Skip()
 
     def _eventCPDOSliderSelect( self, event ):
         event.Skip()
@@ -1076,8 +1271,8 @@ class Sonorizador ( wx.Frame ):
     def _eventGDisplay( self, event ):
         event.Skip()
         
-#    def _eventOctaveToggle( self, event ):
-#        event.Skip()
+    def _eventOctaveToggle( self, event ):
+        event.Skip()
         
     def _eventSliderToggle( self, event ):
         event.Skip()
@@ -1134,4 +1329,95 @@ class Sonorizador ( wx.Frame ):
         event.Skip()
         
     def _eventGridWidthSpinCtrl( self, event ):
+        event.Skip()
+        
+#    def _eventSendToOctave( self, event ):
+#        event.Skip()
+
+    def _eventOctaveReplot( self, event ):
+        event.Skip()
+        
+    def _eventXFromOctave( self, event ):
+        event.Skip()
+        
+    def _eventYFromOctave( self, event ):
+        event.Skip()
+        
+    def _eventOctaveInput( self, event ):
+        event.Skip()
+        
+    def _eventContinueReplotFromOctave(self, event):
+        event.Skip()
+        
+    def _eventCloseReplotFromOctave(self, event):
+        event.Skip()
+        
+        
+class ReplotFromOctave(wx.Dialog):
+
+    def __init__(self, *args, **kw):
+        super(ReplotFromOctave, self).__init__(*args, **kw)
+        self.SetSize((250, 200))
+        self.SetTitle("Retrieve data from Octave and replot")
+
+        _mainSizer = wx.BoxSizer( wx.VERTICAL )
+        
+        #Crea el panel
+        self.retrievePanel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        #Crea el sizer para todo el dialog
+        _retrieveFgSizer = wx.FlexGridSizer( 3, 2, 0, 0 )
+        _retrieveFgSizer.SetFlexibleDirection( wx.BOTH )
+        _retrieveFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+        #Crea los elementos para pull
+        self._xFromOctaveLabelTextCtrl = wx.TextCtrl( self.retrievePanel, wx.ID_ANY, u"Name of x array: ", wx.DefaultPosition, wx.Size( -1,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        _retrieveFgSizer.Add( self._xFromOctaveLabelTextCtrl, 0, wx.ALL, 5 )    
+        self._xFromOctaveLabelTextCtrl.SetEditable(0)
+        self._xFromOctaveTextCtrl = wx.TextCtrl( self.retrievePanel, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
+        self._xFromOctaveTextCtrl.Bind( wx.EVT_TEXT_ENTER, self._eventXFromOctave )
+        _retrieveFgSizer.Add( self._xFromOctaveTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )
+        self._yFromOctaveLabelTextCtrl = wx.TextCtrl( self.retrievePanel, wx.ID_ANY, u"Name of y array: ", wx.DefaultPosition, wx.Size( -1,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_RIGHT )
+        _retrieveFgSizer.Add( self._yFromOctaveLabelTextCtrl, 0, wx.ALL, 5 )    
+        self._yFromOctaveLabelTextCtrl.SetEditable(0)
+        self._yFromOctaveTextCtrl = wx.TextCtrl( self.retrievePanel, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
+        self._yFromOctaveTextCtrl.Bind( wx.EVT_TEXT_ENTER, self._eventYFromOctave )
+        _retrieveFgSizer.Add( self._yFromOctaveTextCtrl, 0, wx.EXPAND | wx.ALL, 5 )
+        
+        #Crea el botón ok
+        self._continueButton = wx.Button( self.retrievePanel, wx.ID_ANY, u"Continue", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._continueButton.Bind( wx.EVT_BUTTON, self._eventContinue )
+        _retrieveFgSizer.Add( self._continueButton, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+        
+        #Crea el botón Close
+        self._closeButton = wx.Button( self.retrievePanel, wx.ID_ANY, u"Close", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self._closeButton.Bind( wx.EVT_BUTTON, self.OnClose )
+        _retrieveFgSizer.Add( self._closeButton, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+        
+        #Relaciona el panel GNU Octave con su sizer y lo agrega al sizer del panel operaciones
+        self.retrievePanel.SetSizer( _retrieveFgSizer )
+        self.retrievePanel.Layout()
+        _retrieveFgSizer.Fit( self.retrievePanel )
+        
+        self.Bind( wx.EVT_CLOSE, self.OnClose )
+    
+        _mainSizer.Add( self.retrievePanel, 1, wx.EXPAND |wx.ALL, 5 )
+        #Setea el sizer inicial
+        self.SetSizer( _mainSizer )
+        self.Layout()
+        self.Centre( wx.BOTH )
+
+    def OnClose(self, event):
+        self.SetReturnCode(0)
+        self.Destroy()
+        
+    def _eventContinue(self, event):
+        self.SetReturnCode(1)
+        self.Destroy()
+        #event.Skip()
+        
+    def _eventXFromOctave( self, event ):
+        event.Skip()
+        
+    def _eventYFromOctave( self, event ):
         event.Skip()

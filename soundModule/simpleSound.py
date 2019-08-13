@@ -43,7 +43,8 @@ class reproductorMidi (object):
                     fluidsynth.init((soundFont), str("alsa").encode('ascii'))
                 else:
                     if platformName == 'Darwin':
-                        fluidsynth.init((soundFont), ("coreaudio"))
+                        fluidsynth.init(soundFont)
+                        #fluidsynth.start(driver='coreaudio')
                     else:
                         self.expErrRep.writeInfo("The operative system is unknown, the software can't open fluidsynth.")
         except Exception as e:
@@ -267,6 +268,7 @@ class reproductorMidi (object):
     
     #Es el método encargado de generar las notas y reproducirlas
     def pitch (self, value, volume, cont):
+        
         #Se debe parar la nota antes de enviar la siguiente.
         try:
             if not (cont == -1):
@@ -282,6 +284,29 @@ class reproductorMidi (object):
                 fluidsynth.stop_Note(self.n, 0)
         except Exception as e:
             self.expErrRep.writeException(e)
+
+#        n = Note(value)
+#        n.velocity = 100
+#        fluidsynth.play_Note(n,1)
+#        time.sleep(0.1)
+#        fluidsynth.stop_Note(n,1)
+        #Pruebas en MAC
+#        #Se debe parar la nota antes de enviar la siguiente.
+#        try:
+#           if not (cont == -1):
+#               #if not cont==0:
+#               #   fluidsynth.stop_Note(self.n, 0)
+#              #Genera la nota a reproducir.
+#               self.n = Note(int(value*self.rango)+self.offset)
+#               #Esta parte es confusa aún.
+#               self.n.velocity = volume
+#               #Se envía la nota a reproducir.
+#               fluidsynth.play_Note(self.n, 0)
+#               time.sleep(0.30)
+#               #else:
+#               fluidsynth.stop_Note(self.n, 0)
+#        except Exception as e:
+#            self.expErrRep.writeException(e)
         
 #Esta clase es la que se comunica con la clase principal.
 class simpleSound(object):
@@ -301,27 +326,28 @@ class simpleSound(object):
             else:
                 self.reproductor.pitch(0, 0, x)
         except Exception as e:
-            self.expErrRep.writeException(e)
+            self.expErrSs.writeException(e)
         #En un futuro se puede pedir confirmación al método pitch y devolverla.
     #Aquí se genera el archivo de salida con el sonido, por el momento no depende del tempo seleccionado.
     def saveSound(self, path, dataX, dataY):
         #Se genera un objeto Track
         try:
             localTrack = track.Track()
-            rango, offset = self.reproductor.getRange()
+            
         except Exception as e:
-            self.expErrRep.writeException(e)
+            self.expErrSs.writeException(e)
         #Se recorre el array agregando las notas al Track.
         try:
+            rango, offset = self.reproductor.getRange()
             for x in range (0, dataX.size):
                 localTrack.add_notes(Note(int((dataY[x]*rango)+offset)))
         except Exception as e:
-            self.expErrRep.writeException(e)
+            self.expErrSs.writeException(e)
         #Finalmente se guarda el la ruta seleccionada.
         try:
             MidiFileOut.write_Track(path, localTrack)
         except Exception as e:
-            self.expErrRep.writeException(e)
+            self.expErrSs.writeException(e)
     #Se genera este método por si fuera necesario en un intento por eliminar las instancias de fluidsynth
     #y volver a generarlas.
     def refreshMidi (self):
@@ -331,4 +357,4 @@ class simpleSound(object):
             time.sleep(0.01)
             self.reproductor = reproductorMidi()
         except Exception as e:
-            self.expErrRep.writeException(e)
+            self.expErrSs.writeException(e)
