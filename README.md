@@ -33,7 +33,11 @@ For Ubuntu: ```sudo apt install python3-pip```\
 For Windows, pip is installed with the executable.\
 
 4.  Only for Linux you have to install some other packages:\
-```sudo apt install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 libsdl-ttf2.0-0 libgtk-3-dev```
+```sudo apt install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 libsdl-ttf2.0-0 libgtk-3-dev```\
+For ubuntu-16.04:\
+```python3 -m pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython```\
+For ubuntu-18.04:\
+```python3 -m pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython```
 
 5.	If you want to download the software from the repository install git, if not you can use the version on Pypi.
 
@@ -44,6 +48,9 @@ For Windows, pip is installed with the executable.\
 Install with pip:\
 ```python3 -m pip install sonoUno```
 
+To open the sonoUno software:\
+```sonouno```
+
 ### From github
 
 Download the git repository from the terminal with:\
@@ -52,8 +59,6 @@ Download the git repository from the terminal with:\
 Go to the folder and install it:\
 ```cd sonoUno```\
 ```python3 -m pip install .```
-
-## Using the software
 
 To open the sonoUno software:\
 ```cd sonoUno```\
