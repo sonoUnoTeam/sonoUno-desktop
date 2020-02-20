@@ -20,56 +20,41 @@ For Windows download the installer from: https://ftpmirror.gnu.org/octave/window
 
 2.	Check that you have python installed on your system running ‘python3’ or ‘python’ on a terminal. If you don’t have python:
 
-For Mac: ```brew install python3```
-
-For Ubuntu: ```sudo apt install --upgrade python3```
-
-For Windows download the installer from: https://www.python.org/ftp/python/3.8.1/python-3.8.1-amd64.exe
+For Mac: ```brew install python3```\
+For Ubuntu: ```sudo apt install --upgrade python3```\
+For Windows download the installer from: https://www.python.org/ftp/python/3.8.1/python-3.8.1-amd64.exe\
 
 Note: from here we use python3, you have to use python or python3 depending on the step before.
 
-
 3.	Check that pip is installed with ‘python3 -m pip -V’. If not:
 
-For Mac, pip is installed with python installation.
+For Mac, pip is installed with python installation.\
+For Ubuntu: ```sudo apt install python3-pip```\
+For Windows, pip is installed with the executable.\
 
-For Ubuntu: ```sudo apt install python3-pip```
-
-For Windows, pip is installed with the executable.
-
-
-4.  Only for Linux you have to install some other packages:
-
+4.  Only for Linux you have to install some other packages:\
 ```sudo apt install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 libsdl-ttf2.0-0 libgtk-3-dev```
 
-
 5.	If you want to download the software from the repository install git, if not you can use the version on Pypi.
-
 
 ## Opening the software
 
 ### From Pypi
 
-Install with pip:
-
+Install with pip:\
 ```python3 -m pip install sonoUno```
 
 ### From github
 
-Download the git repository from the terminal with:
-
+Download the git repository from the terminal with:\
 ```git clone https://github.com/sonoUnoTeam/sonoUno.git```
 
-Go to the folder and install it:
-
-```cd sonoUno```
-
+Go to the folder and install it:\
+```cd sonoUno```\
 ```python3 -m pip install .```
 
 ## Using the software
 
-To open the sonoUno software:
-
-```cd sonoUno```
-
+To open the sonoUno software:\
+```cd sonoUno```\
 ```python3 sonoUno```
