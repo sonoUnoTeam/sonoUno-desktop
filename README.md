@@ -14,12 +14,9 @@ Finally, the software allows the user to save the plot, a text file with the poi
 
 1.	Install octave
 
-For Mac you can use brew: ```brew install octave```
-
-For Ubuntu: ```sudo apt install octave```
-
+For Mac you can use brew: ```brew install octave```\
+For Ubuntu: ```sudo apt install octave```\
 For Windows download the installer from: https://ftpmirror.gnu.org/octave/windows/octave-5.2.0_1-w64-installer.exe
-
 
 2.	Check that you have python installed on your system running ‘python3’ or ‘python’ on a terminal. If you don’t have python:
 
