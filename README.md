@@ -16,7 +16,7 @@ Finally, the software allows the user to save the plot, a text file with the poi
 
 For Mac you can use brew: ```brew install octave```\
 For Ubuntu: ```sudo apt install octave```\
-For Windows download the installer from: https://ftpmirror.gnu.org/octave/windows/octave-5.2.0_1-w64-installer.exe
+For Windows download the installer from: https://ftpmirror.gnu.org/octave/windows/octave-5.2.0_1-w64-installer.exe . Once is installed you have to set the environment variables.
 
 2.	Check that you have python installed on your system running ‘python3’ or ‘python’ on a terminal. If you don’t have python:
 
@@ -43,7 +43,7 @@ For ubuntu-18.04:\
 
 ## Opening the software
 
-### From Pypi
+### From Pypi (only Linux and Mac)
 
 Install with pip:\
 ```python3 -m pip install sonoUno```
@@ -53,11 +53,13 @@ To open the sonoUno software:\
 
 ### From github
 
-Download the git repository from the terminal with:\
+Download from the webpage: https://github.com/sonoUnoTeam/sonoUno . Go to Downloads and unzip the file.
+
+
+The other option is to clone the git repository from the terminal with:\
 ```git clone https://github.com/sonoUnoTeam/sonoUno.git```
 
-Go to the folder and install it:\
-```cd sonoUno```\
+Then, on the terminal, go to the folder which contain the setup.py and install it:\
 ```python3 -m pip install .```
 
 To open the sonoUno software:\
