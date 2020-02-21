@@ -179,10 +179,11 @@ class FrameDesign( wx.Frame ):
         
         # Create the shortcut key table, here the buttons and functions not
         # set on the menu bar can be added.
-        self.shortcuttable = wx.AcceleratorTable(
-            [(wx.ACCEL_NORMAL, wx.WXK_SPACE, self._playmenuitem.GetId())]
-            )
-        self.SetAcceleratorTable(self.shortcuttable)
+        # self.shortcuttable = wx.AcceleratorTable(
+        #     [(wx.ACCEL_NORMAL, wx.WXK_SPACE, self._playmenuitem.GetId())]
+        #     )
+        # self.SetAcceleratorTable(self.shortcuttable)
+        #This are commented, we decide change the shortcut
 
     def _createmenubar(self):
         
@@ -349,7 +350,7 @@ class FrameDesign( wx.Frame ):
         self._playmenuitem = wx.MenuItem(
             parentMenu = self._menudisplay, 
             id = wx.ID_ANY, 
-            text = ('Play'), 
+            text = ('Play' + '\t' + 'Alt+Shift+P'), 
             helpString = ('Start the reproduction of the sonifyed data.'), 
             kind = wx.ITEM_CHECK 
             )
@@ -1247,8 +1248,8 @@ class FrameDesign( wx.Frame ):
         _absPosFgSizer.SetFlexibleDirection( wx.BOTH )
         _absPosFgSizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         #Crea un espacio de texto con el label Abscissa Position y lo agrega al sizer de objetos relacionados con la posicion de abscisas.
-        self._absPosTextCtrl = wx.TextCtrl( displaypanel, wx.ID_ANY, u"Abscissa Position:", wx.DefaultPosition, wx.Size( 125,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
-        self._absPosTextCtrl.SetEditable(0)
+        self._absPosTextCtrl = wx.TextCtrl( displaypanel, wx.ID_ANY, u"Abscissa Position:", wx.DefaultPosition, wx.Size( 125,30 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_READONLY )
+        #self._absPosTextCtrl.SetEditable(0)
         self._absPosTextCtrl.SetToolTip( u"Abscissa position label." )
         _absPosFgSizer.Add( self._absPosTextCtrl, 0, wx.ALIGN_RIGHT|wx.ALL, 5 )
         #Crea la slider para setear la posicion en abscisas y la agrega al sizer correspondiente.

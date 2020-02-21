@@ -419,7 +419,7 @@ class core (gui.FrameDesign):
 
     def getYOctave(self):
         self._expData.printoutput("Class variable yOctave requested.")
-        return self.yOctaveSound
+        return self.yOctave
 
 #Interfaz!!! - funcionalización
     def setCutSliderLimits (self, xOrigin, yOrigin, x, y):
