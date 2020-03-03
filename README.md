@@ -16,12 +16,16 @@ Finally, the software allows the user to save the plot, a text file with the poi
 
 For Mac you can use brew: ```brew install octave```\
 For Ubuntu: ```sudo apt install octave```\
+For Centos: ```yum install epel-release```\ ```yum install octave```\
 For Windows download the installer from: https://ftpmirror.gnu.org/octave/windows/octave-5.2.0_1-w64-installer.exe . Once is installed you have to set the environment variables.
 
-2.	Check that you have python installed on your system running ‘python3’ or ‘python’ on a terminal. If you don’t have python:
+2.	Check that you have python 3.x installed on your system running ‘python3’ or ‘python’ on a terminal. If you don’t have python:
 
 For Mac: ```brew install python3```\
 For Ubuntu: ```sudo apt install --upgrade python3```\
+For Centos7: 
+  To install python3 without interfear with python2:```sudo yum install centos-release-scl```\ ```sudo yum install rh-python36```\
+  To enable python3: ```scl enable rh-python36 bash```\
 For Windows download the installer from: https://www.python.org/ftp/python/3.8.1/python-3.8.1-amd64.exe\
 
 Note: from here we use python3, you have to use python or python3 depending on the step before.
@@ -30,14 +34,17 @@ Note: from here we use python3, you have to use python or python3 depending on t
 
 For Mac, pip is installed with python installation.\
 For Ubuntu: ```sudo apt install python3-pip```\
+For Centos, pip is installed with python installation.\
 For Windows, pip is installed with the executable.\
 
 4.  Only for Linux you have to install some other packages:\
-```sudo apt install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 libsdl-ttf2.0-0 libgtk-3-dev```\
-For ubuntu-16.04:\
+Ubuntu: ```sudo apt install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 libsdl-ttf2.0-0 libgtk-3-dev```\
+  For ubuntu-16.04:\
 ```python3 -m pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython```\
-For ubuntu-18.04:\
+  For ubuntu-18.04:\
 ```python3 -m pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython```
+Centos: ```yum install SDL```\
+```pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/centos-7 wxPython```\
 
 5.	If you want to download the software from the repository install git, if not you can use the version on Pypi.
 
