@@ -23,7 +23,7 @@ For Windows download the installer from: https://ftpmirror.gnu.org/octave/window
 
 For Mac: ```brew install python3```\
 For Ubuntu: ```sudo apt install --upgrade python3```\
-For Centos7: 
+For Centos7: \
   To install python3 without interfear with python2:```sudo yum install centos-release-scl```\ ```sudo yum install rh-python36```\
   To enable python3: ```scl enable rh-python36 bash```\
 For Windows download the installer from: https://www.python.org/ftp/python/3.8.1/python-3.8.1-amd64.exe\
@@ -42,7 +42,7 @@ Ubuntu: ```sudo apt install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-
   For ubuntu-16.04:\
 ```python3 -m pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython```\
   For ubuntu-18.04:\
-```python3 -m pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython```
+```python3 -m pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython```\
 Centos: ```yum install SDL```\
 ```pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/centos-7 wxPython```\
 
