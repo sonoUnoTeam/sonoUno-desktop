@@ -16,6 +16,7 @@ from wx.lib import dialogs
 import oct2py
 
 import gui.frame_design as gui
+from gui.frame_design import DataTable
 from data_import.data_import import DataImport
 from sound_module.simple_sound import simpleSound
 from data_export.data_export import DataExport
@@ -76,7 +77,7 @@ class core (gui.FrameDesign):
         self._firstOpen = False
         self._xOctChange = False
         self._yOctChange = False
-        self.limitDataToLoad = 5000
+        self.limitDataToLoad = 101
         self.dataUpdateToOctave = False
         self.inverseFunc = False
         self.cont = 0
@@ -118,6 +119,26 @@ class core (gui.FrameDesign):
         self._setYName('')
 
         self._setDataFrame(None)
+
+        self.originaldataselected = True
+
+        #Setting special sound config
+        adrs = self._dataSound.reproductor.get_adsr()
+        #Set the sliders and labels and the plot
+        self._soundattackslider.SetValue(adrs['a']*100)
+        self._actualattacktextctrl.SetValue(str(adrs['a']))
+        self._sounddecayslider.SetValue(adrs['d']*100)
+        self._actualdecaytextctrl.SetValue(str(adrs['d']))
+        self._soundreleaseslider.SetValue(adrs['r']*100)
+        self._actualreleasetextctrl.SetValue(str(adrs['r']))
+        self._soundsustainslider.SetValue(adrs['s'])
+        self._actualsustaintextctrl.SetValue(str(adrs['s']))
+        self.plotsoundenvelope()
+
+        self.setsoundattack(0.1)
+        self.setsounddecay(0.1)
+        self.setsoundsustain(0.1)
+        self.setsoundrelease(0.1)
 
 #Setters!!!
     def _setDataFrame (self, data):
@@ -276,6 +297,22 @@ class core (gui.FrameDesign):
         self._expData.printoutput("Setting class variable yOctave.")
         self.yOctave = y
 
+    def setsoundattack(self, a):
+        self._expData.printoutput("Setting class variable soundattack.")
+        self.soundattack = a
+
+    def setsounddecay(self, d):
+        self._expData.printoutput("Setting class variable sounddecay.")
+        self.sounddecay = d
+
+    def setsoundsustain(self, s):
+        self._expData.printoutput("Setting class variable soundsustain.")
+        self.soundsustain = s
+
+    def setsoundrelease(self, r):
+        self._expData.printoutput("Setting class variable soundrelease.")
+        self.soundrelease = r
+
 #Getters!!!
     def getDataFrame (self):
         self._expData.printoutput("Class variable dataFrame requested.")
@@ -420,6 +457,22 @@ class core (gui.FrameDesign):
     def getYOctave(self):
         self._expData.printoutput("Class variable yOctave requested.")
         return self.yOctave
+
+    def getsoundattack(self):
+        self._expData.printoutput("Class variable soundattack requested.")
+        return self.soundattack
+
+    def getsounddecay(self):
+        self._expData.printoutput("Class variable sounddecay requested.")
+        return self.sounddecay
+
+    def getsoundsustain(self):
+        self._expData.printoutput("Class variable soundsustain requested.")
+        return self.soundsustain
+
+    def getsoundrelease(self):
+        self._expData.printoutput("Class variable soundrelease requested.")
+        return self.soundrelease
 
 #Interfaz!!! - funcionalización
     def setCutSliderLimits (self, xOrigin, yOrigin, x, y):
@@ -567,6 +620,7 @@ class core (gui.FrameDesign):
             self._wr = ref(self.panel.lines[self._plotCounter])
         except Exception as e:
             self._expData.writeexception(e)
+        self._figure.tight_layout()
         self._figure.canvas.draw()
 
     def plotMarkLine (self):
@@ -643,7 +697,7 @@ class core (gui.FrameDesign):
             except Exception as e:
                 self._expData.writeexception(e)
             try:
-                self._dataSound.makeSound(self._getNormY(), timerIndex)
+                self._dataSound.make_sound(self._getNormY(), timerIndex)
             except Exception as e:
                 self._expData.writeexception(e)
             self._setTimerIndex(timerIndex + 1)
@@ -715,65 +769,136 @@ class core (gui.FrameDesign):
         except Exception as e:
             self._expData.writeexception(e)
 
-    def dataSelection(self, data):
-        if self.limitDataToLoad < data.shape[0]:
-            if wx.MessageBox("The data file have more than 5000 values, the software might delay to show all the data array on a grid element. Do you want to display all the values on the grid element anyway?\n\nNOTE: The other functionalities (plot, math fuctions, etc) use all the values of the array in any case.", "Information", wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
-                rowNumber = self.limitDataToLoad
+    def _setdatagridpage(self, pos):
+        data = self.getDataFrame()
+        if data.shape[1]<2:
+            return False
+
+        # #Chequeo si los datos son menos de cierto valor
+        # if self.limitDataToLoad < data.shape[0]:
+        #     rowNumber = self.limitDataToLoad
+        # else:
+        #     rowNumber = data.shape[0]
+
+        if pos == 1:
+            if data.shape[0] < self.limitDataToLoad :
+                #los datos son menos de 100
+                rows = data.shape[0]
+                initialnumber = 0
+                self._setgridsize(rows, data.shape[1])
+                self._loadintogrid(data, initialnumber, rows, data.shape[1])
             else:
-                rowNumber = data.shape[0]
+                #cargar los primeros 100 datos
+                rows = 101
+                initialnumber = 0
+                self._setgridsize(rows, data.shape[1])
+                self._loadintogrid(data, initialnumber, rows, data.shape[1])
         else:
-            rowNumber = data.shape[0]
+            gridpages = int(data.shape[0]/self.limitDataToLoad)
+            if pos > gridpages:
+                #cargar la ultima pagina
+                rows = data.shape[0] - gridpages*100
+                initialnumber = gridpages*100
+                self._setgridsize(rows, data.shape[1])
+                self._loadintogrid(data, initialnumber, rows, data.shape[1])
+            else:
+                #detectar pagina y cargar 100 datos
+                rows = 101
+                initialnumber = (pos-1)*100
+                self._setgridsize(rows, data.shape[1])
+                self._loadintogrid(data, initialnumber, rows, data.shape[1])
+
+    def _setgridsize(self, rows, cols):
+        #Redimencionamos la grilla
+        if cols>self._dataGrid.GetNumberCols():
+            self._dataGrid.AppendCols(cols-self._dataGrid.GetNumberCols())
+        elif cols<self._dataGrid.GetNumberCols():
+            self._dataGrid.DeleteCols( numCols=(self._dataGrid.GetNumberCols()-cols) )
+        if rows>self._dataGrid.GetNumberRows():
+            self._dataGrid.AppendRows(rows-self._dataGrid.GetNumberRows())
+        elif rows<self._dataGrid.GetNumberRows():
+            self._dataGrid.DeleteRows( numRows=(self._dataGrid.GetNumberRows()-rows) )
+
+    def _loadintogrid(self, data, init, rows, cols):
+        for j in range (init,(rows+init)): #recorre filas
+            for i in range (0,cols): #recorre columnas
+                self._dataGrid.SetCellValue (j-init, i, str(data.iloc[j,i]))
+                if not j-init == 0:
+                    self._dataGrid.SetReadOnly(j-init, i, isReadOnly=True)
+                    self._dataGrid.SetRowLabelValue(j-init, str(j))
+                else:
+                    self._dataGrid.SetReadOnly(j-init, i, isReadOnly=False)
+                    self._dataGrid.SetCellValue (j-init, i, str(data.iloc[j-init,i]))
+                    self._dataGrid.SetRowLabelValue(j-init, ' ')
+
+    def dataSelection(self, data):
+        # if self.limitDataToLoad < data.shape[0]:
+        #     if wx.MessageBox("The data file have more than 5000 values, the software might delay to show all the data array on a grid element. Do you want to display all the values on the grid element anyway?\n\nNOTE: The other functionalities (plot, math fuctions, etc) use all the values of the array in any case.", "Information", wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
+        #         rowNumber = self.limitDataToLoad
+        #     else:
+        #         rowNumber = data.shape[0]
+        # else:
+        #     rowNumber = data.shape[0]
 
         if data.shape[1]<2:
             return None, None, False
 
-        #Chequeo si los datos son mas de cierto valor
-#        if self.limitDataToLoad > data.shape[0]:
-#            rowNumber = data.shape[0]
-#        else:
-#            rowNumber = self.limitDataToLoad
+        # #Chequeo si los datos son menos de cierto valor
+        # if self.limitDataToLoad < data.shape[0]:
+        #     rowNumber = self.limitDataToLoad
+        # else:
+        #     rowNumber = data.shape[0]
 
         #Limpio la grilla
         self._dataGrid.ClearGrid()
-        #Redimencionamos la grilla
-        if data.shape[1]>self._dataGrid.GetNumberCols():
-            self._dataGrid.AppendCols(data.shape[1]-self._dataGrid.GetNumberCols())
-        elif data.shape[1]<self._dataGrid.GetNumberCols():
-            self._dataGrid.DeleteCols( numCols=(self._dataGrid.GetNumberCols()-data.shape[1]) )
-        if rowNumber>self._dataGrid.GetNumberRows():
-            self._dataGrid.AppendRows(rowNumber-self._dataGrid.GetNumberRows())
-        elif rowNumber<self._dataGrid.GetNumberRows():
-            self._dataGrid.DeleteRows( numRows=(self._dataGrid.GetNumberRows()-rowNumber) )
+        pages = int(data.shape[0]/100)+1
+        self._datagridslider.SetMax(pages)
+        self._maxgridpagetextctrl.SetValue(str(pages))
+        self._setdatagridpage(self._datagridslider.GetValue())
+        # #Redimencionamos la grilla
+        # if data.shape[1]>self._dataGrid.GetNumberCols():
+        #     self._dataGrid.AppendCols(data.shape[1]-self._dataGrid.GetNumberCols())
+        # elif data.shape[1]<self._dataGrid.GetNumberCols():
+        #     self._dataGrid.DeleteCols( numCols=(self._dataGrid.GetNumberCols()-data.shape[1]) )
+        # if rowNumber>self._dataGrid.GetNumberRows():
+        #     self._dataGrid.AppendRows(rowNumber-self._dataGrid.GetNumberRows())
+        # elif rowNumber<self._dataGrid.GetNumberRows():
+        #     self._dataGrid.DeleteRows( numRows=(self._dataGrid.GetNumberRows()-rowNumber) )
 #        #Lo coloco en la grilla
-        dlg = wx.ProgressDialog("Loading data to the grid", " ", maximum=data.shape[0], style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT)
-        dlg.Show()
-        if data.shape[0] < rowNumber:
-            for j in range (0,data.shape[0]):
-                for i in range (0,data.shape[1]):
-                    self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
-                    if not j == 0:
-                        self._dataGrid.SetReadOnly(j, i, isReadOnly=True)
-                    else:
-                        self._dataGrid.SetReadOnly(j, i, isReadOnly=False)
-                dlg.Pulse("Loading data")
-                #dlg.Update(j, "Loading data")
-                #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
-                if dlg.WasCancelled():
-                    break
-        else:
-            for j in range (0,rowNumber):
-                for i in range (0,data.shape[1]):
-                    self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
-                    if not j == 0:
-                        self._dataGrid.SetReadOnly(j, i, isReadOnly=True)
-                    else:
-                        self._dataGrid.SetReadOnly(j, i, isReadOnly=False)
-                #dlg.Update(j, "Loading data")
-                dlg.Pulse("Loading data")
-                #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
-                if dlg.WasCancelled():
-                    break
-        dlg.Destroy()
+        #dlg = wx.ProgressDialog("Loading data to the grid", " ", maximum=data.shape[0], style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT)
+        #dlg.Show()
+        # table = DataTable(data)
+        # self._dataGrid.SetTable(table, takeOwnership=True)
+        # self._dataGrid.AutoSizeColumns()
+        # self._dataGrid.HideCol(0)
+
+        # if data.shape[0] < rowNumber:
+        #     for j in range (0,data.shape[0]):
+        #         for i in range (0,data.shape[1]):
+        #             self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
+        #             if not j == 0:
+        #                 self._dataGrid.SetReadOnly(j, i, isReadOnly=True)
+        #             else:
+        #                 self._dataGrid.SetReadOnly(j, i, isReadOnly=False)
+        #         dlg.Pulse("Loading data")
+        #         #dlg.Update(j, "Loading data")
+        #         #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
+        #         if dlg.WasCancelled():
+        #             break
+        # else:
+        #     for j in range (0,rowNumber):
+        #         for i in range (0,data.shape[1]):
+        #             self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
+        #             if not j == 0:
+        #                 self._dataGrid.SetReadOnly(j, i, isReadOnly=True)
+        #             else:
+        #                 self._dataGrid.SetReadOnly(j, i, isReadOnly=False)
+        #         #dlg.Update(j, "Loading data")
+        #         dlg.Pulse("Loading data")
+        #         #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
+        #         if dlg.WasCancelled():
+        #             break
+        #dlg.Destroy()
         self._axisChoiceX.Clear()
         self._axisChoiceY.Clear()
         #Inserto los titulos de los ejes en los cuadros de opciones de ejes
@@ -889,24 +1014,26 @@ class core (gui.FrameDesign):
         self._figure.tight_layout()
         self._figure.canvas.draw()
 
-    def askLabelData(self):
-        if self.getDataFrame() is not None:
-            data = self.getDataFrame()
-            if not self._askLabelDataCheckBox.IsChecked():
-                self._dataGrid.InsertRows()
-                for i in range (0,data.shape[1]):
-                    self._dataGrid.SetReadOnly(1, i, isReadOnly=True)
-            else:
-                if self._dataGrid.GetNumberRows() > self.limitDataToLoad:
-                    self._dataGrid.DeleteRows()
-                    for i in range (0,data.shape[1]):
-                        self._dataGrid.SetReadOnly(0, i, isReadOnly=False)
-        else:
-            self._expData.writeinfo("The data has not been opened yet.")
-            wx.MessageBox("The data has not been opened yet.",
-                          'Info', wx.OK | wx.ICON_INFORMATION)
+    # def askLabelData(self):
+    #     if self.getDataFrame() is not None:
+    #         data = self.getDataFrame()
+    #         if not self._askLabelDataCheckBox.IsChecked():
+    #             self._dataGrid.InsertRows()
+    #             for i in range (0,data.shape[1]):
+    #                 self._dataGrid.SetReadOnly(1, i, isReadOnly=True)
+    #         else:
+    #             if self._dataGrid.GetNumberRows() > self.limitDataToLoad:
+    #                 self._dataGrid.DeleteRows()
+    #                 for i in range (0,data.shape[1]):
+    #                     self._dataGrid.SetReadOnly(0, i, isReadOnly=False)
+    #     else:
+    #         self._expData.writeinfo("The data has not been opened yet.")
+    #         wx.MessageBox("The data has not been opened yet.",
+    #                       'Info', wx.OK | wx.ICON_INFORMATION)
 
     def dataGridChange(self):
+        #Cambia los nombres de columnas modificados en la grilla, pero aun no los
+        #guarda en el array de datos
         if self.getDataFrame() is not None:
             data = self.getDataFrame()
             if data.shape[1] == self._dataGrid.GetNumberCols():
@@ -927,6 +1054,25 @@ class core (gui.FrameDesign):
                 self.plotTitles()
                 self._figure.tight_layout()
                 self._figure.canvas.draw()
+            else:
+                wx.MessageBox("The column numbers of data and grid don't match.",
+                    'Info', wx.OK | wx.ICON_INFORMATION)
+
+    def _loadintogrid_array(self, x, y, init, rows):
+        for j in range (1+init,rows+init):
+            self._dataGrid.SetCellValue (j-init, 0, str(x[j-1]))
+            self._dataGrid.SetCellValue (j-init, 1, str(y[j-1]))
+            self._dataGrid.SetReadOnly(j-init, 0, isReadOnly=True)
+            self._dataGrid.SetReadOnly(j-init, 1, isReadOnly=True)
+
+        # for j in range (init,(rows+init)): #recorre filas
+        #     for i in range (0,cols): #recorre columnas
+        #         self._dataGrid.SetCellValue (j-init, i, str(data.iloc[j,i]))
+        #         if not j-init == 0:
+        #             self._dataGrid.SetReadOnly(j-init, i, isReadOnly=True)
+        #         else:
+        #             self._dataGrid.SetReadOnly(j-init, i, isReadOnly=False)
+        #             self._dataGrid.SetCellValue (j-init, i, str(data.iloc[j-init,i]))
 
     def dataGridUpdate(self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
@@ -935,25 +1081,56 @@ class core (gui.FrameDesign):
             x = self.getXActual()
             y = self.getYActual()
 
-            if self.limitDataToLoad < x.shape[0]:
-                if wx.MessageBox("The data file have more than 5000 values, the software might delay to show all the data array on a grid element. Do you want to display all the values on the grid element anyway?\n\nNOTE: The other functionalities (plot, math fuctions, etc) use all the values of the array in any case.", "Information", wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
-                    rowNumber = self.limitDataToLoad
-                else:
-                    rowNumber = x.shape[0]
-            else:
-                rowNumber = x.shape[0]
+            # if self.limitDataToLoad < x.shape[0]:
+            #     if wx.MessageBox("The data file have more than 5000 values, the software might delay to show all the data array on a grid element. Do you want to display all the values on the grid element anyway?\n\nNOTE: The other functionalities (plot, math fuctions, etc) use all the values of the array in any case.", "Information", wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
+            #         rowNumber = self.limitDataToLoad
+            #     else:
+            #         rowNumber = x.shape[0]
+            # else:
+            #     rowNumber = x.shape[0]
 
             #Limpio la grilla
             self._dataGrid.ClearGrid()
+
+            pos = self._datagridslider.GetValue()
+            if pos == 1:
+                if x.shape[0] < self.limitDataToLoad :
+                    #los datos son menos de 100
+                    rows = x.shape[0]
+                    initialnumber = 0
+                    self._setgridsize(rows, 2)
+                    self._loadintogrid_array(x, y, initialnumber, rows)
+                else:
+                    #cargar los primeros 100 datos
+                    rows = 101
+                    initialnumber = 0
+                    self._setgridsize(rows, 2)
+                    self._loadintogrid_array(x, y, initialnumber, rows)
+            else:
+                gridpages = int(x.shape[0]/self.limitDataToLoad)
+                if pos > gridpages:
+                    #cargar la ultima pagina
+                    rows = x.shape[0] - gridpages*100
+                    initialnumber = gridpages*100
+                    self._setgridsize(rows, 2)
+                    self._loadintogrid_array(x, y, initialnumber, rows)
+                else:
+                    #detectar pagina y cargar 100 datos
+                    rows = 101
+                    initialnumber = (pos-1)*100
+                    self._setgridsize(rows, 2)
+                    self._loadintogrid_array(x, y, initialnumber, rows)
+
             #Redimencionamos la grilla
-            if 2>self._dataGrid.GetNumberCols():
-                self._dataGrid.AppendCols(2-self._dataGrid.GetNumberCols())
-            elif 2<self._dataGrid.GetNumberCols():
-                self._dataGrid.DeleteCols( numCols=(self._dataGrid.GetNumberCols()-2) )
-            if rowNumber>self._dataGrid.GetNumberRows():
-                self._dataGrid.AppendRows(rowNumber-self._dataGrid.GetNumberRows())
-            elif rowNumber<self._dataGrid.GetNumberRows():
-                self._dataGrid.DeleteRows( numRows=(self._dataGrid.GetNumberRows()-rowNumber) )
+
+            # if 2>self._dataGrid.GetNumberCols():
+            #     self._dataGrid.AppendCols(2-self._dataGrid.GetNumberCols())
+            # elif 2<self._dataGrid.GetNumberCols():
+            #     self._dataGrid.DeleteCols( numCols=(self._dataGrid.GetNumberCols()-2) )
+            # if rowNumber>self._dataGrid.GetNumberRows():
+            #     self._dataGrid.AppendRows(rowNumber-self._dataGrid.GetNumberRows())
+            # elif rowNumber<self._dataGrid.GetNumberRows():
+            #     self._dataGrid.DeleteRows( numRows=(self._dataGrid.GetNumberRows()-rowNumber) )
 
             #Detectar los titulos de columna
             data = self.getDataFrame()
@@ -963,31 +1140,32 @@ class core (gui.FrameDesign):
             self._dataGrid.SetReadOnly(0, 1, isReadOnly=True)
 
             #Lo coloco en la grilla
-            dlg = wx.ProgressDialog("Loading data to the grid", " ", maximum=data.shape[0], style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT)
-            dlg.Show()
-            if x.shape[0] < rowNumber:
-                for j in range (1,x.shape):
-                    self._dataGrid.SetCellValue (j, 0, str(x[j-1]))
-                    self._dataGrid.SetCellValue (j, 1, str(y[j-1]))
-                    self._dataGrid.SetReadOnly(j, 0, isReadOnly=True)
-                    self._dataGrid.SetReadOnly(j, 1, isReadOnly=True)
-                    dlg.Pulse("Loading data")
-                    #dlg.Update(j, "Loading data")
-                    #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
-                    if dlg.WasCancelled():
-                        break
-            else:
-                for j in range (1,rowNumber):
-                    self._dataGrid.SetCellValue (j, 0, str(x[j-1]))
-                    self._dataGrid.SetCellValue (j, 1, str(y[j-1]))
-                    self._dataGrid.SetReadOnly(j, 0, isReadOnly=True)
-                    self._dataGrid.SetReadOnly(j, 1, isReadOnly=True)
-                    dlg.Pulse("Loading data")
-                    #dlg.Update(j, "Loading data")
-                    #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
-                    if dlg.WasCancelled():
-                        break
-            dlg.Destroy()
+
+            # dlg = wx.ProgressDialog("Loading data to the grid", " ", maximum=data.shape[0], style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT)
+            # dlg.Show()
+            # if x.shape[0] < rowNumber:
+            #     for j in range (1,x.shape):
+            #         self._dataGrid.SetCellValue (j, 0, str(x[j-1]))
+            #         self._dataGrid.SetCellValue (j, 1, str(y[j-1]))
+            #         self._dataGrid.SetReadOnly(j, 0, isReadOnly=True)
+            #         self._dataGrid.SetReadOnly(j, 1, isReadOnly=True)
+            #         dlg.Pulse("Loading data")
+            #         #dlg.Update(j, "Loading data")
+            #         #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
+            #         if dlg.WasCancelled():
+            #             break
+            # else:
+            #     for j in range (1,rowNumber):
+            #         self._dataGrid.SetCellValue (j, 0, str(x[j-1]))
+            #         self._dataGrid.SetCellValue (j, 1, str(y[j-1]))
+            #         self._dataGrid.SetReadOnly(j, 0, isReadOnly=True)
+            #         self._dataGrid.SetReadOnly(j, 1, isReadOnly=True)
+            #         dlg.Pulse("Loading data")
+            #         #dlg.Update(j, "Loading data")
+            #         #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
+            #         if dlg.WasCancelled():
+            #             break
+            # dlg.Destroy()
 
     def dataGridOriginal(self):
         if self.getDataFrame() is not None:
@@ -1091,20 +1269,20 @@ class core (gui.FrameDesign):
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expData.writeinfo("The data has not been imported yet.")
         else:
-            wx.MessageBox('The software do not save the sound for the moment, the development team are working on that.',
-                          'Problem saving the sound:', wx.OK | wx.ICON_INFORMATION)
-            # #eSoundPath=self._expData.setpath("Save sound file", "Sound files |*.mid;*.midi")
-            # x = self.getXActual()
-            # y = self.getYActual()
-            # try:
-            #     #self._dataSound.reproductor.setInstrument(self._get_waveformnumber())
-            #     norm_x, norm_y, status = self._matFc.normalize(x, y)
-            #     #self._dataSound.saveSound(eSoundPath, norm_x, norm_y)
-            # except AttributeError as e:
-            #     self._expData.writeinfo("The data has not been imported yet.")
-            #     self._expData.writeexception(e)
-            # except Exception as e:
-            #     self._expData.r(e)
+            #wx.MessageBox('The software do not save the sound for the moment, the development team are working on that.',
+            #              'Problem saving the sound:', wx.OK | wx.ICON_INFORMATION)
+            eSoundPath=self._expData.setpath("Save sound file", "Sound files |*.mid;*.midi")
+            x = self.getXActual()
+            y = self.getYActual()
+            try:
+                #self._dataSound.reproductor.setInstrument(self._get_waveformnumber())
+                norm_x, norm_y, status = self._matFc.normalize(x, y)
+                self._dataSound.save_sound(eSoundPath, norm_x, norm_y)
+            except AttributeError as e:
+                self._expData.writeinfo("The data has not been imported yet.")
+                self._expData.writeexception(e)
+            except Exception as e:
+                self._expData.r(e)
 
     def savePlot(self):
         plotPath = self._expData.setpath("Save plot file", "Image files |*.png")
@@ -1136,9 +1314,33 @@ class core (gui.FrameDesign):
                     self._expData.writeexception(e)
                 #Seteo el tempo dependiendo del tiempo del timer
                 self._timer.Start((self._getVelocity()*1) + 100)
-                self._dataSound.reproductor.setTimebase(self._timer.GetInterval()/1000.0)
+                self._dataSound.reproductor.set_time_base(self._timer.GetInterval()/1000.0)
             else:
                 self._expData.printoutput("The timer is alredy on when the user press Play button.")
+
+    def playMethod(self):
+        if self.getXActual().any()==None:
+            self._expData.writeinfo("The data has not been imported yet.")
+            self._playButton.SetValue(False)
+            self._playmenuitem.Check(False)
+        else:
+            if not self._timer.IsRunning():
+                self._expData.printoutput("Play button is pressed.")
+                self._playButton.SetLabel("Pause")
+                self._playButton.SetValue(True)
+                self._playmenuitem.SetItemLabel("Pause")
+                self._playmenuitem.Check(True)
+                self.play()
+            elif self._timer.IsRunning():
+                self._expData.printoutput("Pause button is pressed.")
+                self._playButton.SetLabel("Play")
+                self._playButton.SetValue(False)
+                self._playmenuitem.SetItemLabel("Play")
+                self._playmenuitem.Check(False)
+                #self._dataSound.make_sound(0, -1)
+                self._timer.Stop()
+            else:
+                self._expData.writeinfo("Error con el contador del botón Play-Pausa")
 
     def stopMethod(self):
         self._playButton.SetValue(False)
@@ -1150,7 +1352,7 @@ class core (gui.FrameDesign):
             self._expData.writeinfo("The data has not been imported yet.")
         else:
             if self._timer.IsRunning():
-                #self._dataSound.makeSound(0, -1)
+                #self._dataSound.make_sound(0, -1)
                 self._timer.Stop()
             self._setTimerIndex(0)
             self._absPosSlider.SetValue(0)
@@ -1259,6 +1461,13 @@ class core (gui.FrameDesign):
             ordenada = np.array([float(np.amin(y)), float(np.amax(y))])
             abscisa = np.array([float(x[self._absPosSlider.GetValue()]), float(x[self._absPosSlider.GetValue()])])
             self.plotRedLine(abscisa, ordenada)
+
+    def tempo(self):
+        if self._timer.IsRunning():
+            self._timer.Stop()
+            self._timer.Start((self._getVelocity()*1) + 100)
+            self._dataSound.reproductor.sound.stop()
+            self._dataSound.reproductor.set_time_base(self._timer.GetInterval()/1000.0)
 
 #    def cutVertical(self):
 #        self.askSavePoints()
@@ -1642,6 +1851,151 @@ class core (gui.FrameDesign):
                 self._setyPoints(np.delete(yp,index))
             else:
                 self.saveMarks()
+
+    def detectcommand(self):
+        # yy
+        text_original = self._writecommandtextctrl.GetLineText(0)
+        text_original = text_original.replace(' ','')
+        cut = text_original.find('(')
+        cut2 = text_original.find(')')
+        if cut!=(-1):
+            text = text_original[:cut]
+        else:
+            text = text_original
+        if text=='open':
+            self.openMethod()
+        elif text=='dellastmark':
+            self.deleteLastMark()
+        elif text=='delallmarks' or text=='delallmark':
+            self.deleteAllMark()
+        elif text=='savedata':
+            self.saveData()
+        elif text=='savemarks' or text=='savemark':
+            self.saveMarks()
+        elif text=='saveplot':
+            self.savePlot()
+        elif text=='quit' or text=='exit':
+            self.Close()
+        elif text=='play' or text=='pause':
+            self.playMethod()
+        elif text=='stop':
+            self.stopMethod()
+        elif text=='markpoint':
+            self.markPoints()
+        elif text=='xposition':
+            if cut==(-1) or cut2==(-1):
+                msg = ('You must enter the x position between parentheses. '
+                    +'Your command was: \n'+text_original)
+                wx.MessageBox(
+                    msg,
+                    'Command error',
+                    wx.OK | wx.ICON_INFORMATION
+                    )
+            else:
+                x_value = float(text_original[cut+1:cut2])
+                x_array = self.getXActual()
+                abs_val_array = np.abs(x_array - x_value)
+                x_pos = abs_val_array.argmin()
+                self._absPosSlider.SetValue(x_pos)
+                self._setTimerIndex(x_pos)
+                self.absPosSetting()
+        elif text=='tempo':
+            if cut==(-1) or cut2==(-1):
+                msg = ('You must enter the tempo value between parentheses. '
+                    +'Your command was: \n'+text_original)
+                wx.MessageBox(
+                    msg,
+                    'Command error',
+                    wx.OK | wx.ICON_INFORMATION
+                    )
+            else:
+                t = int(text_original[cut+1:cut2])
+                self._soundVelSlider.SetValue(t)
+                self._setVelocity(t)
+                self.tempo()
+        elif text=='xlowerlimit':
+            if cut==(-1) or cut2==(-1):
+                msg = ('You must enter the x lower limit value between parentheses. '
+                    +'Your command was: \n'+text_original)
+                wx.MessageBox(
+                    msg,
+                    'Command error',
+                    wx.OK | wx.ICON_INFORMATION
+                    )
+            else:
+                x_value = float(text_original[cut+1:cut2])
+                x_array = self.getXOriginal()
+                abs_val_array = np.abs(x_array - x_value)
+                if np.amin(abs_val_array) < 10:
+                    x_pos = abs_val_array.argmin()
+                    self._lHLimitSlider.SetValue(x_pos)
+                    self.cutHorizontal()
+                else:
+                    msg = ('The value present a diference upper than 10 '
+                        + 'points with any value inside the data.')
+                    wx.MessageBox(
+                        msg,
+                        'Command error',
+                        wx.OK | wx.ICON_INFORMATION
+                        )
+        elif text=='xupperlimit':
+            if cut==(-1) or cut2==(-1):
+                msg = ('You must enter the x upper limit value between parentheses. '
+                    +'Your command was: \n'+text_original)
+                wx.MessageBox(
+                    msg,
+                    'Command error',
+                    wx.OK | wx.ICON_INFORMATION
+                    )
+            else:
+                x_value = float(text_original[cut+1:cut2])
+                x_array = self.getXOriginal()
+                abs_val_array = np.abs(x_array - x_value)
+                if np.amin(abs_val_array) < 10:
+                    x_pos = abs_val_array.argmin()
+                    self._uHLimitSlider.SetValue(x_pos)
+                    self.cutHorizontal()
+                else:
+                    msg = ('The value present a diference upper than 10 '
+                        + 'points with any value inside the data.')
+                    wx.MessageBox(
+                        msg,
+                        'Command error',
+                        wx.OK | wx.ICON_INFORMATION
+                        )
+        elif text=='originaldata':
+            self._avNPointsspinCtrl.Enable(False)
+            self._setMatSelection("Original")
+            self.matFcExecutor()
+        elif text=='xlastcut':
+            self._avNPointsspinCtrl.Enable(False)
+            self._setMatSelection("Last limits cut")
+            self.matFcExecutor()
+        elif text=='inverse_mf':
+            self._avNPointsspinCtrl.Enable(False)
+            self._setMatSelection("Inverse")
+            self.matFcExecutor()
+        elif text=='square_mf':
+            self._avNPointsspinCtrl.Enable(False)
+            self._setMatSelection("Square")
+            self.matFcExecutor()
+        elif text=='squareroot_mf':
+            self._avNPointsspinCtrl.Enable(False)
+            self._setMatSelection("Square root")
+            self.matFcExecutor()
+        elif text=='logarithm_mf':
+            self._avNPointsspinCtrl.Enable(False)
+            self._setMatSelection("Logarithm")
+            self.matFcExecutor()
+
+        else:
+            msg = ('The command inserted do not match with the list of '
+                + 'functionalities. The text inserted was: \n' + text)
+            wx.MessageBox(msg,
+                          'Command not found', wx.OK | wx.ICON_INFORMATION)
+
+        self._writecommandtextctrl.Clear()
+
 #Métodos para vincular con octave
 
     def _savePythonConsole(self):
@@ -1841,6 +2195,32 @@ class core (gui.FrameDesign):
 #            wx.MessageBox("An error occurred while trying to run the M file in Octave.",
 #                          'Information', wx.OK | wx.ICON_INFORMATION)
 
+    def _setspecialsoundconfig(self):
+        self._dataSound.reproductor.set_adsr(
+            self.getsoundattack(),
+            self.getsounddecay(),
+            self.getsoundsustain(),
+            self.getsoundrelease()
+            )
+
+    def _check_adr(self):
+        a = self._soundattackslider.GetValue()/100
+        d = self._sounddecayslider.GetValue()/100
+        r = self._soundreleaseslider.GetValue()/100
+        if a+d+r>1:
+            return False
+        else:
+            return True
+
+    def plotsoundenvelope(self):
+        self._axesenvelopegraph.cla()
+        #self._envelopefigure.canvas.draw()
+        env = self._dataSound.reproductor.get_envelope()
+        n_samples = np.arange(0.0, env.size)
+        self._axesenvelopegraph.plot(n_samples, env)
+        self._envelopefigure.tight_layout()
+        self._envelopefigure.canvas.draw()
+
 #Displays configs!!!
     #Muestra o esconde el panel de la grilla con los botones correspondientes.
     def displayGridChoice(self):
@@ -1904,20 +2284,55 @@ class core (gui.FrameDesign):
             self.SendSizeEvent()
 
     def displayDataOp(self):
-        if self._operationpanel.IsShown():
+        if not self._cpdataopmenuitem.IsChecked(): #self._operationpanel.IsShown():
             self._operationpanel.Hide()
             self._cpdataopmenuitem.Check(False)
-            self._gnuOctavePanel.Show()
-            self.displayOctave()
-            self._sizersMFPanel.Show()
-            self.displayFunctions()
+            self._writecommandpanel.Hide()
+            self._cpdo_writecommandmenuitem.Check(False)
+            self._gnuOctavePanel.Hide()
+            self._cpdooctavemenuitem.Check(False)
+            self._sizersMFPanel.Hide()
+            self._cpdocutslidermenuitem.Check(False)
+            # self._gnuOctavePanel.Show()
+            # self.displayOctave()
+            # self._sizersMFPanel.Show()
+            # self.displayFunctions()
+            # self._writecommandpanel.Show()
+            # self.displayWritefunc()
         else:
             self._operationpanel.Show()
             self._cpdataopmenuitem.Check(True)
-            self._gnuOctavePanel.Hide()
-            self.displayOctave()
-            self._sizersMFPanel.Hide()
-            self.displayFunctions()
+            self._writecommandpanel.Show()
+            self._cpdo_writecommandmenuitem.Check(True)
+            self._gnuOctavePanel.Show()
+            self._cpdooctavemenuitem.Check(True)
+            self._sizersMFPanel.Show()
+            self._cpdocutslidermenuitem.Check(True)
+            # self._gnuOctavePanel.Hide()
+            # self.displayOctave()
+            # self._sizersMFPanel.Hide()
+            # self.displayFunctions()
+            # self._writecommandpanel.Hide()
+            # self.displayWritefunc()
+        self.SendSizeEvent()
+
+    def displayWritefunc(self):
+        if self._writecommandpanel.IsShown():
+            self._writecommandpanel.Hide()
+            self._cpdo_writecommandmenuitem.Check(False)
+            if not self._sizersMFPanel.IsShown() and self._gnuOctavePanel.IsShown():
+                self._operationpanel.Hide()
+                if self._cpdataopmenuitem.IsChecked():
+                    self._cpdataopmenuitem.Check(False)
+            else:
+                if self._cpdataopmenuitem.IsChecked():
+                    self._cpdataopmenuitem.Check(False)
+        else:
+            self._operationpanel.Show()
+            if self._sizersMFPanel.IsShown() and self._gnuOctavePanel.IsShown():
+                self._cpdataopmenuitem.Check(True)
+            self._writecommandpanel.Show()
+            self._cpdo_writecommandmenuitem.Check(True)
         self.SendSizeEvent()
 
     def displayOctave(self):
@@ -1926,12 +2341,17 @@ class core (gui.FrameDesign):
             # self._octaveToggleBtn.SetLabel("Show Octave Operation")
             # self._octaveToggleBtn.SetValue(False)
             self._cpdooctavemenuitem.Check(False)
-            if not self._sizersMFPanel.IsShown():
+            if not self._sizersMFPanel.IsShown() and self._writecommandpanel.IsShown():
                 self._operationpanel.Hide()
-                self._cpdataopmenuitem.Check(False)
+                if self._cpdataopmenuitem.IsChecked():
+                    self._cpdataopmenuitem.Check(False)
+            else:
+                if self._cpdataopmenuitem.IsChecked():
+                    self._cpdataopmenuitem.Check(False)
         else:
             self._operationpanel.Show()
-            self._cpdataopmenuitem.Check(True)
+            if self._sizersMFPanel.IsShown() and self._writecommandpanel.IsShown():
+                self._cpdataopmenuitem.Check(True)
             self._gnuOctavePanel.Show()
             # self._octaveToggleBtn.SetLabel("Hide Octave Operation")
             # self._octaveToggleBtn.SetValue(True)
@@ -1944,12 +2364,17 @@ class core (gui.FrameDesign):
             # self._sliderToggleBtn.SetLabel("Show Sliders and Math Functions")
             # self._sliderToggleBtn.SetValue(False)
             self._cpdocutslidermenuitem.Check(False)
-            if not self._gnuOctavePanel.IsShown():
+            if not self._gnuOctavePanel.IsShown() and self._writecommandpanel.IsShown():
                 self._operationpanel.Hide()
-#                self._cpdataopmenuitem.Check(False)
+                if self._cpdataopmenuitem.IsChecked():
+                    self._cpdataopmenuitem.Check(False)
+            else:
+                if self._cpdataopmenuitem.IsChecked():
+                    self._cpdataopmenuitem.Check(False)
         else:
             self._operationpanel.Show()
-#            self._cpdataopmenuitem.Check(True)
+            if self._gnuOctavePanel.IsShown() and self._writecommandpanel.IsShown():
+                self._cpdataopmenuitem.Check(True)
             self._sizersMFPanel.Show()
             # self._sliderToggleBtn.SetLabel("Hide Sliders and Math Functions")
             # self._sliderToggleBtn.SetValue(True)
@@ -1972,6 +2397,54 @@ class core (gui.FrameDesign):
             self._configSoundToggleBtn.SetValue(True)
             self._cpconfigsoundmenuitem.Check(True)
         self.SendSizeEvent()
+
+    def cont_vs_discrete_sound(self):
+        if self._contdiscsoundToggleBtn.GetValue():
+            #Set continuous
+            self._contdiscsoundToggleBtn.SetLabel("Set discrete sound")
+            # self._contdiscsoundToggleBtn.SetValue(True)
+            self._scontmenuitem.Check(True)
+            self._sdiscretemenuitem.Check(False)
+            self._dataSound.reproductor.set_continuous()
+        else:
+            #Set discrete
+            self._contdiscsoundToggleBtn.SetLabel("Set continuous sound")
+            # self._contdiscsoundToggleBtn.SetValue(False)
+            self._scontmenuitem.Check(False)
+            self._sdiscretemenuitem.Check(True)
+            self._dataSound.reproductor.set_discrete()
+
+    def setcontsound(self):
+        if self._scontmenuitem.IsChecked():
+            #Set continuous
+            self._contdiscsoundToggleBtn.SetLabel("Set discrete sound")
+            self._contdiscsoundToggleBtn.SetValue(True)
+            # self._scontmenuitem.Check(True)
+            self._sdiscretemenuitem.Check(False)
+            self._dataSound.reproductor.set_continuous()
+        else:
+            #Set discrete
+            self._contdiscsoundToggleBtn.SetLabel("Set continuous sound")
+            self._contdiscsoundToggleBtn.SetValue(False)
+            # self._scontmenuitem.Check(False)
+            self._sdiscretemenuitem.Check(True)
+            self._dataSound.reproductor.set_discrete()
+
+    def setdiscretesound(self):
+        if self._sdiscretemenuitem.IsChecked():
+            #Set discrete
+            self._contdiscsoundToggleBtn.SetLabel("Set continuous sound")
+            self._contdiscsoundToggleBtn.SetValue(False)
+            self._scontmenuitem.Check(False)
+            # self._sdiscretemenuitem.Check(True)
+            self._dataSound.reproductor.set_discrete()
+        else:
+            #Set continuous
+            self._contdiscsoundToggleBtn.SetLabel("Set discrete sound")
+            self._contdiscsoundToggleBtn.SetValue(True)
+            self._scontmenuitem.Check(True)
+            # self._sdiscretemenuitem.Check(False)
+            self._dataSound.reproductor.set_continuous()
 
     def displayPlotConfig(self):
         if self._configPlotPanel.IsShown():
@@ -2005,10 +2478,38 @@ class core (gui.FrameDesign):
             self._cpdataparamplotmenuitem.Check(True)
         self._displaypanel.SendSizeEvent()
 
+    def displayspecialsoundconfig(self):
+        if self._specialsoundcongifpanel.IsShown():
+            self._specialsoundcongifpanel.Hide()
+            self._specialConfigSoundToggleBtn.SetValue(False)
+            self._specialConfigSoundToggleBtn.SetLabel("Show Special Sound\nConfigurations")
+            self._cpspecialconfigsoundmenuitem.Check(False)
+        else:
+            self._congifpanel.Show()
+            # self._configToggleBtn.SetLabel("Hide Configuration")
+            # self._configToggleBtn.SetValue(True)
+            self._cpcallmenuitem.Check(True)
+            self._specialsoundcongifpanel.Show()
+            self._specialConfigSoundToggleBtn.SetValue(True)
+            self._specialConfigSoundToggleBtn.SetLabel("Hide Special Sound\nConfigurations")
+            self._cpspecialconfigsoundmenuitem.Check(True)
+        self.SendSizeEvent()
+
+    def displayenvelopegraph(self):
+        if self._envelopegraphpanel.IsShown():
+            self._envelopegraphpanel.Hide()
+            self._envelopegraphtogglebtn.SetValue(False)
+            self._envelopegraphtogglebtn.SetLabel('Show envelope\nplot')
+        else:
+            self._envelopegraphpanel.Show()
+            self._envelopegraphtogglebtn.SetValue(True)
+            self._envelopegraphtogglebtn.SetLabel('Hide envelope\nplot')
+        self.SendSizeEvent()
+
     def soundFontSelect(self):
         self._soundFontPanel.Hide()
         self.displaySoundFontConfig()
-        self._soundFontTextCtrl.SetFocus()
+        # self._soundFontTextCtrl.SetFocus()
 
     def panelSSInstSelect(self):
         self._soundFontPanel.Hide()
@@ -2074,6 +2575,19 @@ class core (gui.FrameDesign):
         self._expData.printoutput("Enter key pressed on the text box of data title.")
         self.titleEdData()
 
+    def _eventdatagridpage(self, event):
+        self._expData.printoutput("The display page of the grid was changed.")
+        #Escribir set y get para esta variable
+        if self.getXActual().any()==None:
+            self._expData.writeinfo("The data has not been imported yet.")
+        else:
+            self._actualgridpagetextctrl.SetValue(str(self._datagridslider.GetValue()))
+            if self.originaldataselected:
+                self._setdatagridpage(self._datagridslider.GetValue())
+            else:
+                self.dataGridUpdate()
+        event.Skip()
+
     def _eventAskLabelData( self, event ):
         self._expData.printoutput("The check box to set if the data have the labels on the fisrt row, is selected.")
         self.askLabelData()
@@ -2084,11 +2598,14 @@ class core (gui.FrameDesign):
 
     def _eventUpdateGrid( self, event ):
         self._expData.printoutput("Update button of the grid is pressed.")
+        self.originaldataselected = False
         self.dataGridUpdate()
 
     def _eventOriginalGrid( self, event ):
         self._expData.printoutput("Original Array button of the grid is pressed.")
-        self.dataGridOriginal()
+        self.originaldataselected = True
+        self._setdatagridpage(self._datagridslider.GetValue())
+        # self.dataGridOriginal()
 
     def _eventAxisChoiceX( self, event ):
         self._expData.printoutput("A new choice on the X axis is selected.")
@@ -2111,32 +2628,11 @@ class core (gui.FrameDesign):
         self.eSound()
 
     def _eventplay( self, event ):
-        if self.getXActual().any()==None:
-            self._expData.writeinfo("The data has not been imported yet.")
-            self._playButton.SetValue(False)
-            self._playmenuitem.Check(False)
-        else:
-            if not self._timer.IsRunning():
-                self._expData.printoutput("Play button is pressed.")
-                self._playButton.SetLabel("Pause")
-                self._playButton.SetValue(True)
-                self._playmenuitem.SetItemLabel("Pause")
-                self._playmenuitem.Check(True)
-                self.play()
-            elif self._timer.IsRunning():
-                self._expData.printoutput("Pause button is pressed.")
-                self._playButton.SetLabel("Play")
-                self._playButton.SetValue(False)
-                self._playmenuitem.SetItemLabel("Play")
-                self._playmenuitem.Check(False)
-                #self._dataSound.makeSound(0, -1)
-                self._timer.Stop()
-            else:
-                self._expData.writeinfo("Error con el contador del botón Play-Pausa")
+        self.playMethod()
 
 #    def _eventPause( self, event ):
 #        self._expData.printoutput("Pause button is pressed.")
-#        self._dataSound.makeSound(0, -1)
+#        self._dataSound.make_sound(0, -1)
 #        self._timer.Stop()
 
     def _eventstop( self, event ):
@@ -2171,11 +2667,7 @@ class core (gui.FrameDesign):
     def _eventSoundVel( self, event ):
         self._expData.printoutput("Sound Velocity Slider Bar is modified.")
         self._setVelocity(self._soundVelSlider.GetValue())
-        if self._timer.IsRunning():
-            self._timer.Stop()
-            self._timer.Start((self._getVelocity()*1) + 100)
-            self._dataSound.reproductor.sound.stop()
-            self._dataSound.reproductor.setTimebase(self._timer.GetInterval()/1000.0)
+        self.tempo()
 
 #    def _eventLVLimitSlider( self, event ):
 #        self._expData.printoutput("Horizontal lower limit is setted.")
@@ -2197,16 +2689,89 @@ class core (gui.FrameDesign):
         self._expData.printoutput("Event configuration sound is setted.")
         self.displaySoundFontConfig()
 
-    def _eventsoundvolumn(self, event):
-        # self.set_soundvolumn(self._soundvolumnslider.GetValue())
-        self._dataSound.reproductor.setVolume(self._soundvolumnslider.GetValue())
+    def _eventcontdiscsoundchoice(self, event):
+        self.cont_vs_discrete_sound()
+        event.Skip()
 
-    def _eventsoundfreq(self, event):
+    def _eventsoundvolumn(self, event):
+        self._expData.printoutput("Event sound volume is setted.")
+        # self.set_soundvolumn(self._soundvolumnslider.GetValue())
+        self._dataSound.reproductor.set_volume(self._soundvolumnslider.GetValue())
+
+    def _eventsoundfreqmin(self, event):
+        self._expData.printoutput("Event sound min frequency is setted.")
+        value = (int(self._minsoundfreqmintextctrl.GetLineText(0))
+            + self._soundfreqminslider.GetValue())
+        self._actualsoundfreqmintextctrl.SetValue(str(value))
+        self._dataSound.reproductor.set_min_freq(value)
+        event.Skip()
+
+    def _eventsoundfreqmax(self, event):
+        self._expData.printoutput("Event sound max frequency is setted.")
+        value = (int(self._minsoundfreqmaxtextctrl.GetLineText(0))
+            + self._soundfreqmaxslider.GetValue())
+        self._actualsoundfreqmaxtextctrl.SetValue(str(value))
+        self._dataSound.reproductor.set_max_freq(value)
         event.Skip()
 
     def _eventswaveform(self, event):
         self._expData.printoutput("Event select waveform choice on the main display is setted.")
         self.swaveformlistboxchoice()
+
+    def _eventsoundattack(self, event):
+        if not self._check_adr():
+            value = float(self._actualattacktextctrl.GetValue())
+            self._soundattackslider.SetValue(100*value)
+
+        self._expData.printoutput("Event sound envelope attack is setted.")
+        value = self._soundattackslider.GetValue()/100
+        self._actualattacktextctrl.SetValue(str(value))
+        self.setsoundattack(value)
+        self._setspecialsoundconfig()
+        self.plotsoundenvelope()
+        event.Skip()
+
+    def _eventsounddecay(self, event):
+        if not self._check_adr():
+            value = float(self._actualdecaytextctrl.GetValue())
+            self._sounddecayslider.SetValue(100*value)
+        self._expData.printoutput("Event sound envelope decay is setted.")
+        value = self._sounddecayslider.GetValue()/100
+        self._actualdecaytextctrl.SetValue(str(value))
+        self.setsounddecay(value)
+        self._setspecialsoundconfig()
+        self.plotsoundenvelope()
+        event.Skip()
+
+    def _eventsoundsustain(self, event):
+        self._expData.printoutput("Event sound envelope sustain is setted.")
+        value = self._soundsustainslider.GetValue()
+        self._actualsustaintextctrl.SetValue(str(value))
+        self.setsoundsustain(value)
+        self._setspecialsoundconfig()
+        self.plotsoundenvelope()
+        event.Skip()
+
+    def _eventsoundrelease(self, event):
+        if not self._check_adr():
+            value = float(self._actualreleasetextctrl.GetValue())
+            self._soundreleaseslider.SetValue(100*value)
+        self._expData.printoutput("Event sound envelope release is setted.")
+        value = self._soundreleaseslider.GetValue()/100
+        self._actualreleasetextctrl.SetValue(str(value))
+        self.setsoundrelease(value)
+        self._setspecialsoundconfig()
+        self.plotsoundenvelope()
+        event.Skip()
+
+    def _eventSpecialSoundConfig( self, event ):
+        self._soundspecialconfigtextctrl.SetFocus()
+        self.displayspecialsoundconfig()
+        event.Skip()
+
+    def _eventenvelopegraph(self, event):
+        self.displayenvelopegraph()
+        event.Skip()
 
     def _eventGFile(self, event):
         self._expData.printoutput("Event File Panel is setted.")
@@ -2357,6 +2922,12 @@ class core (gui.FrameDesign):
         self.displayDataOp()
         self._pythonShell.SetFocus()
 
+    def _eventcpdo_writecommandselect(self, event):
+        self._expData.printoutput("The panel write functionalities was selected.")
+        self.displayWritefunc()
+        self._writecommandtextctrl.SetFocus()
+        event.Skip()
+
     def _eventcpdooctaveselect( self, event ):
         self._expData.printoutput("The panel octave was selected.")
         self.displayOctave()
@@ -2387,18 +2958,34 @@ class core (gui.FrameDesign):
         self.displayVisualConfig()
 ##Set focus cuando se generen los objetos
 
+    def _eventcontsoundchoice(self, event):
+        self.setcontsound()
+        event.Skip()
+
+    def _eventdiscsoundchoice(self, event):
+        self.setdiscretesound()
+        event.Skip()
+
     def _eventssvolumeselect( self, event ):
         self._expData.printoutput("The volume button was selected.")
         #Cambiar para setear el volumen
         self.soundFontSelect()
-        self._configSoundToggleBtn.SetFocus()
+        self._volumeTextCtrl.SetFocus()
+        event.Skip()
 
+    def _eventssminfreqselect(self, event):
+        self._expData.printoutput("The min frequency button was selected.")
+        #Cambiar para setear la freq
+        self.soundFontSelect()
+        self._soundfreqmintextctrl.SetFocus()
+        event.Skip()
 
-    # def _eventssfreqselect(self, event):
-    #     self._expData.printoutput("The frequency button was selected.")
-    #     #Cambiar para setear el volumen
-    #     self.soundFontSelect()
-    #     self._configSoundToggleBtn.SetFocus()
+    def _eventssmaxfreqselect(self, event):
+        self._expData.printoutput("The max frequency button was selected.")
+        #Cambiar para setear la freq
+        self.soundFontSelect()
+        self._soundfreqmaxtextctrl.SetFocus()
+        event.Skip()
 
     def _eventConfigPlot( self, event ):
         self._expData.printoutput("Plot configurations panel was modified.")
@@ -2475,6 +3062,11 @@ class core (gui.FrameDesign):
         self._leftpanel.Show()
         self._rightpanel.Show()
         self.retrieveFromOctavePanel.Hide()
+
+    def _eventwritecommand(self, event):
+        self._expData.printoutput("One command was introduced.")
+        self.detectcommand()
+        event.Skip()
 
 #    def _eventXFromOctave( self, event ):
 #        #Evento que trae x array desde octave
