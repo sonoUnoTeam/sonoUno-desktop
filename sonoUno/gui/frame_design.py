@@ -1950,12 +1950,15 @@ class FrameDesign( wx.Frame ):
             vgap = 0,
             hgap = 0
             )
+        _envelopegraphsizer.AddGrowableCol(0)
+        _envelopegraphsizer.AddGrowableRow(0)
         _envelopegraphsizer.SetFlexibleDirection(direction = wx.BOTH)
         # Crea la figura, el canvas que la contiene y agrega un subplot llamado
         # axes que se utilizara en el codigo principal
         self._envelopefigure = Figure()
         self._axesenvelopegraph = self._envelopefigure.add_subplot(111)
         self._envelopecanvas = FigureCanvas(self._envelopegraphpanel, -1, self._envelopefigure)
+        self._envelopecanvas.SetMinSize(wx.Size(10,10))
         self._envelopecanvas.SetToolTip('Displays the envelope of the sound setted by the user.')
         #Agrega el canvas que relaciona la figura con el panel al sizer del panel del grafico
         _envelopegraphsizer.Add( self._envelopecanvas, 1, wx.EXPAND |wx.ALL, 5 )
