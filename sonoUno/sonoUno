@@ -355,7 +355,7 @@ class core (gui.FrameDesign):
     def setsoundrelease(self, r):
         self._expData.printoutput("Setting class variable soundrelease.")
         self.soundrelease = r
-
+        
     def setenvelope(self, env):
         self._expData.printoutput("Setting class variable soundenv.")
         self.soundenv = env
@@ -2388,32 +2388,6 @@ class core (gui.FrameDesign):
         self._envelopefigure.tight_layout()
         self._envelopefigure.canvas.draw()
 
-    def _setspecialsoundconfig(self):
-        self._dataSound.reproductor.set_adsr(
-            self.getsoundattack(),
-            self.getsounddecay(),
-            self.getsoundsustain(),
-            self.getsoundrelease()
-            )
-
-    def _check_adr(self):
-        a = self._soundattackslider.GetValue()/100
-        d = self._sounddecayslider.GetValue()/100
-        r = self._soundreleaseslider.GetValue()/100
-        if a+d+r>1:
-            return False
-        else:
-            return True
-
-    def plotsoundenvelope(self):
-        self._axesenvelopegraph.cla()
-        #self._envelopefigure.canvas.draw()
-        env = self._dataSound.reproductor.get_envelope()
-        n_samples = np.arange(0.0, env.size)
-        self._axesenvelopegraph.plot(n_samples, env)
-        self._envelopefigure.tight_layout()
-        self._envelopefigure.canvas.draw()
-
 #Displays configs!!!
     #Muestra o esconde el panel de la grilla con los botones correspondientes.
     def displayGridChoice(self):
@@ -3268,61 +3242,6 @@ class core (gui.FrameDesign):
             if self._timer_envelope.IsRunning():
                 self._timer_envelope.Stop()
                 self._settimerenvelopeindex(0)
-
-    def _eventsoundattack(self, event):
-        if not self._check_adr():
-            value = float(self._actualattacktextctrl.GetValue())
-            self._soundattackslider.SetValue(100*value)
-
-        self._expData.printoutput("Event sound envelope attack is setted.")
-        value = self._soundattackslider.GetValue()/100
-        self._actualattacktextctrl.SetValue(str(value))
-        self.setsoundattack(value)
-        self._setspecialsoundconfig()
-        self.plotsoundenvelope()
-        event.Skip()
-
-    def _eventsounddecay(self, event):
-        if not self._check_adr():
-            value = float(self._actualdecaytextctrl.GetValue())
-            self._sounddecayslider.SetValue(100*value)
-        self._expData.printoutput("Event sound envelope decay is setted.")
-        value = self._sounddecayslider.GetValue()/100
-        self._actualdecaytextctrl.SetValue(str(value))
-        self.setsounddecay(value)
-        self._setspecialsoundconfig()
-        self.plotsoundenvelope()
-        event.Skip()
-
-    def _eventsoundsustain(self, event):
-        self._expData.printoutput("Event sound envelope sustain is setted.")
-        value = self._soundsustainslider.GetValue()
-        self._actualsustaintextctrl.SetValue(str(value))
-        self.setsoundsustain(value)
-        self._setspecialsoundconfig()
-        self.plotsoundenvelope()
-        event.Skip()
-
-    def _eventsoundrelease(self, event):
-        if not self._check_adr():
-            value = float(self._actualreleasetextctrl.GetValue())
-            self._soundreleaseslider.SetValue(100*value)
-        self._expData.printoutput("Event sound envelope release is setted.")
-        value = self._soundreleaseslider.GetValue()/100
-        self._actualreleasetextctrl.SetValue(str(value))
-        self.setsoundrelease(value)
-        self._setspecialsoundconfig()
-        self.plotsoundenvelope()
-        event.Skip()
-
-    def _eventSpecialSoundConfig( self, event ):
-        self._soundspecialconfigtextctrl.SetFocus()
-        self.displayspecialsoundconfig()
-        event.Skip()
-
-    def _eventenvelopegraph(self, event):
-        self.displayenvelopegraph()
-        event.Skip()
 
     def _eventGFile(self, event):
         self._expData.printoutput("Event File Panel is setted.")
