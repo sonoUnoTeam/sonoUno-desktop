@@ -910,6 +910,35 @@ class FrameDesign( wx.Frame ):
         self._menusettings = wx.Menu()
         # Create sound submenu
         self._soundsubmenu = wx.Menu()
+        # Create cont vs disc sound menu item and append it to sound submenu
+        self._scontmenuitem = wx.MenuItem(
+            parentMenu = self._soundsubmenu,
+            id = wx.ID_ANY,
+            text = 'Continuous sound',
+            helpString = ('Set continuous sound for the data sonification.'),
+            kind = wx.ITEM_CHECK
+            )
+        self._soundsubmenu.Append(self._scontmenuitem)
+        self.Bind(
+            event = wx.EVT_MENU,
+            handler = self._eventcontsoundchoice,
+            id = self._scontmenuitem.GetId()
+            )
+        # Create cont vs disc sound menu item and append it to sound submenu
+        self._sdiscretemenuitem = wx.MenuItem(
+            parentMenu = self._soundsubmenu,
+            id = wx.ID_ANY,
+            text = 'Discrete sound',
+            helpString = ('Set discrete sound for the data sonification.'),
+            kind = wx.ITEM_CHECK
+            )
+        self._soundsubmenu.Append(self._sdiscretemenuitem)
+        self.Bind(
+            event = wx.EVT_MENU,
+            handler = self._eventdiscsoundchoice,
+            id = self._sdiscretemenuitem.GetId()
+            )
+        self._sdiscretemenuitem.Check()
         # Create volume menu item and append it to sound submenu
         self._ssvolumemenuitem = wx.MenuItem(
             parentMenu = self._soundsubmenu,
