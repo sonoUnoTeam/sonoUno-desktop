@@ -108,7 +108,8 @@ class DataImport(object):
                     return None
                 else:
                     path = filedialog.GetPath()
-                    return path
+                    filename = filedialog.GetFilename()
+                    return path, filename
         except Exception as Error:
             self._export_error_info.writeexception(Error)
             return 'Error'
