@@ -987,7 +987,7 @@ class FrameDesign( wx.Frame ):
         self._ssfreqmappingmenuitem = wx.MenuItem(
             parentMenu = self._soundsubmenu,
             id = wx.ID_ANY,
-            text = 'Frequency mapping',
+            text = 'Set frequency mapping',
             helpString = ('Set the keyboard focus on minimum frequency slider '
                 + 'text label.'),
             kind = wx.ITEM_CHECK
@@ -1003,7 +1003,7 @@ class FrameDesign( wx.Frame ):
         self._ssvolmappingmenuitem = wx.MenuItem(
             parentMenu = self._soundsubmenu,
             id = wx.ID_ANY,
-            text = 'Volume mapping',
+            text = 'Set volume mapping',
             helpString = ('Set the keyboard focus on minimum volume slider '
                 + 'text label.'),
             kind = wx.ITEM_CHECK
@@ -1018,7 +1018,7 @@ class FrameDesign( wx.Frame ):
         self._sswaveformmenuitem = wx.MenuItem(
             parentMenu = self._soundsubmenu,
             id = wx.ID_ANY,
-            text = 'Sound type',
+            text = 'Select sound type',
             helpString = ('Set the keyboard focus on sound type dropdown '
                 + 'element text label.'),
             kind = wx.ITEM_NORMAL
@@ -1033,7 +1033,7 @@ class FrameDesign( wx.Frame ):
         self._ssspecialconfigmenuitem = wx.MenuItem(
             parentMenu = self._soundsubmenu,
             id = wx.ID_ANY,
-            text = 'Sound envelope',
+            text = 'Sound envelope configuration',
             helpString = ('Set the keyboard focus on Sound envelope sliders '
                 + 'Panel.'),
             kind = wx.ITEM_CHECK
@@ -1254,7 +1254,7 @@ class FrameDesign( wx.Frame ):
         self._freqmappingCheckBox = wx.CheckBox(
             parent=self._soundFontPanel, 
             id=wx.ID_ANY, 
-            label='Frequency mapping', 
+            label='Set frequency mapping',
             pos=wx.DefaultPosition, 
             size=wx.DefaultSize, 
             style=0, 
@@ -1288,7 +1288,7 @@ class FrameDesign( wx.Frame ):
         self._soundfreqmin_checkbox = wx.CheckBox(
             parent=self._freqmappingPanel, 
             id=wx.ID_ANY, 
-            label='Min frequency:', 
+            label='Set min frequency:',
             pos=wx.DefaultPosition, 
             size=wx.DefaultSize, 
             style=0, 
@@ -1359,7 +1359,7 @@ class FrameDesign( wx.Frame ):
         self._soundfreqmax_checkbox = wx.CheckBox(
             parent=self._freqmappingPanel, 
             id=wx.ID_ANY, 
-            label='Max frequency:', 
+            label='Set max frequency:',
             pos=wx.DefaultPosition, 
             size=wx.DefaultSize, 
             style=0, 
@@ -1429,7 +1429,7 @@ class FrameDesign( wx.Frame ):
         self._volmappingCheckBox = wx.CheckBox(
             parent=self._soundFontPanel, 
             id=wx.ID_ANY, 
-            label='Volume mapping', 
+            label='Set volume mapping',
             pos=wx.DefaultPosition, 
             size=wx.DefaultSize, 
             style=0, 
@@ -1470,7 +1470,7 @@ class FrameDesign( wx.Frame ):
         self._soundvolfreq_checkbox = wx.CheckBox(
             parent=self._volmappingPanel, 
             id=wx.ID_ANY, 
-            label='Frequency of volume mapping:', 
+            label='Set frequency of volume mapping:',
             pos=wx.DefaultPosition, 
             size=wx.DefaultSize, 
             style=0, 
@@ -1558,7 +1558,7 @@ class FrameDesign( wx.Frame ):
         self._soundvolmin_checkbox = wx.CheckBox(
             parent=self._volmappingPanel, 
             id=wx.ID_ANY, 
-            label='Min volume:', 
+            label='Set min volume:',
             pos=wx.DefaultPosition, 
             size=wx.DefaultSize, 
             style=0, 
@@ -1638,7 +1638,7 @@ class FrameDesign( wx.Frame ):
         self._soundvolmax_checkbox = wx.CheckBox(
             parent=self._volmappingPanel, 
             id=wx.ID_ANY, 
-            label='Max volume:', 
+            label='Set max volume:', 
             pos=wx.DefaultPosition, 
             size=wx.DefaultSize, 
             style=0, 
@@ -1720,7 +1720,7 @@ class FrameDesign( wx.Frame ):
 
         #Aqui abajo se pondra la forma de onda
         #Crea el espacio de texto con el label forma de onda y lo agrega al sizer del panel de configuración de sonido
-        self._soundwaveformtextctrl = wx.TextCtrl( self._soundFontPanel, wx.ID_ANY, u"Sound type:", wx.DefaultPosition, wx.Size( 130,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
+        self._soundwaveformtextctrl = wx.TextCtrl( self._soundFontPanel, wx.ID_ANY, u"Select sound type:", wx.DefaultPosition, wx.Size( 130,15 ), style=wx.NO_BORDER|wx.TE_MULTILINE|wx.TE_NO_VSCROLL )
         self._soundwaveformtextctrl.SetEditable(0)
         _soundFontFgSizer.Add( self._soundwaveformtextctrl, 0, wx.ALL, 5 )
         #Crea un panel desplegable con una lista para poder seleccionar entre las formas de onda disponibles, y lo agrega al sizer del panel de configuración de sonido

@@ -2890,7 +2890,7 @@ class core (gui.FrameDesign):
         self.Close()
 
     def _eventabout( self, event ):
-        message = "SonoUno is a Sonification Software for astronomical data in two column files. \n\nThis software is being developed by Bioing. Johanna Casado on her PhD tesis framework, under direction of Dr. Beatriz García. With general collaboration of Dr. Wanda Diaz Merced, and the collaboration on software development of Aldana Palma and Bioing. Julieta Carricondo Robino.\n\nThe email contact of the SonoUno team is: sonounoteam@gmail.com"
+        message = "SonoUno is a Sonification Software for astronomical data in two column files. \n\nThis software is being developed by Bioing. Johanna Casado on her PhD tesis framework, under direction of Dr. Beatriz García. With general collaboration of Dr. Wanda Diaz Merced, and the collaboration on software development of Aldana Palma, Bioing. Julieta Carricondo Robino and Mg. Ing. Gonzalo A. de la Vega.\n\nThe email contact of the SonoUno team is: sonounoteam@gmail.com"
         wx.MessageBox(message, 'Information', wx.OK | wx.ICON_INFORMATION)
 
     def _eventmanual( self, event ):
@@ -3455,14 +3455,14 @@ class core (gui.FrameDesign):
         self._expData.printoutput("The frequency mapping was selected.")
         self.soundFontSelect()
         self.displayfreqmapping_menuitem()
-        self._soundfreqmintextctrl.SetFocus()
+        self._soundfreqmin_checkbox.SetFocus()
         event.Skip()
 
     def _eventssvolmappingselect(self, event):
         self._expData.printoutput("The volume mapping was selected.")
         self.soundFontSelect()
         self.displayvolmapping_menuitem()
-        self._soundvolmintextctrl.SetFocus()
+        self._soundvolmin_checkbox.SetFocus()
         event.Skip()
 
     def _eventConfigPlot( self, event ):
