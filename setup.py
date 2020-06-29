@@ -39,7 +39,7 @@ else:
 #fedora-28
 
 setup(name='sonoUno',
-      version='3.0.2',
+      version='3.1.0',
       description='Data sonorization tool',
       url='http://github.com/sonounoteam/sonouno',
       author='Johanna Casado',
