@@ -39,8 +39,9 @@ class PredefMathFunctions(object):
         # operation is:
         # self.new_y = (data_y-np.mean(data_y)) / np.std(data_y)
         try:
-            new_y = ((data_y-np.amin(data_y)) 
-                / (np.amax(data_y)-np.amin(data_y)))
+            #Perform the normalization
+            new_y = ((data_y-np.nanmin(data_y)) 
+                / (np.nanmax(data_y)-np.nanmin(data_y)))
             return data_x, new_y, True
         except Exception as Error:
             self._export_error_info.writeexception(Error)
@@ -148,8 +149,8 @@ class PredefMathFunctions(object):
             self._export_error_info.writeexception(Error)
             return x, y, False
         try:
-            new_y = ((new_y - np.amin(new_y)) 
-                / (np.amax(new_y) - np.amin(new_y)))
+            new_y = ((new_y - np.nanmin(new_y)) 
+                / (np.nanmax(new_y) - np.nanmin(new_y)))
             return x, new_y, True
         except Exception as Error:
             self._export_error_info.writeexception(Error)
