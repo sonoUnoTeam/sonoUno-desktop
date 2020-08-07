@@ -12,6 +12,8 @@ Finally, the software allows the user to save the plot, a text file with the poi
 
 ## Installation
 
+Here we show a quick guide to install the sonoUno. Inside the sonoUno folder, there are some installation instructive, one for each operative system.
+
 1.	Install octave
 
 For Mac you can use brew: ```brew install octave```\
