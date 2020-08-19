@@ -275,6 +275,7 @@ class simpleSound(object):
             for x in range (0, data_x.size):
                 freq = rep.max_freq*data_y[x]+self.reproductor.min_freq
                 self.env = rep._adsr_envelope()
+                print(self.env.get_adsr())
                 f = self.env*rep.volume*2**15*rep.generate_waveform(freq,
                     delta_t = 1)
                 s = pygame.mixer.Sound(f.astype('int16'))
