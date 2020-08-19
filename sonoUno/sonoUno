@@ -205,7 +205,9 @@ class core (gui.FrameDesign):
 
     def _setNormXY (self, x, y):
         self._expData.printoutput("Setting class variables norm_x and norm_y.")
-        self._norm_x, self._norm_y, status = self._matFc.normalize(x, y)
+        self._norm_x = x
+        self._norm_y = y
+        #self._norm_x, self._norm_y, status = self._matFc.normalize(x, y)
 
     def _setTimerIndex (self, index):
         self._expData.printoutput("Setting class variable timerIndex.")
