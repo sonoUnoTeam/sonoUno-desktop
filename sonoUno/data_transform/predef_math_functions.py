@@ -39,9 +39,16 @@ class PredefMathFunctions(object):
         # operation is:
         # self.new_y = (data_y-np.mean(data_y)) / np.std(data_y)
         try:
-            #Perform the normalization
-            new_y = ((data_y-np.nanmin(data_y)) 
-                / (np.nanmax(data_y)-np.nanmin(data_y)))
+            # Check if all values of the array are the same
+            equal_values = np.all(data_y == data_y[0])
+            # If True set a medium value, if not perform the normalization
+            if equal_values:
+                new_y = np.copy(data_y)
+                new_y.fill(0)
+            else:
+                #Perform the normalization
+                new_y = ((data_y-np.nanmin(data_y)) 
+                    / (np.nanmax(data_y)-np.nanmin(data_y)))
             return data_x, new_y, True
         except Exception as Error:
             self._export_error_info.writeexception(Error)
