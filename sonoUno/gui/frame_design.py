@@ -2189,7 +2189,7 @@ class FrameDesign( wx.Frame ):
         self._lineStileTextCtrl.SetEditable(0)
         _configPlotFgSizer.Add( self._lineStileTextCtrl, 0, wx.ALL, 5 )
         #Crea el cuadro de seleccion entre opciones de estilo de linea para el grafico, setea una eleccion por defecto y lo agrega al sizer del panel de configuraciones del grafico
-        _lineStyleChoiceChoices = [ u"Discreet", u"Solid line", u"Dashed line", u"Dash-dot line", u"Dotted line" ]
+        _lineStyleChoiceChoices = [ u"Discrete", u"Solid line", u"Dashed line", u"Dash-dot line", u"Dotted line" ]
         self._lineStyleChoice = wx.Choice( self._configPlotPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, _lineStyleChoiceChoices, 0 )
         self._lineStyleChoice.Bind( wx.EVT_CHOICE, self._eventLineStyleConfig )
         self._lineStyleChoice.SetSelection( 1 )

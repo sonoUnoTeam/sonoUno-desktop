@@ -60,6 +60,7 @@ class core (gui.FrameDesign):
             'savemarks':self.saveMarks,
             'savemark':self.saveMarks,
             'saveplot':self.savePlot,
+            'savesound':self.eSound,
             'quit':self.Close,
             'exit':self.Close,
             'play':self.playMethod,
@@ -80,7 +81,8 @@ class core (gui.FrameDesign):
             'xlowerlimit':self.xlowerlimit_command,
             'xupperlimit':self.xupperlimit_command,
             'octave':self._octaveInput_command,
-            'fromoctave':self._retrieveFromOctave_command
+            'fromoctave':self._retrieveFromOctave_command,
+            # 'savesound':self.eSound
             }
 
         #we don't add soundFonts for now
@@ -203,7 +205,9 @@ class core (gui.FrameDesign):
 
     def _setNormXY (self, x, y):
         self._expData.printoutput("Setting class variables norm_x and norm_y.")
-        self._norm_x, self._norm_y, status = self._matFc.normalize(x, y)
+        self._norm_x = x
+        self._norm_y = y
+        #self._norm_x, self._norm_y, status = self._matFc.normalize(x, y)
 
     def _setTimerIndex (self, index):
         self._expData.printoutput("Setting class variable timerIndex.")
@@ -584,7 +588,7 @@ class core (gui.FrameDesign):
     def setAbsSliderLimits (self, x):
         self._expData.printoutput("Setting the slider limits.")
         try:
-            self._abspos_slider.SetMax(x.size)
+            self._abspos_slider.SetMax(x.size-1)
             self._abspos_slider.SetMin(0)
 
             # Set abscisa textctrls
@@ -705,16 +709,19 @@ class core (gui.FrameDesign):
                 markX = self._getxPoints()
                 for i in range (0, markX.size):
                     self._setAbsMarkPoint( np.array([float(markX[i]), float(markX[i])]) )
-                    self._setOrdMarkPoint( np.array([float(np.amin(y)), float(np.amax(y))]) )
+                    self._setOrdMarkPoint( np.array([float(np.nanmin(y)), float(np.nanmax(y))]) )
                     self.plotMarkLine()
             except Exception as e:
                 self._expData.writeexception(e)
             try:
                 timerIndex = self._getTimerIndex()
-                if not timerIndex==0:
-                    ordenada = np.array([float(np.amin(y)), float(np.amax(y))])
-                    abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
-                    self.plotRedLine(abscisa, ordenada)
+                if not timerIndex==0: 
+                    if np.isnan(x[timerIndex]) or np.isnan(y[timerIndex]):
+                        self._expData.writeinfo("This point is a nan value, for that the red line is not updated.")
+                    else:
+                        ordenada = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
+                        abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
+                        self.plotRedLine(abscisa, ordenada)
             except Exception as e:
                 self._expData.writeexception(e)
 
@@ -743,22 +750,25 @@ class core (gui.FrameDesign):
             timerIndex = self._getTimerIndex()
             x=self.getXActual()
             y=self.getYActual()
-            try:
-                ordenada = np.array([float(np.amin(y)), float(np.amax(y))])
-                abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
-            except Exception as e:
-                self._expData.writeexception(e)
-            try:
-                self.plotRedLine(abscisa, ordenada)
-            except Exception as e:
-                self._expData.writeexception(e)
+            if np.isnan(x[timerIndex]) or np.isnan(y[timerIndex]):
+                self._expData.writeinfo("This point is a nan value, for that the red line and sound is not updated.")
+            else:
+                try:
+                    ordenada = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
+                    abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
+                except Exception as e:
+                    self._expData.writeexception(e)
+                try:
+                    self.plotRedLine(abscisa, ordenada)
+                except Exception as e:
+                    self._expData.writeexception(e)
+                try:
+                    self._dataSound.make_sound(self._getNormY(), timerIndex)
+                except Exception as e:
+                    self._expData.writeexception(e)
             try:
                 self._abspos_slider.SetValue(timerIndex)
                 self._absposlabel_textctrl.SetValue(str(round(x[self._abspos_slider.GetValue()],4)))
-            except Exception as e:
-                self._expData.writeexception(e)
-            try:
-                self._dataSound.make_sound(self._getNormY(), timerIndex)
             except Exception as e:
                 self._expData.writeexception(e)
             self._setTimerIndex(timerIndex + 1)
@@ -768,8 +778,6 @@ class core (gui.FrameDesign):
     def _playenvelope_event(self, event):
         timerIndex = self._gettimerenvelopeindex()
         env = self.getenvelope()
-        print('**************')
-        print(env)
         n_samples = np.arange(0.0, env.size)
         norm_x, norm_y, status = self._matFc.normalize(n_samples, env)
         self._dataSound.make_sound(norm_y, timerIndex)
@@ -1401,8 +1409,6 @@ class core (gui.FrameDesign):
 
     def _playenvelope(self):
         env = self.getenvelope()
-        print('**************')
-        print(env)
         if env.size == 0:
             self._expData.writeinfo("The data has not been sonified yet.")
             wx.MessageBox("Any data set was sonified, you need to import and sonify a dataset to enable this functionality.",
@@ -1482,7 +1488,7 @@ class core (gui.FrameDesign):
             #para graficar una línea
             try:
                 self._setAbsMarkPoint( np.array([float(x[index]), float(x[index])]))
-                self._setOrdMarkPoint( np.array([float(np.amin(y)), float(np.amax(y))]))
+                self._setOrdMarkPoint( np.array([float(np.nanmin(y)), float(np.nanmax(y))]))
             except AttributeError as e:
                 self._expData.writeinfo("The data has not been imported yet.")
                 self._expData.writeexception(e)
@@ -1557,11 +1563,13 @@ class core (gui.FrameDesign):
     def absPosSetting (self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expData.writeinfo("The data has not been imported yet.")
+        elif np.isnan(self.getXActual()[self._abspos_slider.GetValue()]) or np.isnan(self.getYActual()[self._abspos_slider.GetValue()]):
+            self._expData.writeinfo("This point is a nan value, for that the red line is not updated.")
         else:
             #Set the red line to mark de points in the graph
             x = self.getXActual()
             y = self.getYActual()
-            ordenada = np.array([float(np.amin(y)), float(np.amax(y))])
+            ordenada = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
             abscisa = np.array([float(x[self._abspos_slider.GetValue()]), float(x[self._abspos_slider.GetValue()])])
             self.plotRedLine(abscisa, ordenada)
 
@@ -2003,7 +2011,7 @@ class core (gui.FrameDesign):
             x_array = self.getXActual()
             abs_val_array = np.abs(x_array - x_value)
             x_pos = abs_val_array.argmin()
-            if x_value<np.amin(self.getXActual()) or x_value>np.amax(self.getXActual()):
+            if x_value<np.nanmin(self.getXActual()) or x_value>np.nanmax(self.getXActual()):
                 wx.MessageBox(
                     'The number indicated was out of the array bounds.',
                     'Out of bounds',
@@ -2029,7 +2037,7 @@ class core (gui.FrameDesign):
             x_value = float(value)
             x_array = self.getXOriginal()
             abs_val_array = np.abs(x_array - x_value)
-            if x_value<np.amin(self.getXOriginal()) or x_value>np.amax(self.getXOriginal()):
+            if x_value<np.nanmin(self.getXOriginal()) or x_value>np.nanmax(self.getXOriginal()):
                 wx.MessageBox(
                     'The number indicated was out of the array bounds.',
                     'Out of bounds',
@@ -2047,7 +2055,7 @@ class core (gui.FrameDesign):
             x_value = float(value)
             x_array = self.getXOriginal()
             abs_val_array = np.abs(x_array - x_value)
-            if x_value<np.amin(self.getXOriginal()) or x_value>np.amax(self.getXOriginal()):
+            if x_value<np.nanmin(self.getXOriginal()) or x_value>np.nanmax(self.getXOriginal()):
                 wx.MessageBox(
                     'The number indicated was out of the array bounds.',
                     'Out of bounds',
