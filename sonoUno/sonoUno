@@ -131,8 +131,8 @@ class core (gui.FrameDesign):
         self._setYOctave(np.array(None))
         self._setTimerIndex(0)
         self._settimerenvelopeindex(0)
-        self._setVelocity(50)
-        self._soundVelSlider.SetValue(50)
+        self._setVelocity(0)
+        self._soundVelSlider.SetValue(0)
         self._askPoints = True
 
         array = np.array([0,1])
