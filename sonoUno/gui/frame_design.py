@@ -2540,7 +2540,7 @@ class FrameDesign( wx.Frame ):
         self._tempoposlabel_textctrl = wx.TextCtrl(
             parent = displaypanel,
             id = wx.ID_ANY,
-            value = '50',
+            value = '0',
             pos = wx.DefaultPosition,
             size = wx.Size( 125,15 ),
             style = (wx.TE_PROCESS_ENTER 
@@ -2689,6 +2689,7 @@ class FrameDesign( wx.Frame ):
         self._linvslog_soundscale_display_togglebtn = wx.ToggleButton( displaypanel, wx.ID_ANY, u"Set logarithmic scale", wx.DefaultPosition, wx.DefaultSize, 0 )
         self._linvslog_soundscale_display_togglebtn.Bind( wx.EVT_TOGGLEBUTTON, self._event_linvslog_soundscalechoice_display )
         self._linvslog_soundscale_display_togglebtn.SetValue( False )
+        self._linvslog_soundscale_display_togglebtn.Hide()
         _buttonDisplayFgSizer.Add( self._linvslog_soundscale_display_togglebtn, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL , 5 )
 
         #Crea el boton 

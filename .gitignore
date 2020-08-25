@@ -1,3 +1,5 @@
 *.pyc
 .DS_Store
+dist/
+sonoUno/sonoUno.egg-info/
 sonoUno/.spyproject/

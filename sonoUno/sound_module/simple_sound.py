@@ -275,17 +275,19 @@ class simpleSound(object):
             for x in range (0, data_x.size):
                 freq = rep.max_freq*data_y[x]+self.reproductor.min_freq
                 self.env = rep._adsr_envelope()
+                #print(self.env.get_adsr())
                 f = self.env*rep.volume*2**15*rep.generate_waveform(freq,
                     delta_t = 1)
                 s = pygame.mixer.Sound(f.astype('int16'))
                 sound_buffer += s.get_raw()
                 #localTrack.add_notes(Note(int((dataY[x]*rango)+offset)))
-            output_file = wave.open(path,'w')
-            output_file.setframerate(rep.f_s)
-            output_file.setnchannels(1)
-            output_file.setsampwidth(2)
-            output_file.writeframesraw(sound_buffer)
-            output_file.close()
+
+            with wave.open(path,'wb') as output_file:
+                output_file.setframerate(rep.f_s)
+                output_file.setnchannels(1)
+                output_file.setsampwidth(2)
+                output_file.writeframesraw(sound_buffer)
+                #output_file.close()
 
 
         except Exception as e:
