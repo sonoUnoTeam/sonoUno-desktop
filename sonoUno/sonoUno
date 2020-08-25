@@ -63,7 +63,8 @@ class core (gui.FrameDesign):
             'savesound':self.eSound,
             'quit':self.Close,
             'exit':self.Close,
-            'play':self.playMethod,
+            'play':self.playonce,
+            'playloop':self.playinloop,
             'pause':self.playMethod,
             'stop':self.stopMethod,
             'markpoint':self.markPoints,
@@ -773,7 +774,14 @@ class core (gui.FrameDesign):
                 self._expData.writeexception(e)
             self._setTimerIndex(timerIndex + 1)
             if timerIndex==(x.size-1):
-                self.stopMethod()
+                if self.playinloop_state:
+                    self._setTimerIndex(0)
+                    self._abspos_slider.SetValue(0)
+                    self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
+                    # abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
+                    # self.plotRedLine(abscisa, ordenada)
+                else:
+                    self.stopMethod()
                 
     def _playenvelope_event(self, event):
         timerIndex = self._gettimerenvelopeindex()
@@ -1449,6 +1457,14 @@ class core (gui.FrameDesign):
                 self._timer.Stop()
             else:
                 self._expData.writeinfo("Error con el contador del botón Play-Pausa")
+                
+    def playinloop(self):
+        self.playinloop_state = True
+        self.playMethod()
+        
+    def playonce(self):
+        self.playinloop_state = False
+        self.playMethod()
 
     def stopMethod(self):
         self._playButton.SetValue(False)
@@ -2987,6 +3003,7 @@ class core (gui.FrameDesign):
         self.eSound()
 
     def _eventplay( self, event ):
+        self.playinloop_state = False
         self.playMethod()
 
 #    def _eventPause( self, event ):
