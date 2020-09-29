@@ -7,18 +7,18 @@ import pygame
 import wave
 from scipy import signal
 from data_export.data_export import DataExport as eErr
-
+import os
 
 #Reproductor de sonido raw
 class reproductorRaw (object):
     def __init__ (self,
             volume=0.5,
-            min_freq = 500.0,
-            max_freq = 5000.0,
-            fixed_freq = 440,
-            time_base = 0.25,
-            duty_cycle = 1.0,
-            min_volume = 0,
+            min_freq=500.0,
+            max_freq=5000.0,
+            fixed_freq=440,
+            time_base=0.25,
+            duty_cycle=1.0,
+            min_volume=0,
             max_volume=1,
             logscale=False):
         self.f_s = 44100 #Sampling frequency
@@ -299,3 +299,12 @@ class simpleSound(object):
             self.expErrSs.writeinfo("Metodo no implementado")
         except Exception as e:
             self.expErrSs.writeexception(e)
+
+class tickMark(object):
+    def __init__(self):
+        #pygame.init()
+        pygame.mixer.init()
+
+    def loop(self):
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        pygame.mixer.Sound(os.path.join(base_path, 'sounds','alto_gong.wav')).play()

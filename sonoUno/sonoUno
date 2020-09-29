@@ -21,6 +21,7 @@ import gui.frame_design as gui
 from gui.frame_design import DataTable
 from data_import.data_import import DataImport
 from sound_module.simple_sound import simpleSound
+from sound_module.simple_sound import tickMark
 from data_export.data_export import DataExport
 from data_transform.predef_math_functions import PredefMathFunctions
 
@@ -32,6 +33,7 @@ class core (gui.FrameDesign):
         self._expData = DataExport()
         self._openData = DataImport()
         self._dataSound = simpleSound()
+        self._tickmark = tickMark()
         self._matFc = PredefMathFunctions()
         #evento timer
         self._timer = wx.Timer(self)
@@ -122,6 +124,7 @@ class core (gui.FrameDesign):
         self.dataUpdateToOctave = False
         self.inverseFunc = False
         self.cont = 0
+        self.waitonloop = 500
 
         #Variables globales con set y get
         self.setXActual(np.array(None))
@@ -744,6 +747,8 @@ class core (gui.FrameDesign):
                 self._expData.writeexception(e)
 
     def _sonoPlot (self, event):
+        if self._timer.GetInterval()==self.waitonloop and self.playinloop_state:
+            self._timer.Start((self._getVelocity()*2) + 10)
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expData.writeinfo("The data has not been imported yet.")
         else:
@@ -772,14 +777,15 @@ class core (gui.FrameDesign):
                 self._absposlabel_textctrl.SetValue(str(round(x[self._abspos_slider.GetValue()],4)))
             except Exception as e:
                 self._expData.writeexception(e)
+                
             self._setTimerIndex(timerIndex + 1)
             if timerIndex==(x.size-1):
                 if self.playinloop_state:
+                    self._tickmark.loop()
+                    self._timer.Start(self.waitonloop)
                     self._setTimerIndex(0)
                     self._abspos_slider.SetValue(0)
                     self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
-                    # abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
-                    # self.plotRedLine(abscisa, ordenada)
                 else:
                     self.stopMethod()
                 
