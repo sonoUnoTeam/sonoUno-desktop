@@ -302,7 +302,7 @@ class simpleSound(object):
 
 class tickMark(object):
     def __init__(self):
-        pygame.init()
+        #pygame.init()
         pygame.mixer.init()
 
     def loop(self):
