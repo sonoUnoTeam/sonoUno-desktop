@@ -584,125 +584,124 @@ class SonoUnoCore (gui.FrameDesign):
         # Send a size event to update the GUI
         self.SendSizeEvent()
 
-    def setArrayLimits (self, x, y):
-        self._expdata.printoutput("Setting the Upper and Lower limits.")
-        try:
-            limitVLower = np.amin(y)
-        except Exception as e:
-            self._expdata.writeexception(e)
-        try:
-            limitVUpper = np.amax(y)
-        except Exception as e:
-            self._expdata.writeexception(e)
-        try:
-            limitHLower = np.amin(x)
-        except Exception as e:
-            self._expdata.writeexception(e)
-        try:
-            limitHUpper = np.amax(x)
-        except Exception as e:
-            self._expdata.writeexception(e)
-        return limitVLower, limitVUpper, limitHLower, limitHUpper
+    """BORRAR!!"""
+    # def setArrayLimits (self, x, y):
+    #     self._expdata.printoutput("Setting the Upper and Lower limits.")
+    #     try:
+    #         limitVLower = np.amin(y)
+    #     except Exception as e:
+    #         self._expdata.writeexception(e)
+    #     try:
+    #         limitVUpper = np.amax(y)
+    #     except Exception as e:
+    #         self._expdata.writeexception(e)
+    #     try:
+    #         limitHLower = np.amin(x)
+    #     except Exception as e:
+    #         self._expdata.writeexception(e)
+    #     try:
+    #         limitHUpper = np.amax(x)
+    #     except Exception as e:
+    #         self._expdata.writeexception(e)
+    #     return limitVLower, limitVUpper, limitHLower, limitHUpper
 
-    def setAbsSliderLimits (self, x):
-        self._expdata.printoutput("Setting the slider limits.")
+    def set_xslider_limits (self, x):
+        
+        """
+        This method update the x limits slider and the actual position.
+        The values shown at slider are the array values.
+        We named the x axis as abscissa.
+        """
+        self._expdata.printoutput("Setting the x slider limits.")
         try:
+            # Set the element slider min and max value with the number of
+            # elements in the array.
             self._abspos_slider.SetMax(x.size-1)
             self._abspos_slider.SetMin(0)
-
-            # Set abscisa textctrls
-            self._absminlabel_textctrl.SetValue(str(round(x[0],4)))
-            self._absmaxlabel_textctrl.SetValue(str(round(x[x.size-1],4)))
-            self._absposlabel_textctrl.SetValue(str(round(x[self._abspos_slider.GetValue()],4)))
-
-            self.SendSizeEvent()
+            # Set x slider textctrls which indicates the min and max value
+            # and the actual position above the slider
+            self._absminlabel_textctrl.SetValue(
+                value=str(round(x[0],4))
+                )
+            self._absmaxlabel_textctrl.SetValue(
+                value=str(round(x[x.size-1],4))
+                )
+            self._absposlabel_textctrl.SetValue(
+                value=str(round(x[self._abspos_slider.GetValue()],4))
+                )
         except Exception as e:
             self._expdata.writeexception(e)
-
-        #Para python 3:Sound
-        try:
-            if(x[x.size-1]<10000):
-                name="Abscissa Position:\n"+str("{0:.2f}".format(x[0]))+" to "+ \
-                str("{0:.2f}".format(x[x.size-1]))
-            else:
-                name="Abscissa Position:\n"+str("{0:.2f}".format(x[0]))+" to "+ \
-                str("{0:.2f}".format(x[x.size-1]))
-                self._absPosTextCtrl.SetMinSize(wx.Size( 120,30 ))
-            self._absPosTextCtrl.SetValue(name)
-        except Exception as e:
-            self._expdata.writeexception(e)
-
-        #Para python 2:
+        # Send a size event to update the GUI and show the changes
+        self.SendSizeEvent()
+            
+    def set_plottitles(self):
+        
         """
-        try:
-            if(x[x.size-1]<10000):
-                name="Abscissa Position:\n"+str(x[0])+" to "+ \
-                str(x[x.size-1])
-            else:
-                name="Abscissa Position:\n"+str(x[0])+" to "+ \
-                str(x[x.size-1])
-                self._absPosTextCtrl.SetMinSize(wx.Size( 120,40 ))
-            self._absPosTextCtrl.SetValue(name)
-        except Exception as e:
-            self._expdata.writeexception(e)
-            """
-    def plotTitles(self):
-        self._expdata.printoutput("Setting the titles and labels.")
+        This method put the titles and labels of the data on the plot
+        """
+        self._expdata.printoutput("Setting the titles and labels of the plot.")
         try:
             self.panel.set_title(self._titleEdDataTextCtrl.GetValue())
-        except Exception as e:
-            self._expdata.writeexception(e)
-        try:
-            #self.panel.set_xlabel( self._axisChoiceX.GetString(self.getXLabel()) )
-            #text=self.getXName()+'\n'+self.getYName()
-            #wx.MessageBox(text, 'Info', wx.OK | wx.ICON_INFORMATION)
-            self.panel.set_xlabel( self.getXName() )
-        except Exception as e:
-            self._expdata.writeexception(e)
-        try:
-            #self.panel.set_ylabel( self._axisChoiceX.GetString(self.getYLabel()) )
-            self.panel.set_ylabel( self.getYName() )
+            self.panel.set_xlabel(self.getXName())
+            self.panel.set_ylabel(self.getYName())
         except Exception as e:
             self._expdata.writeexception(e)
 
-    def plot2D (self, x, y):
-        #para graficar cambios con los datos originales
-        self._expdata.printoutput("Plot the graph.")
+    def plot_xy(self, x, y):
+        
+        """
+        This method plot one column against x axis.
+        """
+        self._expdata.printoutput("Plot one column against x axis.")
+        # Check if the plot grid is enabled or not to plot it
         try:
             if self._gridChoice.IsChecked():
-                self.panel.grid(color=self._getGridColor(), linestyle=self._getGridLinestyle(), linewidth=self._getGridLinewidth())
+                self.panel.grid(
+                    color=self._getGridColor(), 
+                    linestyle=self._getGridLinestyle(), 
+                    linewidth=self._getGridLinewidth()
+                    )
         except Exception as e:
             self._expdata.writeexception(e)
+        # Plot y against x
         try:
-            style = self._getPlotStile()
-            self._lines = self.panel.plot(x, y, style)
+            # The line ploted is not used yet, but the idea is that some lines
+            # change constantly, like position line, and others not.
+            self._line_xy = self.panel.plot(x, y, self._getPlotStile())
+            # This counter allow as to know how many lines are plotted on the
+            # graph
             self._plotcounter = self._plotcounter + 1
         except Exception as e:
             self._expdata.writeexception(e)
-
-        #Se pone una variable de estado en lugar de enviarlo directamente para no ralentizar los procesos.
+        # This variable indicates when the plot was updated, to send to octave
+        # the new data when the user enter a new command to that interface
         self._datasenttooctave = True
-#        try:
-#            self._sendToOctave()
-#        except Exception as e:
-#            self._expdata.writeexception(e)Sound
-
+        # Finally, update the plot figure to visualize the new plot
         self._figure.tight_layout()
         self._figure.canvas.draw()
 
-    def plotRedLine (self, abscisa, ordenada):
-        self._expdata.printoutput("Plot the red line.")
+    def plot_positionline (self, abscisa, ordenada):
+        
+        """
+        This method plot the vertical position line on the plot.
+        """
+        self._expdata.printoutput("Plot the position line.")
         try:
+            # If the line doesn't exist change the state variable to True,
+            # if the line exist, erase the previous line to plot the next one.
             if not self._lineexist:
-                #plot the line the first time
                 self._lineexist = True
             else:
-                #update the line and generate de sound
-                self.panel.lines.remove(self._wr())
+                self.panel.lines.remove(self._positionline_reference())
+            # Plot the position line
             self.panel.plot(abscisa, ordenada, 'r')
-            self._wr = ref(self.panel.lines[self._plotcounter])
+            # Generate the reference to erase the position line next time
+            self._positionline_reference = ref(
+                self.panel.lines[self._plotcounter]
+                )
         except Exception as e:
             self._expdata.writeexception(e)
+        # Finally, update the plot figure to visualize the new plot
         self._figure.tight_layout()
         self._figure.canvas.draw()
 
@@ -740,7 +739,7 @@ class SonoUnoCore (gui.FrameDesign):
                     else:
                         ordenada = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
                         abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
-                        self.plotRedLine(abscisa, ordenada)
+                        self.plot_positionline(abscisa, ordenada)
             except Exception as e:
                 self._expdata.writeexception(e)
 
@@ -749,8 +748,8 @@ class SonoUnoCore (gui.FrameDesign):
                 self._figure.canvas.draw()
 
             try:
-                self.plotTitles()
-                self.plot2D(x, y)
+                self.set_plottitles()
+                self.plot_xy(x, y)
             except AttributeError as e:
                 self._expdata.writeinfo("The data has not been imported yet.")
                 self._expdata.writeexception(e)
@@ -778,7 +777,7 @@ class SonoUnoCore (gui.FrameDesign):
                 except Exception as e:
                     self._expdata.writeexception(e)
                 try:
-                    self.plotRedLine(abscisa, ordenada)
+                    self.plot_positionline(abscisa, ordenada)
                 except Exception as e:
                     self._expdata.writeexception(e)
                 try:
@@ -815,7 +814,7 @@ class SonoUnoCore (gui.FrameDesign):
         if not self._ask_markpoints:
             self.askSavePoints()
 
-        self.setArrayLimits(0,0)
+        # self.setArrayLimits(0,0)
         # self._askLabelDataCheckBox.SetValue(True)
         try:
             pathName, fileTipe, pathstatus = self._opendata.get_datapath()
@@ -859,8 +858,8 @@ class SonoUnoCore (gui.FrameDesign):
                     self._setHoriLower(0)
                     self._setHoriUpper(x.size)
                     self.set_cutplot_sliderlimits(x, y, x, y)
-                    self.setArrayLimits(x, y)
-                    self.setAbsSliderLimits(x)
+                    # self.setArrayLimits(x, y)
+                    self.set_xslider_limits(x)
                     self._sendAllToOctave()
                     self.replot2D(x, y)
                     self._expdata.printoutput("Data imported and graphed.")
@@ -1152,7 +1151,7 @@ class SonoUnoCore (gui.FrameDesign):
 
                 self._axisChoiceX.Update()
                 self._axisChoiceY.Update()
-                self.plotTitles()
+                self.set_plottitles()
                 self._figure.tight_layout()
                 self._figure.canvas.draw()
             else:
@@ -1339,8 +1338,8 @@ class SonoUnoCore (gui.FrameDesign):
             self._setHoriLower(0)
             self._setHoriUpper(x.size)
             self.set_cutplot_sliderlimits(x, y, x, y)
-            self.setArrayLimits(x, y)
-            self.setAbsSliderLimits(x)
+            # self.setArrayLimits(x, y)
+            self.set_xslider_limits(x)
             self.replot2D(x, y)
 
     def axisChoiceYMethod(self):
@@ -1362,8 +1361,8 @@ class SonoUnoCore (gui.FrameDesign):
                 self._setHoriLower(0)
                 self._setHoriUpper(x.size)
                 self.set_cutplot_sliderlimits(x, y, x, y)
-                self.setArrayLimits(x, y)
-                self.setAbsSliderLimits(x)
+                # self.setArrayLimits(x, y)
+                self.set_xslider_limits(x)
                 self.replot2D(x, y)
 
     def eSound (self):
@@ -1592,7 +1591,7 @@ class SonoUnoCore (gui.FrameDesign):
             y = self.getYActual()
             ordenada = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
             abscisa = np.array([float(x[self._abspos_slider.GetValue()]), float(x[self._abspos_slider.GetValue()])])
-            self.plotRedLine(abscisa, ordenada)
+            self.plot_positionline(abscisa, ordenada)
 
     def tempo(self):
         if self._timer.IsRunning():
@@ -1643,8 +1642,8 @@ class SonoUnoCore (gui.FrameDesign):
                 self._expdata.writeexception(e)
             try:
                 self.set_cutplot_sliderlimits(xo, yo, x, y)
-                self.setArrayLimits(x, y)
-                self.setAbsSliderLimits(x)
+                # self.setArrayLimits(x, y)
+                self.set_xslider_limits(x)
                 self.replot2D(x, y)
             except AttributeError as e:
                 self._expdata.writeinfo("The data has not been imported yet.")
@@ -1788,8 +1787,8 @@ class SonoUnoCore (gui.FrameDesign):
                 self._expdata.writeexception(e)
             try:
                 self.set_cutplot_sliderlimits(xo, yo, x, y)
-                self.setArrayLimits(x, y)
-                self.setAbsSliderLimits(x)
+                # self.setArrayLimits(x, y)
+                self.set_xslider_limits(x)
                 self.replot2D(x, y)
             except AttributeError as e:
                 self._expdata.writeinfo("The data has not been imported yet.")
@@ -2026,7 +2025,7 @@ class SonoUnoCore (gui.FrameDesign):
                     'Number Error',
                     wx.OK | wx.ICON_INFORMATION
                     )
-                self.setAbsSliderLimits(self.getXActual())
+                self.set_xslider_limits(self.getXActual())
                 self._expdata.writeexception(e)
             x_array = self.getXActual()
             abs_val_array = np.abs(x_array - x_value)
