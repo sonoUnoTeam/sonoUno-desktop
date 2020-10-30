@@ -113,10 +113,11 @@ class SonoUnoCore (gui.FrameDesign):
             }
         # Here we set some class variables to know the state of some tasks
         # 1)Flags
-        self._lineexist = False
+        self._posline_exist = False
         self._filesaved = False
         self._datasenttooctave = False
         self._inversefunc = False
+        self._redraw_panel = True
         # 2)Values and counters
         self._plotcounter = 0
         self._dataperpage = 101
@@ -252,13 +253,13 @@ class SonoUnoCore (gui.FrameDesign):
         self._expdata.printoutput("Setting class variable yPoints.")
         self._yPoints = points
 
-    def _setAbsMarkPoint (self, point):
-        self._expdata.printoutput("Setting class variable absPoint.")
-        self._absPoint = point
+    # def _setAbsMarkPoint (self, point):
+    #     self._expdata.printoutput("Setting class variable absPoint.")
+    #     self._absPoint = point
 
-    def _setOrdMarkPoint (self, point):
-        self._expdata.printoutput("Setting class variable ordPoint.")
-        self._ordPoint = point
+    # def _setOrdMarkPoint (self, point):
+    #     self._expdata.printoutput("Setting class variable ordPoint.")
+    #     self._ordPoint = point
 
     def _set_mathfunction (self, select):
         self._expdata.printoutput("Setting class variable matSelection.")
@@ -426,21 +427,21 @@ class SonoUnoCore (gui.FrameDesign):
         index = [i for i in range(100, -1, -1)]
         return index[self._velocity]
 
-    def _getxPoints (self):
+    def _get_markedpoints_xcoord (self):
         self._expdata.printoutput("Class variable xPoints requested.")
         return self._xPoints
 
-    def _getyPoints (self):
+    def _get_markedpoints_ycoord (self):
         self._expdata.printoutput("Class variable yPoints requested.")
         return self._yPoints
 
-    def _getAbsMarkPoint (self):
-        self._expdata.printoutput("Class variable absPoint requested.")
-        return self._absPoint
+    # def _getAbsMarkPoint (self):
+    #     self._expdata.printoutput("Class variable absPoint requested.")
+    #     return self._absPoint
 
-    def _getOrdMarkPoint (self):
-        self._expdata.printoutput("Class variable ordPoint requested.")
-        return self._ordPoint
+    # def _getOrdMarkPoint (self):
+    #     self._expdata.printoutput("Class variable ordPoint requested.")
+    #     return self._ordPoint
 
     def _getMatSelection (self):
         self._expdata.printoutput("Class variable matSelection requested.")
@@ -677,8 +678,9 @@ class SonoUnoCore (gui.FrameDesign):
         # the new data when the user enter a new command to that interface
         self._datasenttooctave = True
         # Finally, update the plot figure to visualize the new plot
-        self._figure.tight_layout()
-        self._figure.canvas.draw()
+        if self._redraw_panel:
+            self._figure.tight_layout()
+            self._figure.canvas.draw()
 
     def plot_positionline (self, abscisa, ordenada):
         
@@ -689,8 +691,8 @@ class SonoUnoCore (gui.FrameDesign):
         try:
             # If the line doesn't exist change the state variable to True,
             # if the line exist, erase the previous line to plot the next one.
-            if not self._lineexist:
-                self._lineexist = True
+            if not self._posline_exist:
+                self._posline_exist = True
             else:
                 self.panel.lines.remove(self._positionline_reference())
             # Plot the position line
@@ -702,63 +704,98 @@ class SonoUnoCore (gui.FrameDesign):
         except Exception as e:
             self._expdata.writeexception(e)
         # Finally, update the plot figure to visualize the new plot
-        self._figure.tight_layout()
-        self._figure.canvas.draw()
+        if self._redraw_panel:
+            self._figure.tight_layout()
+            self._figure.canvas.draw()
 
-    def plotMarkLine (self):
-        self._expdata.printoutput("Plot the mark line.")
+    def plot_markline(self, abs_markpoint, ord_markpoint):
+        
+        """
+        This method plot the line to mark a point.
+        """
+        self._expdata.printoutput("Plot a mark line.")
         try:
-            self.panel.plot(self._getAbsMarkPoint(), self._getOrdMarkPoint(), 'k')
+            # Plot a mark and add one to the plot counter variable
+            self.panel.plot(abs_markpoint, ord_markpoint, 'k')
             self._plotcounter = self._plotcounter + 1
         except Exception as e:
             self._expdata.writeexception(e)
+        # Finally, update the plot figure to visualize the new plot
+        if self._redraw_panel:
+            self._figure.tight_layout()
+            self._figure.canvas.draw()
 
-    def replot2D (self, x, y):
+    def replot_xy (self, x, y):
+        
+        """
+        This method erase the plot and draw it again.
+        """
+        # If data don't exist throw a message to log output
+        # If data exist continue with the tasks
         if x.any()==None or y.any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
-            self._expdata.printoutput("Clean and plot the graph")
-            self._lineexist = False
-            self.panel.cla()
-            self._figure.canvas.draw()
-            self.panel.lines = []
-            self._plotcounter = 0
             try:
-                markX = self._getxPoints()
-                for i in range (0, markX.size):
-                    self._setAbsMarkPoint( np.array([float(markX[i]), float(markX[i])]) )
-                    self._setOrdMarkPoint( np.array([float(np.nanmin(y)), float(np.nanmax(y))]) )
-                    self.plotMarkLine()
+                self._expdata.printoutput("Clean and plot the graph")
+                # Set position line flag
+                self._posline_exist = False
+                # Erase the plot
+                self.panel.cla()
+                self._figure.canvas.draw()
+                # Restore the lines array and plot counter to cero
+                self.panel.lines = []
+                self._plotcounter = 0
             except Exception as e:
                 self._expdata.writeexception(e)
+            # If inverse function is selected, invert the y axis
+            if self._inversefunc:
+                self.panel.invert_yaxis()
+            # Set an state value to not refresh the plot when draw each line
+            self._redraw_panel = False
+            # Draw the data file
+            try:
+                self.set_plottitles()
+                self.plot_xy(x, y)
+            except Exception as e:
+                self._expdata.writeexception(e)
+            # Draw the position line
             try:
                 timerIndex = self._getTimerIndex()
                 if not timerIndex==0: 
                     if np.isnan(x[timerIndex]) or np.isnan(y[timerIndex]):
-                        self._expdata.writeinfo("This point is a nan value, for that the red line is not updated.")
+                        self._expdata.writeinfo(
+                            "This point is a nan value, for that the red line"
+                            + " is not updated."
+                            )
                     else:
-                        ordenada = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
-                        abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
+                        # The function np.nanmin is used to not consider the
+                        # nan values as minimum or maximum value
+                        ordenada = np.array(
+                            [float(np.nanmin(y)), float(np.nanmax(y))]
+                            )
+                        abscisa = np.array(
+                            [float(x[timerIndex]), float(x[timerIndex])]
+                            )
                         self.plot_positionline(abscisa, ordenada)
             except Exception as e:
                 self._expdata.writeexception(e)
-
-            if self._inversefunc:
-                self.panel.invert_yaxis()
-                self._figure.canvas.draw()
-
+            # Draw the marks that was made on the data
             try:
-                self.set_plottitles()
-                self.plot_xy(x, y)
-            except AttributeError as e:
-                self._expdata.writeinfo("The data has not been imported yet.")
-                self._expdata.writeexception(e)
+                marks_on_x = self._get_markedpoints_xcoord()
+                for i in range (0, marks_on_x.size):
+                    # self._setAbsMarkPoint( np.array([float(marks_on_x[i]), float(marks_on_x[i])]) )
+                    # self._setOrdMarkPoint( np.array([float(np.nanmin(y)), float(np.nanmax(y))]) )
+                    abs_markpoint = np.array([float(marks_on_x[i]), float(marks_on_x[i])])
+                    ord_markpoint = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
+                    self.plot_markline(abs_markpoint, ord_markpoint)
             except Exception as e:
                 self._expdata.writeexception(e)
-            try:
-                self.SendSizeEvent()
-            except Exception as e:
-                self._expdata.writeexception(e)
+            # Finally, update the plot figure to visualize the new plot
+            self._figure.tight_layout()
+            self._figure.canvas.draw()
+            self.SendSizeEvent()
+            # Restore the value of the flag to redraw the plot on other methods
+            self._redraw_panel = True
 
     def _sonificationloop (self, event):
         if self.getXActual().any()==None or self.getYActual().any()==None:
@@ -861,7 +898,7 @@ class SonoUnoCore (gui.FrameDesign):
                     # self.setArrayLimits(x, y)
                     self.set_xslider_limits(x)
                     self._sendAllToOctave()
-                    self.replot2D(x, y)
+                    self.replot_xy(x, y)
                     self._expdata.printoutput("Data imported and graphed.")
                 else:
                     wx.MessageBox("The data file can't be opened, the software continue with the previous data if exist. \nCheck the file and contact the development team if you need help.\nContact mail: sonounoteam@gmail.com.",
@@ -1340,7 +1377,7 @@ class SonoUnoCore (gui.FrameDesign):
             self.set_cutplot_sliderlimits(x, y, x, y)
             # self.setArrayLimits(x, y)
             self.set_xslider_limits(x)
-            self.replot2D(x, y)
+            self.replot_xy(x, y)
 
     def axisChoiceYMethod(self):
         if self.getXOriginal().any()==None:
@@ -1363,7 +1400,7 @@ class SonoUnoCore (gui.FrameDesign):
                 self.set_cutplot_sliderlimits(x, y, x, y)
                 # self.setArrayLimits(x, y)
                 self.set_xslider_limits(x)
-                self.replot2D(x, y)
+                self.replot_xy(x, y)
 
     def eSound (self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
@@ -1485,7 +1522,7 @@ class SonoUnoCore (gui.FrameDesign):
             self._set_timerindex(0)
             self._abspos_slider.SetValue(0)
             self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
-            self.replot2D(self.getXActual(), self.getYActual())
+            self.replot_xy(self.getXActual(), self.getYActual())
 
     def markPoints (self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
@@ -1494,8 +1531,13 @@ class SonoUnoCore (gui.FrameDesign):
             #Se eliminarán los datos cada vez que se guardan o que se ingresa un archivo de datos nuevo.
             x = self.getXActual()
             y = self.getYActual()
-            xp = self._getxPoints()
-            yp = self._getyPoints()
+            xp = self._get_markedpoints_xcoord()
+            yp = self._get_markedpoints_ycoord()
+            
+            if (self._getTimerIndex()==x.size) or (self._getTimerIndex()==0):
+                self._expdata.writeinfo("The position of the cursor is at the beginning or end of the array.")
+                return 0
+            
             try:
                 index = self._getTimerIndex() - 1
                 xp = np.append(xp, x[index])
@@ -1507,27 +1549,29 @@ class SonoUnoCore (gui.FrameDesign):
             self._ask_markpoints = False
             #para graficar una línea
             try:
-                self._setAbsMarkPoint( np.array([float(x[index]), float(x[index])]))
-                self._setOrdMarkPoint( np.array([float(np.nanmin(y)), float(np.nanmax(y))]))
+                # self._setAbsMarkPoint( np.array([float(x[index]), float(x[index])]))
+                # self._setOrdMarkPoint( np.array([float(np.nanmin(y)), float(np.nanmax(y))]))
+                abs_markpoint = np.array([float(x[index]), float(x[index])])
+                ord_markpoint = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
             except AttributeError as e:
                 self._expdata.writeinfo("The data has not been imported yet.")
                 self._expdata.writeexception(e)
             except Exception as e:
                 self._expdata.writeexception(e)
-            self.plotMarkLine()
+            self.plot_markline(abs_markpoint, ord_markpoint)
 
     def deleteLastMark (self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
             try:
-                xp = self._getxPoints()
-                yp = self._getyPoints()
+                xp = self._get_markedpoints_xcoord()
+                yp = self._get_markedpoints_ycoord()
                 xp = xp[:-1].copy()
                 yp = yp[:-1].copy()
                 self._set_markedpoints_xcoord(xp)
                 self._set_markedpoints_ycoord(yp)
-                self.replot2D(self.getXActual(),self.getYActual())
+                self.replot_xy(self.getXActual(),self.getYActual())
             except Exception as e:
                 self._expdata.writeexception(e)
 
@@ -1535,8 +1579,8 @@ class SonoUnoCore (gui.FrameDesign):
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
-            xp = self._getxPoints()
-            yp = self._getyPoints()
+            xp = self._get_markedpoints_xcoord()
+            yp = self._get_markedpoints_ycoord()
             try:
                 index = [i for i in range(0, len(xp))]
             except Exception as e:
@@ -1547,7 +1591,7 @@ class SonoUnoCore (gui.FrameDesign):
             except Exception as e:
                 self._expdata.writeexception(e)
             try:
-                self.replot2D(self.getXActual(), self.getYActual())
+                self.replot_xy(self.getXActual(), self.getYActual())
             except Exception as e:
                 self._expdata.writeexception(e)
 
@@ -1566,8 +1610,8 @@ class SonoUnoCore (gui.FrameDesign):
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
-            xp = self._getxPoints()
-            yp = self._getyPoints()
+            xp = self._get_markedpoints_xcoord()
+            yp = self._get_markedpoints_ycoord()
             try:
                 self._expdata.writepointfile(xp, yp)
             except AttributeError as e:
@@ -1578,7 +1622,7 @@ class SonoUnoCore (gui.FrameDesign):
             index = [i for i in range(0, len(xp))]
             self._set_markedpoints_xcoord(np.delete(xp,index))
             self._set_markedpoints_ycoord(np.delete(yp,index))
-            self.replot2D(self.getXActual(), self.getYActual())
+            self.replot_xy(self.getXActual(), self.getYActual())
 
     def absPosSetting (self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
@@ -1644,7 +1688,7 @@ class SonoUnoCore (gui.FrameDesign):
                 self.set_cutplot_sliderlimits(xo, yo, x, y)
                 # self.setArrayLimits(x, y)
                 self.set_xslider_limits(x)
-                self.replot2D(x, y)
+                self.replot_xy(x, y)
             except AttributeError as e:
                 self._expdata.writeinfo("The data has not been imported yet.")
                 self._expdata.writeexception(e)
@@ -1789,7 +1833,7 @@ class SonoUnoCore (gui.FrameDesign):
                 self.set_cutplot_sliderlimits(xo, yo, x, y)
                 # self.setArrayLimits(x, y)
                 self.set_xslider_limits(x)
-                self.replot2D(x, y)
+                self.replot_xy(x, y)
             except AttributeError as e:
                 self._expdata.writeinfo("The data has not been imported yet.")
                 self._expdata.writeexception(e)
@@ -1825,35 +1869,35 @@ class SonoUnoCore (gui.FrameDesign):
                 self._set_linechar('-')
                 self._set_markerchar('')
                 self._set_markerstyle_index(22)
-                self.replot2D(self.getXActual(), self.getYActual())
+                self.replot_xy(self.getXActual(), self.getYActual())
                 self.SendSizeEvent()
                 self._expdata.printoutput("Solid line was selected.")
             elif index == 2:
                 self._set_linechar('--')
                 self._set_markerchar('')
                 self._set_markerstyle_index(22)
-                self.replot2D(self.getXActual(), self.getYActual())
+                self.replot_xy(self.getXActual(), self.getYActual())
                 self.SendSizeEvent()
                 self._expdata.printoutput("Dashed line was selected.")
             elif index == 3:
                 self._set_linechar('-.')
                 self._set_markerchar('')
                 self._set_markerstyle_index(22)
-                self.replot2D(self.getXActual(), self.getYActual())
+                self.replot_xy(self.getXActual(), self.getYActual())
                 self.SendSizeEvent()
                 self._expdata.printoutput("Dash-dot line was selected.")
             elif index == 4:
                 self._set_linechar(':')
                 self._set_markerchar('')
                 self._set_markerstyle_index(22)
-                self.replot2D(self.getXActual(), self.getYActual())
+                self.replot_xy(self.getXActual(), self.getYActual())
                 self.SendSizeEvent()
                 self._expdata.printoutput("Dotted line was selected.")
             else:
                 self._set_linechar('-')
                 self._set_markerchar('')
                 self._set_markerstyle_index(22)
-                self.replot2D(self.getXActual(), self.getYActual())
+                self.replot_xy(self.getXActual(), self.getYActual())
                 self.SendSizeEvent()
                 self._expdata.printoutput("The line style was unknow, solid line was selected by default.")
 
@@ -1933,7 +1977,7 @@ class SonoUnoCore (gui.FrameDesign):
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
-            self.replot2D(self.getXActual(), self.getYActual())
+            self.replot_xy(self.getXActual(), self.getYActual())
             self.SendSizeEvent()
 
     def colorStyleConfig(self, index):
@@ -1964,15 +2008,15 @@ class SonoUnoCore (gui.FrameDesign):
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
-            self.replot2D(self.getXActual(), self.getYActual())
+            self.replot_xy(self.getXActual(), self.getYActual())
             self.SendSizeEvent()
 
     def askSavePoints(self):
         self._ask_markpoints = True
         if self._timer.IsRunning():
             self.stopMethod()
-        xp = self._getxPoints()
-        yp = self._getyPoints()
+        xp = self._get_markedpoints_xcoord()
+        yp = self._get_markedpoints_ycoord()
         if not xp.size==0:
             if wx.MessageBox("Brands have been made on the data. Do you want to save them?.", "Please confirm",
                          wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
@@ -2310,7 +2354,7 @@ class SonoUnoCore (gui.FrameDesign):
             self._setXName(self._xFromOctaveTextCtrl.GetLineText(0))
             self._setYName(self._yFromOctaveTextCtrl.GetLineText(0))
 
-            self.replot2D(x, y)
+            self.replot_xy(x, y)
             self.set_actual_x(x)
             self.set_actual_y(y)
 
@@ -2349,7 +2393,7 @@ class SonoUnoCore (gui.FrameDesign):
             self._setXName(value1)
             self._setYName(value2)
 
-            self.replot2D(x, y)
+            self.replot_xy(x, y)
             self.set_actual_x(x)
             self.set_actual_y(y)
 
