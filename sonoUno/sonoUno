@@ -46,7 +46,7 @@ class SonoUnoCore (gui.FrameDesign):
         self._timer = wx.Timer(self)
         self.Bind(
             event=wx.EVT_TIMER, 
-            handler=self._sonificationloop, 
+            handler=self._sonificationloop_event, 
             source=self._timer
             )
         # Second timer to sonify the sound envelope
@@ -131,6 +131,7 @@ class SonoUnoCore (gui.FrameDesign):
         self._set_original_y(np.array(None))
         # 2)Counters
         self._set_timerindex(0)
+        self._timerindex_space = 0
         self._set_timerenvelopeindex(0)
         # 3)Predefined variables related to sound configurations
         self._set_velocity(0)
@@ -252,14 +253,6 @@ class SonoUnoCore (gui.FrameDesign):
     def _set_markedpoints_ycoord (self, points):
         self._expdata.printoutput("Setting class variable yPoints.")
         self._yPoints = points
-
-    # def _setAbsMarkPoint (self, point):
-    #     self._expdata.printoutput("Setting class variable absPoint.")
-    #     self._absPoint = point
-
-    # def _setOrdMarkPoint (self, point):
-    #     self._expdata.printoutput("Setting class variable ordPoint.")
-    #     self._ordPoint = point
 
     def _set_mathfunction (self, select):
         self._expdata.printoutput("Setting class variable matSelection.")
@@ -434,14 +427,6 @@ class SonoUnoCore (gui.FrameDesign):
     def _get_markedpoints_ycoord (self):
         self._expdata.printoutput("Class variable yPoints requested.")
         return self._yPoints
-
-    # def _getAbsMarkPoint (self):
-    #     self._expdata.printoutput("Class variable absPoint requested.")
-    #     return self._absPoint
-
-    # def _getOrdMarkPoint (self):
-    #     self._expdata.printoutput("Class variable ordPoint requested.")
-    #     return self._ordPoint
 
     def _getMatSelection (self):
         self._expdata.printoutput("Class variable matSelection requested.")
@@ -783,10 +768,12 @@ class SonoUnoCore (gui.FrameDesign):
             try:
                 marks_on_x = self._get_markedpoints_xcoord()
                 for i in range (0, marks_on_x.size):
-                    # self._setAbsMarkPoint( np.array([float(marks_on_x[i]), float(marks_on_x[i])]) )
-                    # self._setOrdMarkPoint( np.array([float(np.nanmin(y)), float(np.nanmax(y))]) )
-                    abs_markpoint = np.array([float(marks_on_x[i]), float(marks_on_x[i])])
-                    ord_markpoint = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
+                    abs_markpoint = np.array(
+                        [float(marks_on_x[i]), float(marks_on_x[i])]
+                        )
+                    ord_markpoint = np.array(
+                        [float(np.nanmin(y)), float(np.nanmax(y))]
+                        )
                     self.plot_markline(abs_markpoint, ord_markpoint)
             except Exception as e:
                 self._expdata.writeexception(e)
@@ -797,37 +784,73 @@ class SonoUnoCore (gui.FrameDesign):
             # Restore the value of the flag to redraw the plot on other methods
             self._redraw_panel = True
 
-    def _sonificationloop (self, event):
+    def _sonificationloop_event (self, event):
+        
+        """
+        This method sonify the data plotted when the user presses the button 
+        play and updates the position mark on the plot.
+        In addition, first it checks if the data exist.
+        """
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
             self._expdata.printoutput("Generate the sound and refresh plot.")
-            timerIndex = self._getTimerIndex()
+            # Get the current timer index setted on the last loop
+            timer_index = self._getTimerIndex()
+            # Get the x and y array plotted
             x=self.getXActual()
             y=self.getYActual()
-            if np.isnan(x[timerIndex]) or np.isnan(y[timerIndex]):
-                self._expdata.writeinfo("This point is a nan value, for that the red line and sound is not updated.")
+            # If the current point to sonify is a nan value don't sonify and
+            # don't update the plot
+            if np.isnan(x[timer_index]) or np.isnan(y[timer_index]):
+                self._expdata.writeinfo(
+                    ("This point is a nan value, for that the position line "
+                     + "and sound is not updated.")
+                    )
             else:
+                # If the current position is not nan, check the distance
+                # between notes
+                if timer_index > 0:
+                    if self._minspace_x_array[timer_index-1] != self._minspace_x:
+                        cycles = int(self._minspace_x_array[timer_index-1] 
+                            / self._minspace_x)
+                        if cycles != self._timerindex_space:
+                            self._timerindex_space = self._timerindex_space + 1
+                            return
+                        else:
+                            self._timerindex_space = 0
+                # Update the plot
                 try:
-                    ordenada = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
-                    abscisa = np.array([float(x[timerIndex]), float(x[timerIndex])])
-                except Exception as e:
-                    self._expdata.writeexception(e)
-                try:
+                    ordenada = np.array(
+                        [float(np.nanmin(y)), float(np.nanmax(y))]
+                        )
+                    abscisa = np.array(
+                        [float(x[timer_index]), float(x[timer_index])]
+                        )
                     self.plot_positionline(abscisa, ordenada)
                 except Exception as e:
                     self._expdata.writeexception(e)
+                # Sonify the current point of the normalized array
                 try:
-                    self._datasound.make_sound(self._getNormY(), timerIndex)
+                    self._datasound.make_sound(
+                        self._getNormY()[timer_index], 
+                        timer_index
+                        )
                 except Exception as e:
                     self._expdata.writeexception(e)
+            # Update the abscisa position and its text control
             try:
-                self._abspos_slider.SetValue(timerIndex)
-                self._absposlabel_textctrl.SetValue(str(round(x[self._abspos_slider.GetValue()],4)))
+                self._abspos_slider.SetValue(timer_index)
+                self._absposlabel_textctrl.SetValue(
+                    value=str(round(x[self._abspos_slider.GetValue()],4))
+                    )
             except Exception as e:
                 self._expdata.writeexception(e)
-            self._set_timerindex(timerIndex + 1)
-            if timerIndex==(x.size-1):
+            # Increment the timer index
+            self._set_timerindex(timer_index + 1)
+            # Check if the timer index reach the end of the array to stop the
+            # reproduction
+            if timer_index==(x.size-1):
                 self.stopMethod()
                 
     def _playenvelope_event(self, event):
@@ -1451,14 +1474,17 @@ class SonoUnoCore (gui.FrameDesign):
                     norm_x, norm_y, status = self._matfunc.normalize(x, y)
                     self._expdata.printoutput("Normalize the input data.")
                     self._setNormXY(norm_x, norm_y)
+                    # Calculate the array with the space between each 
+                    # data point
+                    self._minspace_x_array = x[1:] - x[:x.size-1]
+                    # Calculate the minimum space between data points
+                    self._minspace_x = np.nanmin(self._minspace_x_array)
                 except AttributeError as e:
                     self._expdata.writeinfo("The data has not been imported yet.")
                     self._expdata.writeexception(e)
                 except Exception as e:
                     self._expdata.writeexception(e)
                 #Seteo el tempo dependiendo del tiempo del timer
-                print("***************************")
-                print(self._getVelocity())
                 self._timer.Start((self._getVelocity()*2) + 10)
                 self._datasound.reproductor.set_time_base(self._timer.GetInterval()/1000.0)
             else:
@@ -1519,6 +1545,7 @@ class SonoUnoCore (gui.FrameDesign):
             if self._timer.IsRunning():
                 #self._datasound.make_sound(0, -1)
                 self._timer.Stop()
+            self._timerindex_space = 0
             self._set_timerindex(0)
             self._abspos_slider.SetValue(0)
             self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
@@ -1549,8 +1576,6 @@ class SonoUnoCore (gui.FrameDesign):
             self._ask_markpoints = False
             #para graficar una línea
             try:
-                # self._setAbsMarkPoint( np.array([float(x[index]), float(x[index])]))
-                # self._setOrdMarkPoint( np.array([float(np.nanmin(y)), float(np.nanmax(y))]))
                 abs_markpoint = np.array([float(x[index]), float(x[index])])
                 ord_markpoint = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
             except AttributeError as e:
