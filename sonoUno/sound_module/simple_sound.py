@@ -224,7 +224,7 @@ class reproductorRaw (object):
         return env
 
     #Es el método encargado de generar las notas y reproducirlas
-    def pitch (self, value, cont):
+    def pitch (self, value):
         if self.logscale:
             value = np.log10(100*value+1)/2 #This is to achieve reasoable values
             print(value)
@@ -252,9 +252,11 @@ class simpleSound(object):
         try:
             if not (x == -1):
                 #Aquí se llama al método que genera y envía la nota a fluidsynth
-                self.reproductor.pitch(data[x], x)
+                self.reproductor.pitch(data)
             else:
-                self.reproductor.pitch(0, 0, x)
+                # Creería que no se esta usando, porque estaba mal escrita y
+                # no generaba error, se deja por las dudas.
+                self.reproductor.pitch(0)
         except Exception as e:
             self.expErrSs.writeexception(e)
         #En un futuro se puede pedir confirmación al método pitch y devolverla.
