@@ -79,7 +79,7 @@ class SonoUnoCore (gui.FrameDesign):
         # to use on the command line for the GUI
         # In the user manual there are a list and descriptions of these functions
         self.command_dict_withoutparam = {
-            'open':self.openMethod,
+            'open':self.open_method,
             'dellastmark':self.deleteLastMark,
             'delallmarks':self.deleteAllMark,
             'delallmark':self.deleteAllMark,
@@ -110,6 +110,7 @@ class SonoUnoCore (gui.FrameDesign):
             'xupperlimit':self.xupperlimit_command,
             'octave':self._octaveInput_command,
             'fromoctave':self._retrieveFromOctave_command,
+            'play_time':self.play_with_time
             }
         # Here we set some class variables to know the state of some tasks
         # 1)Flags
@@ -811,11 +812,35 @@ class SonoUnoCore (gui.FrameDesign):
                 # If the current position is not nan, check the distance
                 # between notes
                 if timer_index > 0:
-                    if self._minspace_x_array[timer_index-1] != self._minspace_x:
+                    # If the distance is lower or the same than 
+                    # self._minspace_x continue with sonification, if not
+                    # add empty space
+                    if self._minspace_x_array[timer_index-1] > self._minspace_x:
+                        print("*************************")
+                        print(self._minspace_x_array[timer_index-1])
+                        print(self._minspace_x)
                         cycles = int(self._minspace_x_array[timer_index-1] 
                             / self._minspace_x)
+                        
+                        
+                        
                         if cycles != self._timerindex_space:
                             self._timerindex_space = self._timerindex_space + 1
+                            
+                            # Try to update red line to make a continuous advance
+                            # Update the plot (make only one redline update)
+                            try:
+                                ordenada = np.array(
+                                    [float(np.nanmin(y)), float(np.nanmax(y))]
+                                    )
+                                new_abscisa = x[timer_index-1] + (self._minspace_x * self._timerindex_space)
+                                abscisa = np.array(
+                                    [float(new_abscisa), float(new_abscisa)]
+                                    )
+                                self.plot_positionline(abscisa, ordenada)
+                            except Exception as e:
+                                self._expdata.writeexception(e)
+                            
                             return
                         else:
                             self._timerindex_space = 0
@@ -854,61 +879,78 @@ class SonoUnoCore (gui.FrameDesign):
                 self.stopMethod()
                 
     def _playenvelope_event(self, event):
-        timerIndex = self._gettimerenvelopeindex()
+        
+        """
+        This method sonify the envelope plot located on sound settings.
+        """
+        # Get index, envelope array and samples array
+        timer_index = self._gettimerenvelopeindex()
         env = self.getenvelope()
         n_samples = np.arange(0.0, env.size)
+        # Get normalized array to sonify
         norm_x, norm_y, status = self._matfunc.normalize(n_samples, env)
-        self._datasound.make_sound(norm_y, timerIndex)
-        self._set_timerenvelopeindex(timerIndex + 1)
-        if timerIndex==(env.size-1):
+        # Sonify the corresponding point
+        self._datasound.make_sound(norm_y[timer_index], timer_index)
+        # Increment timer index
+        self._set_timerenvelopeindex(timer_index + 1)
+        # Check if the envelope array reach the end and initialize variables
+        if timer_index==(env.size-1):
             self._envelopeplaytogglebtn.SetLabel('Play envelope\nsound')
             self._envelopeplaytogglebtn.SetValue(False)
             self._set_timerenvelopeindex(0)
             self._timer_envelope.Stop()
 
-    def openMethod(self):
+    def open_method(self):
+        
+        """
+        This method allow to open a dataset serching it on the computer file
+        system.
+        """
+        # Check if the sonification loop is running to stop it
         if self._timer.IsRunning():
             self.stopMethod()
-            wx.MessageBox("The previous reproduction of the data has been stopped.",
-                          'Information', wx.OK | wx.ICON_INFORMATION)
+            wx.MessageBox(
+                message=("The previous reproduction of the data has been "
+                         + "stopped."),
+                caption='Information', 
+                style=wx.OK | wx.ICON_INFORMATION
+                )
+        # If there are unsaved marks on data, ask if the user want to save them
         if not self._ask_markpoints:
             self.askSavePoints()
-
-        # self.setArrayLimits(0,0)
-        # self._askLabelDataCheckBox.SetValue(True)
         try:
+            # Get the path where the datafile exist on the computer and the
+            # type pf datafile to open
             pathName, fileTipe, pathstatus = self._opendata.get_datapath()
-
-            data, status, msg = self._opendata.set_arrayfromfile(pathName, fileTipe)
-            # if fileTipe == "txt":
-            #     data, status = self._opendata.setArraysFromTxt(pathName)
-            # else:
-            #     if fileTipe == "csv":
-            #         data, status = self._opendata.setArraysFromCsv(pathName)
-            #     else:
-            #         self._expdata.writeinfo("Error: the file type not match with txt or csv.")
+            # Open the dataset using the previous path
+            data, status, msg = self._opendata.set_arrayfromfile(
+                pathName, 
+                fileTipe
+                )
+            # If the flag 'status' is False, show a message indicating that
+            # there was a problem opening the datafile, if not continue with
+            # the tasks.
             if not status:
-                wx.MessageBox("The data file can't be opened, the software continue with the previous data if exist. \nCheck the problem and contact the development team if you need help.\n\nThe problem is:\n"+msg+"\n\nContact mail: sonounoteam@gmail.com.",
-                          'Information', wx.OK | wx.ICON_INFORMATION)
+                wx.MessageBox(
+                    message=("The data file can't be opened, the software "
+                        + "continue with the previous data if exist. \nCheck "
+                        + "the problem and contact the development team if "
+                        + "you need help.\n\nThe problem is:\n"+msg+"\n\n"
+                        + "Contact mail: sonounoteam@gmail.com."),
+                    caption='Information', 
+                    style=wx.OK | wx.ICON_INFORMATION
+                    )
             else:
-                #aquí las nuevas opciones
-                # #Chequeo si tienen nombre de columnas
-                # if not type(data.loc[0,0]) == str:
-                #     #Se debe colocar un for
-                #     for a in range (0,data.shape[1]):
-                #         if a==0:
-                #             xLabel = pd.DataFrame({a:["Column "+str(a)]})
-                #         else:
-                #             xLabel.loc[:, a] = "Column "+str(a)
-                #     data = pd.concat([xLabel, data]).reset_index(drop=True)
-                #     self.set_dataframe(data)
-                # #Chequeo si los nombres de columnas tienen espacios y se borran
-                # for i in range (0, data.shape[1]):
-                #     data.iloc[0,i] = data.iloc[0,i].replace(" ","")
-                #Continuo seteando parametros relacionados con los datos
-                self._titleEdDataTextCtrl.SetValue(self._opendata.get_datafilename()[:-4])
+                # Set datafile name on the specific text space on data
+                # parameters panel
+                self._titleEdDataTextCtrl.SetValue(
+                    value=self._opendata.get_datafilename()[:-4]
+                    )
+                # Store dataframe on two specific class variable one to
+                # modify and another to store the original dataset
                 self.set_dataframe(data)
                 self.set_dataframe_original(data)
+                # Obtain the x and y array to plot, convert dataframe to numpy
                 x, y, status1 = self.dataSelection(data)
                 if status1:
                     self.set_actual_x(x)
@@ -1478,7 +1520,14 @@ class SonoUnoCore (gui.FrameDesign):
                     # data point
                     self._minspace_x_array = x[1:] - x[:x.size-1]
                     # Calculate the minimum space between data points
-                    self._minspace_x = np.nanmin(self._minspace_x_array)
+                    #self._minspace_x = np.nanmin(self._minspace_x_array)
+                    self._minspace_x = np.nanmin(
+                        np.where(
+                            self._minspace_x_array == 0, 
+                            np.nan, 
+                            self._minspace_x_array
+                            )
+                        )
                 except AttributeError as e:
                     self._expdata.writeinfo("The data has not been imported yet.")
                     self._expdata.writeexception(e)
@@ -1532,6 +1581,19 @@ class SonoUnoCore (gui.FrameDesign):
                 self._timer.Stop()
             else:
                 self._expdata.writeinfo("Error con el contador del botón Play-Pausa")
+    
+    def play_with_time(self, time):
+        
+        """
+        This method set the flag to allow to set maximun time for data 
+        sonification.
+        """
+        self.playwithtime_status = True
+        self.playMethod()
+            # x = self.getXActual()
+            # # We check that 1500 data points take to the software 
+            # if (time*1500) < x.size:
+                
 
     def stopMethod(self):
         self._playButton.SetValue(False)
@@ -1661,6 +1723,8 @@ class SonoUnoCore (gui.FrameDesign):
             ordenada = np.array([float(np.nanmin(y)), float(np.nanmax(y))])
             abscisa = np.array([float(x[self._abspos_slider.GetValue()]), float(x[self._abspos_slider.GetValue()])])
             self.plot_positionline(abscisa, ordenada)
+            # Update the space cycle timer
+            self._timerindex_space = 0
 
     def tempo(self):
         if self._timer.IsRunning():
@@ -3014,7 +3078,7 @@ class SonoUnoCore (gui.FrameDesign):
 
     def _eventopen( self, event ):
         self._expdata.printoutput("Open button pressed.")
-        self.openMethod()
+        self.open_method()
 
     def _eventTitleEdData( self, event ):
         self._expdata.printoutput("Enter key pressed on the text box of data title.")
