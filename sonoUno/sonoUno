@@ -21,6 +21,7 @@ import webbrowser
 import gui.frame_design as gui
 from data_import.data_import import DataImport
 from sound_module.simple_sound import simpleSound
+from sound_module.simple_sound import tickMark
 from data_export.data_export import DataExport
 from data_transform.predef_math_functions import PredefMathFunctions
 
@@ -40,6 +41,7 @@ class SonoUnoCore (gui.FrameDesign):
         self._expdata = DataExport()
         self._opendata = DataImport()
         self._datasound = simpleSound()
+        self._tickmark = tickMark()
         self._matfunc = PredefMathFunctions()
         # wx.timer events
         # First timer to sonify the data
@@ -91,6 +93,7 @@ class SonoUnoCore (gui.FrameDesign):
             'quit':self.Close,
             'exit':self.Close,
             'play':self.playMethod,
+            'playloop':self.playinloop,
             'pause':self.playMethod,
             'stop':self.stopMethod,
             'markpoint':self.markPoints,
@@ -122,6 +125,7 @@ class SonoUnoCore (gui.FrameDesign):
         # 2)Values and counters
         self._plotcounter = 0
         self._dataperpage = 101
+        self.waitonloop = 500
         # Here we set some class variables with setter and getter methods
         # 1)Data file variables
         self.set_dataframe(None)
@@ -790,8 +794,11 @@ class SonoUnoCore (gui.FrameDesign):
         """
         This method sonify the data plotted when the user presses the button 
         play and updates the position mark on the plot.
-        In addition, first it checks if the data exist.
+        In addition, first it checks if the data exist and check to reset 
+        time for loop functionality after play the tickmark.
         """
+        if self._timer.GetInterval()==self.waitonloop and self.playinloop_state:
+            self._timer.Start((self._getVelocity()*2) + 10)
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
@@ -873,10 +880,18 @@ class SonoUnoCore (gui.FrameDesign):
                 self._expdata.writeexception(e)
             # Increment the timer index
             self._set_timerindex(timer_index + 1)
-            # Check if the timer index reach the end of the array to stop the
-            # reproduction
+            # Check if the timer index reach the end
             if timer_index==(x.size-1):
-                self.stopMethod()
+                # If loop is enable, play the tickmark and restart the sonification
+                # If not, stop the reproduction
+                if self.playinloop_state:
+                    self._tickmark.loop()
+                    self._timer.Start(self.waitonloop)
+                    self._set_timerindex(0)
+                    self._abspos_slider.SetValue(0)
+                    self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
+                else:
+                    self.stopMethod()
                 
     def _playenvelope_event(self, event):
         
@@ -1581,6 +1596,14 @@ class SonoUnoCore (gui.FrameDesign):
                 self._timer.Stop()
             else:
                 self._expdata.writeinfo("Error con el contador del botón Play-Pausa")
+    
+    def playinloop(self):
+        self.playinloop_state = True
+        self.playMethod()
+        
+    def playonce(self):
+        self.playinloop_state = False
+        self.playMethod()
     
     def play_with_time(self, time):
         
@@ -3137,6 +3160,7 @@ class SonoUnoCore (gui.FrameDesign):
         self.eSound()
 
     def _eventplay( self, event ):
+        self.playinloop_state = False
         self.playMethod()
 
 #    def _eventPause( self, event ):
