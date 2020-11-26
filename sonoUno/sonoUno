@@ -113,7 +113,8 @@ class SonoUnoCore (gui.FrameDesign):
             'xupperlimit':self.xupperlimit_command,
             'octave':self._octaveInput_command,
             'fromoctave':self._retrieveFromOctave_command,
-            'play_time':self.play_with_time
+            'play_time':self.play_with_time,
+            'playloop_time':self.play_with_time_inloop
             }
         # Here we set some class variables to know the state of some tasks
         # 1)Flags
@@ -125,7 +126,7 @@ class SonoUnoCore (gui.FrameDesign):
         # 2)Values and counters
         self._plotcounter = 0
         self._dataperpage = 101
-        self.waitonloop = 500
+        self._waitonloop = 500
         # Here we set some class variables with setter and getter methods
         # 1)Data file variables
         self.set_dataframe(None)
@@ -575,27 +576,6 @@ class SonoUnoCore (gui.FrameDesign):
         # Send a size event to update the GUI
         self.SendSizeEvent()
 
-    """BORRAR!!"""
-    # def setArrayLimits (self, x, y):
-    #     self._expdata.printoutput("Setting the Upper and Lower limits.")
-    #     try:
-    #         limitVLower = np.amin(y)
-    #     except Exception as e:
-    #         self._expdata.writeexception(e)
-    #     try:
-    #         limitVUpper = np.amax(y)
-    #     except Exception as e:
-    #         self._expdata.writeexception(e)
-    #     try:
-    #         limitHLower = np.amin(x)
-    #     except Exception as e:
-    #         self._expdata.writeexception(e)
-    #     try:
-    #         limitHUpper = np.amax(x)
-    #     except Exception as e:
-    #         self._expdata.writeexception(e)
-    #     return limitVLower, limitVUpper, limitHLower, limitHUpper
-
     def set_xslider_limits (self, x):
         
         """
@@ -797,7 +777,7 @@ class SonoUnoCore (gui.FrameDesign):
         In addition, first it checks if the data exist and check to reset 
         time for loop functionality after play the tickmark.
         """
-        if self._timer.GetInterval()==self.waitonloop and self.playinloop_state:
+        if self._timer.GetInterval()==self._waitonloop and self.playinloop_state:
             self._timer.Start((self._getVelocity()*2) + 10)
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
@@ -840,14 +820,15 @@ class SonoUnoCore (gui.FrameDesign):
                                 ordenada = np.array(
                                     [float(np.nanmin(y)), float(np.nanmax(y))]
                                     )
-                                new_abscisa = x[timer_index-1] + (self._minspace_x * self._timerindex_space)
+                                new_abscisa = (x[timer_index-1] 
+                                               + (self._minspace_x 
+                                                  * self._timerindex_space))
                                 abscisa = np.array(
                                     [float(new_abscisa), float(new_abscisa)]
                                     )
                                 self.plot_positionline(abscisa, ordenada)
                             except Exception as e:
                                 self._expdata.writeexception(e)
-                            
                             return
                         else:
                             self._timerindex_space = 0
@@ -882,11 +863,11 @@ class SonoUnoCore (gui.FrameDesign):
             self._set_timerindex(timer_index + 1)
             # Check if the timer index reach the end
             if timer_index==(x.size-1):
-                # If loop is enable, play the tickmark and restart the sonification
-                # If not, stop the reproduction
+                # If loop is enable, play the tickmark and restart the 
+                # sonification. If not, stop the reproduction.
                 if self.playinloop_state:
                     self._tickmark.loop()
-                    self._timer.Start(self.waitonloop)
+                    self._timer.Start(self._waitonloop)
                     self._set_timerindex(0)
                     self._abspos_slider.SetValue(0)
                     self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
@@ -1543,11 +1524,30 @@ class SonoUnoCore (gui.FrameDesign):
                             self._minspace_x_array
                             )
                         )
+                    
+                    # # Check if maximum time is setted
+                    # if self.playwithtime_status:
+                    #     # We check that 1500 sonifications loops take to the  
+                    #     # software about one minute to sonify.
+                    #     # First we calculate the number of sonification loops
+                    #     # for this dataset.
+                    #     min_x_inarray = np.nanmin(x)
+                    #     max_x_inarray = np.nanmax(x)
+                    #     number_of_loops = ((max_x_inarray - min_x_array) 
+                    #                        / self._minspace_x)
+                    #     print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$4')
+                    #     print(number_of_loops)
+                    #     # If the number of loop is higher than the time setted
+                    #     # by the user promediate the closest values
+                    #     if (self.playwithtime_value*1500) < number_of_loops:
+                            
+                    
                 except AttributeError as e:
                     self._expdata.writeinfo("The data has not been imported yet.")
                     self._expdata.writeexception(e)
                 except Exception as e:
                     self._expdata.writeexception(e)
+                    
                 #Seteo el tempo dependiendo del tiempo del timer
                 self._timer.Start((self._getVelocity()*2) + 10)
                 self._datasound.reproductor.set_time_base(self._timer.GetInterval()/1000.0)
@@ -1599,10 +1599,12 @@ class SonoUnoCore (gui.FrameDesign):
     
     def playinloop(self):
         self.playinloop_state = True
+        self.playwithtime_status = False
         self.playMethod()
         
     def playonce(self):
         self.playinloop_state = False
+        self.playwithtime_status = False
         self.playMethod()
     
     def play_with_time(self, time):
@@ -1612,11 +1614,20 @@ class SonoUnoCore (gui.FrameDesign):
         sonification.
         """
         self.playwithtime_status = True
+        self.playinloop_state = False
+        self.playwithtime_value = time
         self.playMethod()
-            # x = self.getXActual()
-            # # We check that 1500 data points take to the software 
-            # if (time*1500) < x.size:
-                
+        
+    def play_with_time_inloop(self, time):
+        
+        """
+        This method set the flag to allow to set maximun time for data 
+        sonification and play in loop.
+        """
+        self.playwithtime_status = True
+        self.playinloop_state = True
+        self.playwithtime_value = time
+        self.playMethod()
 
     def stopMethod(self):
         self._playButton.SetValue(False)
@@ -3161,6 +3172,7 @@ class SonoUnoCore (gui.FrameDesign):
 
     def _eventplay( self, event ):
         self.playinloop_state = False
+        self.playwithtime_status = False
         self.playMethod()
 
 #    def _eventPause( self, event ):
