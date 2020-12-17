@@ -803,9 +803,6 @@ class SonoUnoCore (gui.FrameDesign):
                     # self._minspace_x continue with sonification, if not
                     # add empty space
                     if self._minspace_x_array[timer_index-1] > self._minspace_x:
-                        print("*************************")
-                        print(self._minspace_x_array[timer_index-1])
-                        print(self._minspace_x)
                         cycles = int(self._minspace_x_array[timer_index-1] 
                             / self._minspace_x)
                         
@@ -948,6 +945,21 @@ class SonoUnoCore (gui.FrameDesign):
                 self.set_dataframe_original(data)
                 # Obtain the x and y array to plot, convert dataframe to numpy
                 x, y, status1 = self.dataSelection(data)
+                
+                # Calculate the array with the space between each 
+                # data point the first time (then this value is updated on
+                # play())
+                self._minspace_x_array = x[1:] - x[:x.size-1]
+                # Calculate the minimum space between data points
+                #self._minspace_x = np.nanmin(self._minspace_x_array)
+                self._minspace_x = np.nanmin(
+                    np.where(
+                        self._minspace_x_array == 0, 
+                        np.nan, 
+                        self._minspace_x_array
+                        )
+                    )
+                
                 if status1:
                     self.set_actual_x(x)
                     self.set_actual_y(y)
@@ -1509,9 +1521,14 @@ class SonoUnoCore (gui.FrameDesign):
                 try:
                     x = self.getXActual()
                     y = self.getYActual()
+                    # Store the previous x-y array to restore after 
+                    # reproduction
+                    self.prev_setted_time_x = x
+                    self.prev_setted_time_y = y
                     norm_x, norm_y, status = self._matfunc.normalize(x, y)
                     self._expdata.printoutput("Normalize the input data.")
                     self._setNormXY(norm_x, norm_y)
+                    
                     # Calculate the array with the space between each 
                     # data point
                     self._minspace_x_array = x[1:] - x[:x.size-1]
@@ -1525,23 +1542,101 @@ class SonoUnoCore (gui.FrameDesign):
                             )
                         )
                     
-                    # # Check if maximum time is setted
-                    # if self.playwithtime_status:
-                    #     # We check that 1500 sonifications loops take to the  
-                    #     # software about one minute to sonify.
-                    #     # First we calculate the number of sonification loops
-                    #     # for this dataset.
-                    #     min_x_inarray = np.nanmin(x)
-                    #     max_x_inarray = np.nanmax(x)
-                    #     number_of_loops = ((max_x_inarray - min_x_array) 
-                    #                        / self._minspace_x)
-                    #     print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$4')
-                    #     print(number_of_loops)
-                    #     # If the number of loop is higher than the time setted
-                    #     # by the user promediate the closest values
-                    #     if (self.playwithtime_value*1500) < number_of_loops:
-                            
                     
+                    # Check if maximum time is setted
+                    if self.playwithtime_status:
+                        # First we set tempo at maximum
+                        self.selecttempo_command(100)
+                        # We check that 1500 sonifications loops take to the  
+                        # software about one minute to sonify.
+                        # First we calculate the number of sonification loops
+                        # for this dataset.
+                        min_x_inarray = np.nanmin(x)
+                        max_x_inarray = np.nanmax(x)
+                        total_number_of_loops = ((max_x_inarray - min_x_inarray) 
+                                            / self._minspace_x)
+                        # If the number of loop is higher than the time setted
+                        # by the user promediate the closest values
+                        setted_number_of_loops = self.playwithtime_value*1500
+                        if setted_number_of_loops < total_number_of_loops:
+                            # new_x, new_y = self._matfunc.prom_closest_values(x, y)
+                            
+                            # Print message indicating the delay and asking if
+                            # the user want to continue
+                            
+                            # Find the min distance between points according
+                            # the max_time
+                            actual_number_of_loops = total_number_of_loops
+                            count = 0
+                            new_minspace_x_array = self._minspace_x_array
+                            while actual_number_of_loops > setted_number_of_loops:
+                                # Create array to compare if all elements are
+                                # the same as minspace
+                                comp_array = np.zeros(new_minspace_x_array.size)
+                                comp_array = comp_array + self._minspace_x
+                                if new_minspace_x_array.all() == comp_array.all():
+                                    # If all spaces are the same, we set new
+                                    # min space based on setted number of loops
+                                    self._minspace_x = (self._minspace_x
+                                        * (actual_number_of_loops
+                                           / setted_number_of_loops
+                                           )
+                                        )
+                                    min_x_inarray = np.nanmin(x)
+                                    max_x_inarray = np.nanmax(x)
+                                    actual_number_of_loops = ((max_x_inarray - min_x_inarray) 
+                                                / self._minspace_x)
+                                    count = count + 1
+                                else:
+                                    # Delete the actual min space between point
+                                    new_minspace_x_array = np.delete(
+                                        arr = new_minspace_x_array,
+                                        obj = np.where(
+                                            new_minspace_x_array == self._minspace_x
+                                            )
+                                        )
+                                    # Find the new min space between points
+                                    self._minspace_x = np.nanmin(
+                                        np.where(
+                                            new_minspace_x_array == 0, 
+                                            np.nan, 
+                                            new_minspace_x_array
+                                            )
+                                        )
+                                    min_x_inarray = np.nanmin(x)
+                                    max_x_inarray = np.nanmax(x)
+                                    actual_number_of_loops = ((max_x_inarray - min_x_inarray) 
+                                                / self._minspace_x)
+                                    count = count + 1
+                                    # if count == 100:
+                                    #     break
+                            # We made it here, then we paste this lines on
+                            # math function class
+                            new_x = np.array([x[0]])
+                            new_y = np.array([y[0]])
+                            for i in range(1, x.size-1):
+                                if (x[i]-x[i-1]) > self._minspace_x:
+                                    new_x = np.append(new_x, x[i])
+                                    new_y = np.append(new_y, y[i])
+                                else:
+                                    find_next = x[i-1] + self._minspace_x
+                                    final_index_to_prom = (np.abs(x-find_next)).argmin()
+                                    x_sum=0
+                                    y_sum=0
+                                    for j in range(i-1,final_index_to_prom):
+                                        x_sum = x_sum + x[j]
+                                        y_sum = y_sum + y[j]
+                                    prom_x = x_sum/(final_index_to_prom-(i-1))
+                                    prom_y = y_sum/(final_index_to_prom-(i-1))
+                                    new_x = np.append(new_x, prom_x)
+                                    new_y = np.append(new_y, prom_y)
+                                    i = final_index_to_prom
+                            self.set_actual_x(new_x)
+                            self.set_actual_y(new_y)
+                            self.replot_xy(self.getXActual(), self.getYActual())
+                            norm_x, norm_y, status = self._matfunc.normalize(new_x, new_y)
+                            self._expdata.printoutput("Normalize the input data.")
+                            self._setNormXY(norm_x, norm_y)
                 except AttributeError as e:
                     self._expdata.writeinfo("The data has not been imported yet.")
                     self._expdata.writeexception(e)
@@ -1615,7 +1710,7 @@ class SonoUnoCore (gui.FrameDesign):
         """
         self.playwithtime_status = True
         self.playinloop_state = False
-        self.playwithtime_value = time
+        self.playwithtime_value = float(time)
         self.playMethod()
         
     def play_with_time_inloop(self, time):
@@ -1626,7 +1721,7 @@ class SonoUnoCore (gui.FrameDesign):
         """
         self.playwithtime_status = True
         self.playinloop_state = True
-        self.playwithtime_value = time
+        self.playwithtime_value = float(time)
         self.playMethod()
 
     def stopMethod(self):
@@ -1634,6 +1729,10 @@ class SonoUnoCore (gui.FrameDesign):
         self._playmenuitem.Check(False)
         self._playButton.SetLabel("Play")
         self._playmenuitem.SetItemLabel('Play' + '\t' + 'Alt+Shift+P')
+        
+        # After reproduction the non reduce array x-y was setted
+        self.set_actual_x(self.prev_setted_time_x)
+        self.set_actual_y(self.prev_setted_time_y)
 
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
@@ -2493,8 +2592,6 @@ class SonoUnoCore (gui.FrameDesign):
         cut = value.find(',')
         value1 = value[:cut]
         value2 = value[cut+1:]
-        print(value1)
-        print(value2)
 
         if not value1 == "":
             self._xFromOctave(value1)
