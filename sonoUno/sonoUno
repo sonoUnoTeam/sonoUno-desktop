@@ -114,7 +114,8 @@ class SonoUnoCore (gui.FrameDesign):
             'octave':self._octaveInput_command,
             'fromoctave':self._retrieveFromOctave_command,
             'play_time':self.play_with_time,
-            'playloop_time':self.play_with_time_inloop
+            'playloop_time':self.play_with_time_inloop,
+            'set_1min_loops':self.set_number_1min_loops
             }
         # Here we set some class variables to know the state of some tasks
         # 1)Flags
@@ -127,6 +128,7 @@ class SonoUnoCore (gui.FrameDesign):
         self._plotcounter = 0
         self._dataperpage = 101
         self._waitonloop = 500
+        self.number_1min_loops = 1500
         # Here we set some class variables with setter and getter methods
         # 1)Data file variables
         self.set_dataframe(None)
@@ -1557,7 +1559,9 @@ class SonoUnoCore (gui.FrameDesign):
                                             / self._minspace_x)
                         # If the number of loop is higher than the time setted
                         # by the user promediate the closest values
-                        setted_number_of_loops = self.playwithtime_value*1500
+                        setted_number_of_loops = (self.playwithtime_value
+                            * self.number_1min_loops
+                            )
                         if setted_number_of_loops < total_number_of_loops:
                             # new_x, new_y = self._matfunc.prom_closest_values(x, y)
                             
@@ -1723,6 +1727,14 @@ class SonoUnoCore (gui.FrameDesign):
         self.playinloop_state = True
         self.playwithtime_value = float(time)
         self.playMethod()
+
+    def set_number_1min_loops(self, num):
+        
+        """
+        This method set the number of loops to take into account as the 
+        number of loops that take 1 minute of sonification.
+        """
+        self.number_1min_loops = int(num)
 
     def stopMethod(self):
         self._playButton.SetValue(False)
