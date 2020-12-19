@@ -2,8 +2,7 @@
 
 This development is powered by CONICET-Argentina, Universidad de Mendoza-Argentina and REINFORCE.
 
-<Img src="logos/logo_conicet.png" width="100">
-![](logos/logo_conicet.png) ![](logos/iteda.jpeg) ![](logos/ibio.jpeg) ![](logos/reinforce.png)
+<Img src="logos/logo_conicet.png" width="100"> <Img src="logos/iteda.jpeg" width="100"> <Img src="logos/ibio.jpeg" width="100"> <Img src="logos/reinforce.png" width="100">
 
 ## Description
 
