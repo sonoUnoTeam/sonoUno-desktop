@@ -1,6 +1,7 @@
 # SonoUno Software
 
 This development is powered by CONICET-Argentina, Universidad de Mendoza-Argentina and REINFORCE.
+![](logos/logo_conicet.png)
 
 ## Description
 
