@@ -1,9 +1,13 @@
 MIT License
 
-Copyright (c) 2019 Johanna Casado, Julieta Carricondo Robino, Aldana Palma, 
-Wanda Diaz Merced, Beatriz García, Gonzalo A. de la Vega, CONICET-Argentina, 
-Universidad de Mendoza-Argentina, IAU Office of Astronomy for Development
--SAAO-South Africa
+Copyright (c) 2020 Johanna Casado, Wanda Diaz Merced, Beatriz GarcÃ­a and 
+Gonzalo A. de la Vega. This development is powered by CONICET-Argentina, 
+Universidad de Mendoza-Argentina and REINFORCE.
+
+Thanks to Julieta Carricondo Robino and Aldana Palma, who wrote some scripts 
+at the beginning of this projects. In addition, thanks to IAU Office of Astronomy 
+for Development-SAAO-South Africa and Poshak Gandhi from University of Southampton 
+for all their support to this development.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
