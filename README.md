@@ -1,5 +1,7 @@
 # SonoUno Software
 
+This development is powered by CONICET-Argentina, Universidad de Mendoza-Argentina and REINFORCE.
+
 ## Description
 
 SonoUno is a sonification software for astronomical data presented on a table (txt or csv files). The software is being developed based on the study of other software (Sonification Sandbox, MathTrax and xSonify) and standards of accessibility like the ISO 9241-171:2008 (Guidance on software accessibility). In order to develop the first approach of a graphical user interface, we perform a theoretical framework based on bibliography of user cases, focused on blind and visual impairment people.
