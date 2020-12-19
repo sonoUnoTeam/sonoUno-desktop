@@ -1,7 +1,6 @@
 # SonoUno Software
 
 This development is powered by CONICET-Argentina, Universidad de Mendoza-Argentina and REINFORCE.
-![](logos/logo_conicet.png) ![](logos/iteda.jpg) ![](logos/ibio.jpg) ![](logos/reinforce.png)
 
 ## Description
 
@@ -77,3 +76,5 @@ Then, on the terminal, go to the folder which contain the setup.py and install i
 To open the sonoUno software:\
 ```cd sonoUno```\
 ```python3 sonoUno```
+
+![](logos/logo_conicet.png) ![](logos/iteda.jpeg) ![](logos/ibio.jpeg) ![](logos/reinforce.png)
