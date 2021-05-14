@@ -199,6 +199,11 @@ class SonoUnoCore (gui.FrameDesign):
         self._setYName('')
         # Flag to detect when the original data is showed by the grid
         self.originaldataselected = True
+        # Next variables can be changed later to getter and setter
+        # Parameters to save the previous data file path of the method's use.
+        self._prevpath = ''
+        self._prevfiletipe = ''
+        # self._prev_m_filepath = ''
 
     """
     This section below contain all the setters for class variables.
@@ -895,6 +900,46 @@ class SonoUnoCore (gui.FrameDesign):
             self._set_timerenvelopeindex(0)
             self._timer_envelope.Stop()
 
+    def get_datapath(self):
+        
+        """
+        This method return the path of the data to import and the file type.
+        
+        Check if the path and file type is not empty, if is empty through a
+        message to the user, because there is no data imported.
+        
+        A state value is added to return, this is false if the process
+        through an exception.
+        """
+        try:
+            # This generate a pop-up window where the user serch the file.
+            with wx.FileDialog(
+                    parent = None, 
+                    message = 'Open data file', 
+                    wildcard = 'Data files |*.txt;*.csv', 
+                    style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+                    ) as filedialog:
+                if filedialog.ShowModal() == wx.ID_CANCEL:
+                    return self._prevpath, self._prevfiletipe, True
+                else:
+                    # We save the path selected by the user and the file name.
+                    path = filedialog.GetPath()
+                    self._opendata.set_datafilename(filedialog.GetFilename())
+                    # Check the file extention and save it as the file type.
+                    if path.endswith('.txt'): 
+                        filetipe = 'txt'
+                    elif path.endswith('.csv'): 
+                        filetipe = 'csv'
+                    else:
+                        filetipe = 'other'
+                    # We update the previous parameters.
+                    self._prevpath = path
+                    self._prevfiletipe = filetipe
+                    return path, filetipe, True
+        except Exception as Error:
+            self._expdata.writeexception(Error)
+            return self._prevpath, self._prevfiletipe, False
+
     def open_method(self):
         
         """
@@ -916,7 +961,7 @@ class SonoUnoCore (gui.FrameDesign):
         try:
             # Get the path where the datafile exist on the computer and the
             # type pf datafile to open
-            pathName, fileTipe, pathstatus = self._opendata.get_datapath()
+            pathName, fileTipe, pathstatus = self.get_datapath()
             # Open the dataset using the previous path
             data, status, msg = self._opendata.set_arrayfromfile(
                 pathName, 
@@ -1476,6 +1521,30 @@ class SonoUnoCore (gui.FrameDesign):
                 # self.setArrayLimits(x, y)
                 self.set_xslider_limits(x)
                 self.replot_xy(x, y)
+                
+    def setpath(self, title, datatipe):
+        
+        """
+        This method return the path that the user select to save a file, if 
+        the user close or cancel the dialog return 'Empty' string and if the
+        programm catch an error return 'Error' string.
+        
+        We asked the datatipe to do a generic method.
+        """
+        try:
+            with wx.FileDialog(
+                    parent = None, 
+                    message = title, 
+                    wildcard = datatipe, 
+                    style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+                    ) as filedialog:
+                if filedialog.ShowModal() == wx.ID_CANCEL:
+                    return 'Empty'
+                pathName = filedialog.GetPath()
+        except Exception as Error:
+            self.writeexception(Error)
+            return 'Error'
+        return pathName
 
     def eSound (self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
@@ -1483,7 +1552,8 @@ class SonoUnoCore (gui.FrameDesign):
         else:
             #wx.MessageBox('The software do not save the sound for the moment, the development team are working on that.',
             #              'Problem saving the sound:', wx.OK | wx.ICON_INFORMATION)
-            eSoundPath=self._expdata.setpath("Save sound file", "Sound files |*.wav")
+            
+            eSoundPath = self.setpath("Save sound file", "Sound files |*.wav")
             x = self.getXActual()
             y = self.getYActual()
             try:
@@ -1499,7 +1569,7 @@ class SonoUnoCore (gui.FrameDesign):
                 self._expdata.r(e)
 
     def savePlot(self):
-        plotPath = self._expdata.setpath("Save plot file", "Image files |*.png")
+        plotPath = self.setpath("Save plot file", "Image files |*.png")
         try:
             self._figure.savefig(plotPath)
         except Exception as e:
@@ -1834,7 +1904,8 @@ class SonoUnoCore (gui.FrameDesign):
             x = self.getXActual()
             y = self.getYActual()
             try:
-                self._expdata.writepointfile(x, y)
+                path = self.setpath('Save data file', 'Data files |*.csv')
+                self._expdata.writepointfile(x, y, path)
             except Exception as e:
                 self._expdata.writeexception(e)
 
@@ -1845,7 +1916,8 @@ class SonoUnoCore (gui.FrameDesign):
             xp = self._get_markedpoints_xcoord()
             yp = self._get_markedpoints_ycoord()
             try:
-                self._expdata.writepointfile(xp, yp)
+                path = self.setpath('Save data file', 'Data files |*.csv')
+                self._expdata.writepointfile(xp, yp, path)
             except AttributeError as e:
                 self._expdata.writeinfo("The array with numbers of interest has not been created yet.")
                 self._expdata.writeexception(e)
@@ -2630,13 +2702,64 @@ class SonoUnoCore (gui.FrameDesign):
             self.set_actual_y(y)
 
         self._absPosTextCtrl.SetFocus()
+        
+    # def get_m_filepath(self):
+        
+    #     """
+    #     This method return the path to one m file selected by the user.
+        
+    #     Check if the string is None (the user change their mind) or 'Error'
+    #     (the method through an error.).
+    #     """
+    #     try:
+    #         with wx.FileDialog(
+    #                 parent = None, 
+    #                 message = 'Open M file', 
+    #                 wildcard = 'Data files |*.m', 
+    #                 style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+    #                 ) as filedialog:
+    #             if filedialog.ShowModal() == wx.ID_CANCEL:
+    #                 return None
+    #             else:
+    #                 path = filedialog.GetPath()
+    #                 filename = filedialog.GetFilename()
+    #                 return path, filename
+    #     except Exception as Error:
+    #         self._expdata.writeexception(Error)
+    #         return 'Error'
+    
+    # def get_m_dirpath(self):
+        
+    #     """
+    #     This method return the path to the directory that the user select.
+        
+    #     Check if the string is empty (the user change his mind and is the
+    #     first time that the software open a directory of m files) or 'Error'
+    #     (the method through an error.).
+    #     """
+    #     try:
+    #         with wx.DirDialog(
+    #                 parent = None, 
+    #                 message = 'Choose m files folder.', 
+    #                 defaultPath = '', 
+    #                 style = wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST
+    #                 ) as dirdialog:
+    #             if dirdialog.ShowModal() == wx.ID_CANCEL:
+    #                 return self._prev_m_filepath
+    #             else:
+    #                 path = dirdialog.GetPath()
+    #                 self._prev_m_filepath = path
+    #                 return path
+    #     except Exception as Error:
+    #         self._expdata.writeexception(Error)
+    #         return 'Error'
 
     # def addPathToOctave(self):
     #     path = self._opendata.get_m_dirpath()
     #     self._pythonShell.Execute('octave.addpath("'+path+'")')
 
     # def octave_loadmfunc_command(self):
-    #     path, self.octavefuncfilename = self._opendata.get_m_filepath()
+    #     path, self.octavefuncfilename = self.get_m_filepath()
     #     path='C:/Users/johi-/Desktop'
     #     self._pythonShell.Execute('octave.addpath("'+path+'")')
     #     #self._pythonShell.Execute('out = octave.'+filename[:-2]+'()')
@@ -2647,7 +2770,7 @@ class SonoUnoCore (gui.FrameDesign):
     #     self._analizeOctaveOutput()
         
     # def octave_mfile_command(self):
-    #     path, filename = self._opendata.get_m_filepath()
+    #     path, filename = self.get_m_filepath()
     #     #path='C:/Users/johi-/Desktop'
     #     try:
     #         with open(path, "r") as f:

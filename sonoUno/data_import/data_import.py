@@ -9,7 +9,7 @@ Created on Dec 12 2017
 
 import numpy as np
 import pandas as pd
-import wx
+# import wx
 
 from data_export.data_export import DataExport
 
@@ -26,11 +26,6 @@ class DataImport(object):
         # The class DataExport is instantiated to print the messages and 
         # errors.
         self._export_error_info = DataExport()
-        # Parameters to save the previous data of the method's use.
-        self._prevpath = ''
-        self._prevfiletipe = ''
-        self._prev_m_filepath = ''
-        self._del_xy = np.array([0,1])
         # Parameters initialization with setter methods
         self.set_datafilename('')
         
@@ -49,96 +44,45 @@ class DataImport(object):
         """
         return self._filename
         
-    def get_datapath(self):
+    # def get_datapath(self):
         
-        """
-        This method return the path of the data to import and the file type.
+    #     """
+    #     This method return the path of the data to import and the file type.
         
-        Check if the path and file type is not empty, if is empty through a
-        message to the user, because there is no data imported.
+    #     Check if the path and file type is not empty, if is empty through a
+    #     message to the user, because there is no data imported.
         
-        A state value is added to return, this is false if the process
-        through an exception.
-        """
-        try:
-            # This generate a pop-up window where the user serch the file.
-            with wx.FileDialog(
-                    parent = None, 
-                    message = 'Open data file', 
-                    wildcard = 'Data files |*.txt;*.csv', 
-                    style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
-                    ) as filedialog:
-                if filedialog.ShowModal() == wx.ID_CANCEL:
-                    return self._prevpath, self._prevfiletipe, True
-                else:
-                    # We save the path selected by the user and the file name.
-                    path = filedialog.GetPath()
-                    self.set_datafilename(filedialog.GetFilename())
-                    # Check the file extention and save it as the file type.
-                    if path.endswith('.txt'): 
-                        filetipe = 'txt'
-                    elif path.endswith('.csv'): 
-                        filetipe = 'csv'
-                    else:
-                        filetipe = 'other'
-                    # We update the previous parameters.
-                    self._prevpath = path
-                    self._prevfiletipe = filetipe
-                    return path, filetipe, True
-        except Exception as Error:
-            self._export_error_info.writeexception(Error)
-            return self._prevpath, self._prevfiletipe, False
-    
-    def get_m_filepath(self):
-        
-        """
-        This method return the path to one m file selected by the user.
-        
-        Check if the string is None (the user change their mind) or 'Error'
-        (the method through an error.).
-        """
-        try:
-            with wx.FileDialog(
-                    parent = None, 
-                    message = 'Open M file', 
-                    wildcard = 'Data files |*.m', 
-                    style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
-                    ) as filedialog:
-                if filedialog.ShowModal() == wx.ID_CANCEL:
-                    return None
-                else:
-                    path = filedialog.GetPath()
-                    filename = filedialog.GetFilename()
-                    return path, filename
-        except Exception as Error:
-            self._export_error_info.writeexception(Error)
-            return 'Error'
-    
-    def get_m_dirpath(self):
-        
-        """
-        This method return the path to the directory that the user select.
-        
-        Check if the string is empty (the user change his mind and is the
-        first time that the software open a directory of m files) or 'Error'
-        (the method through an error.).
-        """
-        try:
-            with wx.DirDialog(
-                    parent = None, 
-                    message = 'Choose m files folder.', 
-                    defaultPath = '', 
-                    style = wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST
-                    ) as dirdialog:
-                if dirdialog.ShowModal() == wx.ID_CANCEL:
-                    return self._prev_m_filepath
-                else:
-                    path = dirdialog.GetPath()
-                    self._prev_m_filepath = path
-                    return path
-        except Exception as Error:
-            self._export_error_info.writeexception(Error)
-            return 'Error'
+    #     A state value is added to return, this is false if the process
+    #     through an exception.
+    #     """
+    #     try:
+    #         # This generate a pop-up window where the user serch the file.
+    #         with wx.FileDialog(
+    #                 parent = None, 
+    #                 message = 'Open data file', 
+    #                 wildcard = 'Data files |*.txt;*.csv', 
+    #                 style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+    #                 ) as filedialog:
+    #             if filedialog.ShowModal() == wx.ID_CANCEL:
+    #                 return self._prevpath, self._prevfiletipe, True
+    #             else:
+    #                 # We save the path selected by the user and the file name.
+    #                 path = filedialog.GetPath()
+    #                 self.set_datafilename(filedialog.GetFilename())
+    #                 # Check the file extention and save it as the file type.
+    #                 if path.endswith('.txt'): 
+    #                     filetipe = 'txt'
+    #                 elif path.endswith('.csv'): 
+    #                     filetipe = 'csv'
+    #                 else:
+    #                     filetipe = 'other'
+    #                 # We update the previous parameters.
+    #                 self._prevpath = path
+    #                 self._prevfiletipe = filetipe
+    #                 return path, filetipe, True
+    #     except Exception as Error:
+    #         self._export_error_info.writeexception(Error)
+    #         return self._prevpath, self._prevfiletipe, False
 
     def set_arrayfromfile(self, archivo, filetype):
         
@@ -155,7 +99,7 @@ class DataImport(object):
             except IOError as Error:
                 msg = 'Cannot open the txt file, this is an IO Error. \
                     Check the error file for more information.'
-                wx.LogError(msg)
+                #wx.LogError(msg)
                 self._export_error_info.writeexception(Error)
                 return None, False, msg
             except Exception as Error:
@@ -180,7 +124,7 @@ class DataImport(object):
             except IOError as Error:
                 msg = 'Cannot open the csv file, this is an IO Error. \
                     Check the error file for more information.'
-                wx.LogError(msg)
+                #wx.LogError(msg)
                 self._export_error_info.writeexception(Error)
                 return None, False, msg
             except Exception as Error:
