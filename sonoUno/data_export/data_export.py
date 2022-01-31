@@ -15,14 +15,13 @@ import datetime
 from pathlib import Path
 
 import pandas
-import wx
 
 
 class DataExport(object):
 
-    
+
     def __init__(self):
-        
+
         """
         This class allow to export data and save the outputs of the software.
         First save the time and then create the error and output file.
@@ -32,11 +31,13 @@ class DataExport(object):
         # Create the string with the time to create the output file.
         now = datetime.datetime.now()
         time = now.strftime('%Y-%m-%d_%H-%M-%S')
+        # Create error variable to store posible errors in the save process
+        error_loggingfiles = ''
         # Create the errors file depending on the operative system.
         try:
             if platform.system() == 'Windows':
                 logging.basicConfig(
-                    filename = (homepath + '\\sonouno\\output\\err_' + time 
+                    filename=(homepath + '\\sonouno\\output\\err_' + time 
                         + '.log'), 
                     filemode = 'w+', 
                     level = logging.DEBUG
@@ -56,14 +57,16 @@ class DataExport(object):
                     level = logging.DEBUG
                     )
             else:
-                error = (time + ': The operative system is unknown and the \
+                error_loggingfiles = (time + ': The operative system is unknown and the \
                     error file could not be created.')
-                print(error)
-                wx.MessageBox(
-                    message = error,
-                    caption = 'Error creating error file', 
-                    style = wx.OK|wx.ICON_INFORMATION
-                    )
+                print(error_loggingfiles)
+                
+                # I have to print this messages in the future.
+                # wx.MessageBox(
+                #     message = error,
+                #     caption = 'Error creating error file', 
+                #     style = wx.OK|wx.ICON_INFORMATION
+                #     )
         except Exception as Error:   
             # Checking if the problem is that the software don't find the
             # output folder. If this is the problem, we create the folder
@@ -95,23 +98,23 @@ class DataExport(object):
                         level = logging.DEBUG
                         )
                 else:
-                    error = (time + (': The operative system is unknown and \
+                    error_loggingfiles = (time + (': The operative system is unknown and \
                         the error file could not be created.'))
-                    print(error)
-                    wx.MessageBox(
-                        message = error,
-                        caption = 'Error creating error file', 
-                        style = wx.OK|wx.ICON_INFORMATION
-                        )
+                    print(error_loggingfiles)
+                    # wx.MessageBox(
+                    #     message = error,
+                    #     caption = 'Error creating error file', 
+                    #     style = wx.OK|wx.ICON_INFORMATION
+                    #     )
             else:
-                error = (time + ': Error generating the error file. The error\
+                error_loggingfiles = (time + ': Error generating the error file. The error\
                     message is: \n' + exception_error)
-                print(error)
-                wx.MessageBox(
-                    message = error,
-                    caption = 'Error creating error file', 
-                    style = wx.OK|wx.ICON_INFORMATION
-                    )
+                print(error_loggingfiles)
+                # wx.MessageBox(
+                #     message = error,
+                #     caption = 'Error creating error file', 
+                #     style = wx.OK|wx.ICON_INFORMATION
+                #     )
         try:
             # Create the output file depending on the operative system.
             if platform.system() == 'Windows':
@@ -133,24 +136,24 @@ class DataExport(object):
                     mode = 'w+'
                     )
             else:
-                error = (time + ': The operative system is unknown,the \
+                error_loggingfiles = (time + ': The operative system is unknown,the \
                     output file could not be created.')
-                print(error)
-                wx.MessageBox(
-                    message = error,
-                    caption = 'Error creating error file', 
-                    style = wx.OK|wx.ICON_INFORMATION
-                    )
+                print(error_loggingfiles)
+                # wx.MessageBox(
+                #     message = error,
+                #     caption = 'Error creating error file', 
+                #     style = wx.OK|wx.ICON_INFORMATION
+                #     )
         except Exception as Error:   
             # Catch the problem and print it.
-            error = (time + ': Error generating the output file. The error\
+            error_loggingfiles = (time + ': Error generating the output file. The error\
                 message is: \n' + str(Error))
-            print(error)
-            wx.MessageBox(
-                message = error,
-                caption = 'Error creating output file', 
-                style = wx.OK|wx.ICON_INFORMATION
-                )
+            print(error_loggingfiles)
+            # wx.MessageBox(
+            #     message = error,
+            #     caption = 'Error creating output file', 
+            #     style = wx.OK|wx.ICON_INFORMATION
+            #     )
     
     def writeinfo(self, info):
         
@@ -187,49 +190,18 @@ class DataExport(object):
             + ': '
             + message)
         print(msg)
-        
-    def setpath(self, title, datatipe):
-        
-        """
-        This method return the path that the user select to save a file, if 
-        the user close or cancel the dialog return 'Empty' string and if the
-        programm catch an error return 'Error' string.
-        
-        We asked the datatipe to do a generic method.
-        """
-        try:
-            with wx.FileDialog(
-                    parent = None, 
-                    message = title, 
-                    wildcard = datatipe, 
-                    style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-                    ) as filedialog:
-                if filedialog.ShowModal() == wx.ID_CANCEL:
-                    return 'Empty'
-                pathName = filedialog.GetPath()
-        except Exception as Error:
-            self.writeexception(Error)
-            return 'Error'
-        return pathName
     
-    def writepointfile(self, x, y):
+    def writepointfile(self, x, y, savepath):
         
         """
         This method save the file with the coordinates of the points that 
-        the user marked on the data. 
+        the user marked on the data and in the path indicated.
         
-        Return two state variables, pathstatus and filestatus to check if the 
+        Return one state variables, filestatus to check if the 
         file has been saved. You must check if is true.
         """
-        pathstatus = False
         filestatus = False
-        # First use the setpath method to have the detination of the file.
-        try:
-            savepath = self.setpath('Save data file', 'Data files |*.csv')
-            pathstatus = True
-        except Exception as Error:
-            self.writeexception(Error)
-        # Second save the file using the pandas library.
+        # Save the file using the pandas library.
         try:        
             param = pandas.DataFrame({'x': x, 'y': y}, columns=['x', 'y'])
             param.to_csv(
@@ -240,4 +212,4 @@ class DataExport(object):
             filestatus = True
         except Exception as Error:
             self.writeException(Error)
-        return pathstatus, filestatus
+        return filestatus
