@@ -20,13 +20,14 @@ import pandas
 class DataExport(object):
 
 
-    def __init__(self, log=True):
+    def __init__(self, log=False):
 
         """
         This class allow to export data and save the outputs of the software.
         First save the time and then create the error and output file.
         """
-        if log:
+        self.log = log
+        if self.log:
             # Save the home directory to append to output folder
             homepath = str(Path.home())
             # Create the string with the time to create the output file.
@@ -168,7 +169,10 @@ class DataExport(object):
             + '\n' 
             + info
             )
-        logging.info(msg)
+        if self.log:
+            logging.info(msg)
+        else:
+            print(msg)
         
     def writeexception(self, e):
         
@@ -177,8 +181,13 @@ class DataExport(object):
         """
         now = datetime.datetime.now()
         time = now.strftime('%H-%M-%S')
-        logging.info('The time of the next exception is: ' + time)
-        logging.exception(e)
+        info_msj = 'The time of the next exception is: ' + time
+        if self.log:
+            logging.info(info_msj)
+            logging.exception(e)
+        else:
+            print(info_msj)
+            print(e)
         
     def printoutput(self, message):
     
