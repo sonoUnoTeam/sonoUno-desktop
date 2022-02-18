@@ -295,12 +295,12 @@ class simpleSound(object):
         except Exception as e:
             self.expErrSs.writeexception(e)
         #Finalmente se guarda el la ruta seleccionada.
-        try:
-            #MidiFileOut.write_Track(path, localTrack)
-            #TODO: Escribir archivo de salida (wav?)
-            self.expErrSs.writeinfo("Metodo no implementado")
-        except Exception as e:
-            self.expErrSs.writeexception(e)
+        # try:
+        #     #MidiFileOut.write_Track(path, localTrack)
+        #     #TODO: Escribir archivo de salida (wav?)
+        #     self.expErrSs.writeinfo("Metodo no implementado")
+        # except Exception as e:
+        #     self.expErrSs.writeexception(e)
 
 class tickMark(object):
     def __init__(self):
