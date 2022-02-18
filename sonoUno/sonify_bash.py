@@ -52,10 +52,13 @@ for filename in glob.glob(os.path.join(path, extension)):
     # Open each file
     data, status, msg = _dataimport.set_arrayfromfile(filename, ext)
     # Convert into numpy, split in x and y and normalyze
+    if data.shape[1]<2:
+        print("Error reading file, only detect one column.")
+        exit()
     data = data.iloc[1:, :]
     x = data.loc[1:, 0]
     xnumpy = x.values.astype(np.float64)
-    y = data.loc[1:, 2]
+    y = data.loc[1:, 1]
     ynumpy = y.values.astype(np.float64)
     x, y, status = _math.normalize(xnumpy, ynumpy)
     # Save the sound
