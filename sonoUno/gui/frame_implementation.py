@@ -19,6 +19,7 @@ import webbrowser
 
 import gui.frame_design as gui
 from data_import.data_import import DataImport
+from data_import.data_import import DataImportColumns
 from sound_module.simple_sound import simpleSound
 from sound_module.simple_sound import tickMark
 from data_export.data_export import DataExport
@@ -40,6 +41,7 @@ class SonoUnoGUI (gui.FrameDesign):
         # Class instantiation
         self._expdata = DataExport()
         self._opendata = DataImport()
+        self._opencolumnsdata = DataImportColumns()
         self._datasound = simpleSound()
         self._tickmark = tickMark()
         self._matfunc = PredefMathFunctions()
@@ -81,7 +83,6 @@ class SonoUnoGUI (gui.FrameDesign):
         # to use on the command line for the GUI
         # In the user manual there are a list and descriptions of these functions
         self.command_dict_withoutparam = {
-            'open':self.open_method,
             'dellastmark':self.deleteLastMark,
             'delallmarks':self.deleteAllMark,
             'delallmark':self.deleteAllMark,
@@ -107,6 +108,7 @@ class SonoUnoGUI (gui.FrameDesign):
         # Here we generate a dictionary of functions with parameters
         # to use on the command line for the GUI
         self.command_dict_withparam = {
+            'open':self.open_method,
             'xposition':self.xposition_command,
             'tempo':self.selecttempo_command,
             'xlowerlimit':self.xlowerlimit_command,
@@ -900,7 +902,7 @@ class SonoUnoGUI (gui.FrameDesign):
             self._set_timerenvelopeindex(0)
             self._timer_envelope.Stop()
 
-    def get_datapath(self):
+    def get_datapath_txtcsv(self):
         
         """
         This method return the path of the data to import and the file type.
@@ -924,7 +926,7 @@ class SonoUnoGUI (gui.FrameDesign):
                 else:
                     # We save the path selected by the user and the file name.
                     path = filedialog.GetPath()
-                    self._opendata.set_datafilename(filedialog.GetFilename())
+                    self._opencolumnsdata.set_datafilename(filedialog.GetFilename())
                     # Check the file extention and save it as the file type.
                     if path.endswith('.txt'): 
                         filetipe = 'txt'
@@ -940,12 +942,13 @@ class SonoUnoGUI (gui.FrameDesign):
             self._expdata.writeexception(Error)
             return self._prevpath, self._prevfiletipe, False
 
-    def open_method(self):
+    def open_method(self, datatype):
         
         """
         This method allow to open a dataset serching it on the computer file
         system.
         """
+        datatype = int(datatype)
         # Check if the sonification loop is running to stop it
         if self._timer.IsRunning():
             self.stopMethod()
@@ -955,76 +958,89 @@ class SonoUnoGUI (gui.FrameDesign):
                 caption='Information', 
                 style=wx.OK | wx.ICON_INFORMATION
                 )
-        # If there are unsaved marks on data, ask if the user want to save them
-        if not self._ask_markpoints:
-            self.askSavePoints()
-        try:
-            # Get the path where the datafile exist on the computer and the
-            # type pf datafile to open
-            pathName, fileTipe, pathstatus = self.get_datapath()
-            # Open the dataset using the previous path
-            data, status, msg = self._opendata.set_arrayfromfile(
-                pathName, 
-                fileTipe
-                )
-            # If the flag 'status' is False, show a message indicating that
-            # there was a problem opening the datafile, if not continue with
-            # the tasks.
-            if not status:
-                wx.MessageBox(
-                    message=("The data file can't be opened, the software "
-                        + "continue with the previous data if exist. \nCheck "
-                        + "the problem and contact the development team if "
-                        + "you need help.\n\nThe problem is:\n"+msg+"\n\n"
-                        + "Contact mail: sonounoteam@gmail.com."),
-                    caption='Information', 
-                    style=wx.OK | wx.ICON_INFORMATION
+        if datatype == 1:
+            # If there are unsaved marks on data, ask if the user want to save them
+            if not self._ask_markpoints:
+                self.askSavePoints()
+            try:
+                # Get the path where the datafile exist on the computer and the
+                # type pf datafile to open
+                pathName, fileTipe, pathstatus = self.get_datapath_txtcsv()
+                if not pathstatus:
+                    return
+                # Open the dataset using the previous path
+                data, status, msg = self._opencolumnsdata.set_arrayfromfile(
+                    pathName, 
+                    fileTipe
                     )
-            else:
-                # Set datafile name on the specific text space on data
-                # parameters panel
-                self._titleEdDataTextCtrl.SetValue(
-                    value=self._opendata.get_datafilename()[:-4]
-                    )
-                # Store dataframe on two specific class variable one to
-                # modify and another to store the original dataset
-                self.set_dataframe(data)
-                self.set_dataframe_original(data)
-                # Obtain the x and y array to plot, convert dataframe to numpy
-                x, y, status1 = self.dataSelection(data)
-                
-                # Calculate the array with the space between each 
-                # data point the first time (then this value is updated on
-                # play())
-                self._minspace_x_array = x[1:] - x[:x.size-1]
-                # Calculate the minimum space between data points
-                #self._minspace_x = np.nanmin(self._minspace_x_array)
-                self._minspace_x = np.nanmin(
-                    np.where(
-                        self._minspace_x_array == 0, 
-                        np.nan, 
-                        self._minspace_x_array
+                # If the flag 'status' is False, show a message indicating that
+                # there was a problem opening the datafile, if not continue with
+                # the tasks.
+                if not status:
+                    wx.MessageBox(
+                        message=("The data file can't be opened, the software "
+                            + "continue with the previous data if exist. \nCheck "
+                            + "the problem and contact the development team if "
+                            + "you need help.\n\nThe problem is:\n"+msg+"\n\n"
+                            + "Contact mail: sonounoteam@gmail.com."),
+                        caption='Information', 
+                        style=wx.OK | wx.ICON_INFORMATION
                         )
-                    )
-                
-                if status1:
-                    self.set_actual_x(x)
-                    self.set_actual_y(y)
-                    self._set_original_x(x)
-                    self._set_original_y(y)
-                    self._setHoriLower(0)
-                    self._setHoriUpper(x.size)
-                    self.set_cutplot_sliderlimits(x, y, x, y)
-                    # self.setArrayLimits(x, y)
-                    self.set_xslider_limits(x)
-                    self._sendAllToOctave()
-                    self.replot_xy(x, y)
-                    self._expdata.printoutput("Data imported and graphed.")
                 else:
-                    wx.MessageBox("The data file can't be opened, the software continue with the previous data if exist. \nCheck the file and contact the development team if you need help.\nContact mail: sonounoteam@gmail.com.",
-                          'Information', wx.OK | wx.ICON_INFORMATION)
-        except Exception as e:
-            self._expdata.writeexception(e)
+                    # Set datafile name on the specific text space on data
+                    # parameters panel
+                    self._titleEdDataTextCtrl.SetValue(
+                        value=self._opencolumnsdata.get_datafilename()[:-4]
+                        )
+                    # Store dataframe on two specific class variable one to
+                    # modify and another to store the original dataset
+                    self.set_dataframe(data)
+                    self.set_dataframe_original(data)
+                    # Obtain the x and y array to plot, convert dataframe to numpy
+                    x, y, status1 = self.dataSelection(data)
+                    
+                    # Calculate the array with the space between each 
+                    # data point the first time (then this value is updated on
+                    # play())
+                    self._minspace_x_array = x[1:] - x[:x.size-1]
+                    # Calculate the minimum space between data points
+                    #self._minspace_x = np.nanmin(self._minspace_x_array)
+                    self._minspace_x = np.nanmin(
+                        np.where(
+                            self._minspace_x_array == 0, 
+                            np.nan, 
+                            self._minspace_x_array
+                            )
+                        )
+                    
+                    if status1:
+                        self.set_actual_x(x)
+                        self.set_actual_y(y)
+                        self._set_original_x(x)
+                        self._set_original_y(y)
+                        self._setHoriLower(0)
+                        self._setHoriUpper(x.size)
+                        self.set_cutplot_sliderlimits(x, y, x, y)
+                        # self.setArrayLimits(x, y)
+                        self.set_xslider_limits(x)
+                        self._sendAllToOctave()
+                        self.replot_xy(x, y)
+                        self._expdata.printoutput("Data imported and graphed.")
+                    else:
+                        wx.MessageBox("The data file can't be opened, the software continue with the previous data if exist. \nCheck the file and contact the development team if you need help.\nContact mail: sonounoteam@gmail.com.",
+                              'Information', wx.OK | wx.ICON_INFORMATION)
+            except Exception as e:
+                self._expdata.writeexception(e)
+        else:
+            wx.MessageBox(
+                message=("The data type selected to open is not available "
+                    + "yet./nPlease check on the manual that the number "
+                    + "selected match with the data type that you try to "
+                    + "open./n/nFor more information contact the sonoUno team."
+                    + "/nContact mail: sonounoteam@gmail.com."),
+                caption='Information', 
+                style=wx.OK | wx.ICON_INFORMATION
+                )
 
     def _setdatagridpage(self, pos):
         data = self.get_dataframe()
@@ -3344,7 +3360,7 @@ class SonoUnoGUI (gui.FrameDesign):
 
     def _eventopen( self, event ):
         self._expdata.printoutput("Open button pressed.")
-        self.open_method()
+        self.open_method(1)
 
     def _eventTitleEdData( self, event ):
         self._expdata.printoutput("Enter key pressed on the text box of data title.")
