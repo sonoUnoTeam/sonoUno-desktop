@@ -673,13 +673,15 @@ class SonoUnoGUI (gui.FrameDesign):
             if not self._posline_exist:
                 self._posline_exist = True
             else:
-                self.panel.lines.remove(self._positionline_reference())
+                # self.panel.lines.remove(self._positionline_reference())
+                line = self.red_line.pop(0)
+                line.remove()
             # Plot the position line
-            self.panel.plot(abscisa, ordenada, 'r')
+            self.red_line = self.panel.plot(abscisa, ordenada, 'r')
             # Generate the reference to erase the position line next time
-            self._positionline_reference = ref(
-                self.panel.lines[self._plotcounter]
-                )
+            # self._positionline_reference = ref(
+            #     self.panel.lines[self._plotcounter]
+            #     )
         except Exception as e:
             self._expdata.writeexception(e)
         # Finally, update the plot figure to visualize the new plot
@@ -722,7 +724,9 @@ class SonoUnoGUI (gui.FrameDesign):
                 self.panel.cla()
                 self._figure.canvas.draw()
                 # Restore the lines array and plot counter to cero
-                self.panel.lines = []
+                # self.panel.lines = []
+                line = self.red_line.pop(0)
+                line.remove()
                 self._plotcounter = 0
             except Exception as e:
                 self._expdata.writeexception(e)
