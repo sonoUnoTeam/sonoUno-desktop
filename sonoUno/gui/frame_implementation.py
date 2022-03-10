@@ -692,8 +692,6 @@ class SonoUnoGUI (gui.FrameDesign):
         else:
             try:
                 self._expdata.printoutput("Clean and plot the graph")
-                # Set position line flag
-                self._posline_exist = False
                 # Erase the plot
                 self.panel.cla()
                 self._figure.canvas.draw()
@@ -702,6 +700,8 @@ class SonoUnoGUI (gui.FrameDesign):
                 if not self._posline_exist:
                     line = self.red_line.pop(0)
                     line.remove()
+                    # Set position line flag
+                    self._posline_exist = False
                 self._plotcounter = 0
             except Exception as e:
                 self._expdata.writeexception(e)
@@ -938,90 +938,75 @@ class SonoUnoGUI (gui.FrameDesign):
             # If there are unsaved marks on data, ask if the user want to save them
             if not self._ask_markpoints:
                 self.askSavePoints()
-            try:
-                # Get the path where the datafile exist on the computer, the
-                # type of datafile to open and False status if there are a 
-                # problem.
-                pathName, fileTipe, pathstatus = self.get_datapath_txtcsv()
-                if not pathstatus:
-                    wx.MessageBox(
-                        message=("There was a problem setting the data path. "
-                            + "See the error log file for more information. "
-                            + "~/sonoUno/output/err_date."
-                            + "Contact mail: sonounoteam@gmail.com."),
-                        caption='Information', 
-                        style=wx.OK | wx.ICON_INFORMATION
-                        )
-                    return
-                if pathName == self._prevpath:
-                    return
-                # If the path change, we update the previous parameters.
-                self._prevpath = pathName
-                self._prevfiletipe = fileTipe
-                # Refresh if the previous reproduction was in pause
-                if self._posline_exist:
-                    self.stopMethod()
-                # Open the dataset using the previous path
-                data, status, msg = self._opencolumnsdata.set_arrayfromfile(
-                    pathName, 
-                    fileTipe
+            # Get the path where the datafile exist on the computer, the
+            # type of datafile to open and False status if there are a 
+            # problem.
+            pathName, fileTipe, pathstatus = self.get_datapath_txtcsv()
+            if not pathstatus:
+                wx.MessageBox(
+                    message=("There was a problem setting the data path. "
+                        + "See the error log file for more information. "
+                        + "~/sonoUno/output/err_date."
+                        + "Contact mail: sonounoteam@gmail.com."),
+                    caption='Information', 
+                    style=wx.OK | wx.ICON_INFORMATION
                     )
-                # If the flag 'status' is False, show a message indicating that
-                # there was a problem opening the datafile, if not continue with
-                # the tasks.
-                if not status:
-                    wx.MessageBox(
-                        message=("The data file can't be opened, the software "
-                            + "continue with the previous data if exist. \nCheck "
-                            + "the problem and contact the development team if "
-                            + "you need help.\n\nThe problem is:\n"+msg+"\n\n"
-                            + "Contact mail: sonounoteam@gmail.com."),
-                        caption='Information', 
-                        style=wx.OK | wx.ICON_INFORMATION
-                        )
-                    return
-                # Save data frame on the specific class
-                status = self._dataopened_columns.set_dataframe(
-                    dataframe=data, 
-                    whichone='original'
-                    )                
-                if not status:
-                    wx.MessageBox(
-                        message=("There was a problem saving the dataFrame. "
-                            + "Contact mail: sonounoteam@gmail.com."),
-                        caption='Information', 
-                        style=wx.OK | wx.ICON_INFORMATION
-                        )
-                    return
-                if data.shape[1]<2:
-                    wx.MessageBox(
-                        message=("There was a problem opening the data. "
-                            + "The data shape was only one column."
-                            + "Contact mail: sonounoteam@gmail.com."),
-                        caption='Information', 
-                        style=wx.OK | wx.ICON_INFORMATION
-                        )
-                    return
-                # Complete the data parameter section of the GUI
-                self.dataSelection(data)
-                
-                #Se generan los numpy array de las primeras dos columnas y se devuelven
-                try:
-
-                    x = data.loc[1:,0]
-                    x = x.values.astype(np.float64)
-                    y = data.loc[1:,1]
-                    y = y.values.astype(np.float64)
-                    status=True
-                except Exception as e:
-                    status=False
-                    x=np.array(None)
-                    y=np.array(None)
-                    self._expdata.writeexception(e)
-
-                
-                
-                # if status1:
+                return
+            if pathName == self._prevpath:
+                return
+            # If the path change, we update the previous parameters.
+            self._prevpath = pathName
+            self._prevfiletipe = fileTipe
+            # Refresh if the previous reproduction was in pause
+            if self._posline_exist:
+                self.stopMethod()
+            # Open the dataset using the previous path
+            data, status, msg = self._opencolumnsdata.set_arrayfromfile(
+                pathName, 
+                fileTipe
+                )
+            # If the flag 'status' is False, show a message indicating that
+            # there was a problem opening the datafile, if not continue with
+            # the tasks.
+            if not status:
+                wx.MessageBox(
+                    message=("The data file can't be opened, the software "
+                        + "continue with the previous data if exist. \nCheck "
+                        + "the problem and contact the development team if "
+                        + "you need help.\n\nThe problem is:\n"+msg+"\n\n"
+                        + "Contact mail: sonounoteam@gmail.com."),
+                    caption='Information', 
+                    style=wx.OK | wx.ICON_INFORMATION
+                    )
+                return
+            # Save data frame on the specific class
+            status = self._dataopened_columns.set_dataframe(
+                dataframe=data, 
+                whichone='original'
+                )                
+            if not status:
+                wx.MessageBox(
+                    message=("There was a problem saving the dataFrame. "
+                        + "Contact mail: sonounoteam@gmail.com."),
+                    caption='Information', 
+                    style=wx.OK | wx.ICON_INFORMATION
+                    )
+                return
+            if data.shape[1]<2:
+                wx.MessageBox(
+                    message=("There was a problem opening the data. "
+                        + "The data shape was only one column."
+                        + "Contact mail: sonounoteam@gmail.com."),
+                    caption='Information', 
+                    style=wx.OK | wx.ICON_INFORMATION
+                    )
+                return
+            # Complete the data parameter section of the GUI
+            self.dataparam_filling(data)
+            # Set the x and y numpy variables on the class
+            status, msg = self._dataopened_columns.set_numpyxy(data)
+            if status:
+                x,y = self._dataopened_columns.get_numpyxy()
                 self.set_actual_x(x)
                 self.set_actual_y(y)
                 self._set_original_x(x)
@@ -1029,16 +1014,19 @@ class SonoUnoGUI (gui.FrameDesign):
                 self._setHoriLower(0)
                 self._setHoriUpper(x.size)
                 self.set_cutplot_sliderlimits(x, y, x, y)
-                # self.setArrayLimits(x, y)
                 self.set_xslider_limits(x)
                 self._sendAllToOctave()
                 self.replot_xy(x, y)
                 self._expdata.printoutput("Data imported and graphed.")
-                # else:
-                #     wx.MessageBox("The data file can't be opened, the software continue with the previous data if exist. \nCheck the file and contact the development team if you need help.\nContact mail: sonounoteam@gmail.com.",
-                #           'Information', wx.OK | wx.ICON_INFORMATION)
-            except Exception as e:
-                self._expdata.writeexception(e)
+            else:
+                wx.MessageBox(
+                    message=("An error occurred during numpy variables "
+                        + "creation. The message was: " + msg
+                        + "Contact mail: sonounoteam@gmail.com."),
+                    caption='Error', 
+                    style=wx.OK | wx.ICON_INFORMATION
+                    )
+                self._expdata.writeexception(msg)
         else:
             wx.MessageBox(
                 message=("The data type selected to open is not available "
@@ -1112,8 +1100,7 @@ class SonoUnoGUI (gui.FrameDesign):
                     self._dataGrid.SetCellValue (j-init, i, str(data.iloc[j-init,i]))
                     self._dataGrid.SetRowLabelValue(j-init, ' ')
 
-    def dataSelection(self, data):
-        
+    def dataparam_filling(self, data):
         # Set datafile name on the specific text space on data
         # parameters panel
         self._titleEdDataTextCtrl.SetValue(
