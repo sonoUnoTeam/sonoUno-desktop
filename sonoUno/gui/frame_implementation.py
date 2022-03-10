@@ -24,6 +24,7 @@ from sound_module.simple_sound import simpleSound
 from sound_module.simple_sound import tickMark
 from data_export.data_export import DataExport
 from data_transform.predef_math_functions import PredefMathFunctions
+from data_transform.data_opened import DataOpenedColumns
 
 
 class SonoUnoGUI (gui.FrameDesign):
@@ -45,6 +46,7 @@ class SonoUnoGUI (gui.FrameDesign):
         self._datasound = simpleSound()
         self._tickmark = tickMark()
         self._matfunc = PredefMathFunctions()
+        self._dataopened_columns = DataOpenedColumns()
         # wx.timer events
         # First timer to sonify the data
         self._timer = wx.Timer(self)
@@ -83,6 +85,7 @@ class SonoUnoGUI (gui.FrameDesign):
         # to use on the command line for the GUI
         # In the user manual there are a list and descriptions of these functions
         self.command_dict_withoutparam = {
+            'open':self.open_method,
             'dellastmark':self.deleteLastMark,
             'delallmarks':self.deleteAllMark,
             'delallmark':self.deleteAllMark,
@@ -133,8 +136,6 @@ class SonoUnoGUI (gui.FrameDesign):
         self.number_1min_loops = 1500
         # Here we set some class variables with setter and getter methods
         # 1)Data file variables
-        self.set_dataframe(None)
-        self.set_dataframe_original(None)
         self.set_actual_x(np.array(None))
         self.set_actual_y(np.array(None))
         self._set_original_x(np.array(None))
@@ -210,20 +211,6 @@ class SonoUnoGUI (gui.FrameDesign):
     """
     This section below contain all the setters for class variables.
     """
-    
-    def set_dataframe(self, data):
-        
-        self._expdata.printoutput(
-            "Setting class variable _dataframe."
-            )
-        self._dataframe = data
-        
-    def set_dataframe_original(self, data):
-        
-        self._expdata.printoutput(
-            "Setting class variable dataframe_original."
-            )
-        self._dataframe_original = data
 
     def set_actual_x(self, x):
         
@@ -382,14 +369,6 @@ class SonoUnoGUI (gui.FrameDesign):
     """
     This section below contain all the getters for class variables.
     """
-
-    def get_dataframe (self):
-        self._expdata.printoutput("Class variable dataFrame requested.")
-        return self._dataframe
-    
-    def get_dataframe_original(self):
-        self._expdata.printoutput("Class variable dataframe_original requested.")
-        return self._dataframe_original
 
     def getXActual (self):
         self._expdata.printoutput("Class variable X requested.")
@@ -673,15 +652,10 @@ class SonoUnoGUI (gui.FrameDesign):
             if not self._posline_exist:
                 self._posline_exist = True
             else:
-                # self.panel.lines.remove(self._positionline_reference())
                 line = self.red_line.pop(0)
                 line.remove()
             # Plot the position line
             self.red_line = self.panel.plot(abscisa, ordenada, 'r')
-            # Generate the reference to erase the position line next time
-            # self._positionline_reference = ref(
-            #     self.panel.lines[self._plotcounter]
-            #     )
         except Exception as e:
             self._expdata.writeexception(e)
         # Finally, update the plot figure to visualize the new plot
@@ -725,8 +699,9 @@ class SonoUnoGUI (gui.FrameDesign):
                 self._figure.canvas.draw()
                 # Restore the lines array and plot counter to cero
                 # self.panel.lines = []
-                line = self.red_line.pop(0)
-                line.remove()
+                if not self._posline_exist:
+                    line = self.red_line.pop(0)
+                    line.remove()
                 self._plotcounter = 0
             except Exception as e:
                 self._expdata.writeexception(e)
@@ -938,15 +913,12 @@ class SonoUnoGUI (gui.FrameDesign):
                         filetipe = 'csv'
                     else:
                         filetipe = 'other'
-                    # We update the previous parameters.
-                    self._prevpath = path
-                    self._prevfiletipe = filetipe
                     return path, filetipe, True
         except Exception as Error:
             self._expdata.writeexception(Error)
             return self._prevpath, self._prevfiletipe, False
 
-    def open_method(self, datatype):
+    def open_method(self, datatype=1):
         
         """
         This method allow to open a dataset serching it on the computer file
@@ -956,22 +928,39 @@ class SonoUnoGUI (gui.FrameDesign):
         # Check if the sonification loop is running to stop it
         if self._timer.IsRunning():
             self.stopMethod()
-            wx.MessageBox(
-                message=("The previous reproduction of the data has been "
-                         + "stopped."),
-                caption='Information', 
-                style=wx.OK | wx.ICON_INFORMATION
-                )
+            # wx.MessageBox(
+            #     message=("The previous reproduction of the data has been "
+            #              + "stopped."),
+            #     caption='Information', 
+            #     style=wx.OK | wx.ICON_INFORMATION
+            #     )
         if datatype == 1:
             # If there are unsaved marks on data, ask if the user want to save them
             if not self._ask_markpoints:
                 self.askSavePoints()
             try:
-                # Get the path where the datafile exist on the computer and the
-                # type pf datafile to open
+                # Get the path where the datafile exist on the computer, the
+                # type of datafile to open and False status if there are a 
+                # problem.
                 pathName, fileTipe, pathstatus = self.get_datapath_txtcsv()
                 if not pathstatus:
+                    wx.MessageBox(
+                        message=("There was a problem setting the data path. "
+                            + "See the error log file for more information. "
+                            + "~/sonoUno/output/err_date."
+                            + "Contact mail: sonounoteam@gmail.com."),
+                        caption='Information', 
+                        style=wx.OK | wx.ICON_INFORMATION
+                        )
                     return
+                if pathName == self._prevpath:
+                    return
+                # If the path change, we update the previous parameters.
+                self._prevpath = pathName
+                self._prevfiletipe = fileTipe
+                # Refresh if the previous reproduction was in pause
+                if self._posline_exist:
+                    self.stopMethod()
                 # Open the dataset using the previous path
                 data, status, msg = self._opencolumnsdata.set_arrayfromfile(
                     pathName, 
@@ -990,49 +979,112 @@ class SonoUnoGUI (gui.FrameDesign):
                         caption='Information', 
                         style=wx.OK | wx.ICON_INFORMATION
                         )
-                else:
-                    # Set datafile name on the specific text space on data
-                    # parameters panel
-                    self._titleEdDataTextCtrl.SetValue(
-                        value=self._opencolumnsdata.get_datafilename()[:-4]
+                    return
+                # Save data frame on the specific class
+                status = self._dataopened_columns.set_dataframe(
+                    dataframe=data, 
+                    whichone='original'
+                    )                
+                if not status:
+                    wx.MessageBox(
+                        message=("There was a problem saving the dataFrame. "
+                            + "Contact mail: sonounoteam@gmail.com."),
+                        caption='Information', 
+                        style=wx.OK | wx.ICON_INFORMATION
                         )
-                    # Store dataframe on two specific class variable one to
-                    # modify and another to store the original dataset
-                    self.set_dataframe(data)
-                    self.set_dataframe_original(data)
-                    # Obtain the x and y array to plot, convert dataframe to numpy
-                    x, y, status1 = self.dataSelection(data)
-                    
-                    # Calculate the array with the space between each 
-                    # data point the first time (then this value is updated on
-                    # play())
-                    self._minspace_x_array = x[1:] - x[:x.size-1]
-                    # Calculate the minimum space between data points
-                    #self._minspace_x = np.nanmin(self._minspace_x_array)
-                    self._minspace_x = np.nanmin(
-                        np.where(
-                            self._minspace_x_array == 0, 
-                            np.nan, 
-                            self._minspace_x_array
-                            )
+                    return
+                if data.shape[1]<2:
+                    wx.MessageBox(
+                        message=("There was a problem opening the data. "
+                            + "The data shape was only one column."
+                            + "Contact mail: sonounoteam@gmail.com."),
+                        caption='Information', 
+                        style=wx.OK | wx.ICON_INFORMATION
                         )
-                    
-                    if status1:
-                        self.set_actual_x(x)
-                        self.set_actual_y(y)
-                        self._set_original_x(x)
-                        self._set_original_y(y)
-                        self._setHoriLower(0)
-                        self._setHoriUpper(x.size)
-                        self.set_cutplot_sliderlimits(x, y, x, y)
-                        # self.setArrayLimits(x, y)
-                        self.set_xslider_limits(x)
-                        self._sendAllToOctave()
-                        self.replot_xy(x, y)
-                        self._expdata.printoutput("Data imported and graphed.")
-                    else:
-                        wx.MessageBox("The data file can't be opened, the software continue with the previous data if exist. \nCheck the file and contact the development team if you need help.\nContact mail: sonounoteam@gmail.com.",
-                              'Information', wx.OK | wx.ICON_INFORMATION)
+                    return
+                # Complete the data parameter section of the GUI
+                self.dataSelection(data)
+                
+                """Es necesario pasarlo a numpy? - por ahora voy a tratar de trabajar con pandas"""
+                #Se generan los numpy array de las primeras dos columnas y se devuelven
+                try:
+
+                    x = data.loc[1:,0]
+                    x = x.values.astype(np.float64)
+                    y = data.loc[1:,1]
+                    y = y.values.astype(np.float64)
+                    status=True
+                except Exception as e:
+                    status=False
+                    x=np.array(None)
+                    y=np.array(None)
+                    self._expdata.writeexception(e)
+
+                """Toda esta seccion era para eliminar los valores NaN"""
+                # self.del_xy = np.array([0,1])
+                # index1 = [i for i in range(0, len(self.del_xy))]
+                # if not self.del_xy.size==0:
+                #     self.del_xy=np.delete(self.del_xy,index1)
+
+                # if status:
+                #     delNum=False
+                #     try:
+                #         for i in range (0, xnumpy.size):
+                #             #if xnumpy[i] == nan or ynumpy[i] == nan:
+                #             if math.isnan(xnumpy[i]) or math.isnan(ynumpy[i]):
+                #                 self.del_xy = np.append(self.del_xy, i)
+                #                 delNum=True
+                #     except Exception as e:
+                #         self._expdata.writeexception(e)
+                #     try:
+                #         if delNum:
+                #             text="Algunos puntos se han importado vacios y han tenido que eliminarse. Los mismos estaban en las direcciones: ["
+                #             for i in range (0, self.del_xy.size):
+                #                 if i != (self.del_xy.size-1):
+                #                     text=text+str(self.del_xy[i]+1)+" ; "
+                #                 else:
+                #                     text=text+str(self.del_xy[i]+1)
+                #             text=text+"] del archivo original."
+                #             wx.MessageBox(text,
+                #                           'Information', wx.OK | wx.ICON_INFORMATION)
+                #             delNum=False
+                #             xnumpy=np.delete(xnumpy, self.del_xy)
+                #             ynumpy=np.delete(ynumpy, self.del_xy)
+                #     except Exception as e:
+                #         self._expdata.writeexception(e)
+                        
+                """Aqui seguir"""
+                
+                # # Calculate the array with the space between each 
+                # # data point the first time (then this value is updated on
+                # # play())
+                # self._minspace_x_array = x[1:] - x[:x.size-1]
+                # # Calculate the minimum space between data points
+                # #self._minspace_x = np.nanmin(self._minspace_x_array)
+                # self._minspace_x = np.nanmin(
+                #     np.where(
+                #         self._minspace_x_array == 0, 
+                #         np.nan, 
+                #         self._minspace_x_array
+                #         )
+                #     )
+                
+                # if status1:
+                self.set_actual_x(x)
+                self.set_actual_y(y)
+                self._set_original_x(x)
+                self._set_original_y(y)
+                self._setHoriLower(0)
+                self._setHoriUpper(x.size)
+                self.set_cutplot_sliderlimits(x, y, x, y)
+                # self.setArrayLimits(x, y)
+                self.set_xslider_limits(x)
+                self._sendAllToOctave()
+                self.replot_xy(x, y)
+                self._expdata.printoutput("Data imported and graphed.")
+                # else:
+                #     wx.MessageBox("The data file can't be opened, the software continue with the previous data if exist. \nCheck the file and contact the development team if you need help.\nContact mail: sonounoteam@gmail.com.",
+                #           'Information', wx.OK | wx.ICON_INFORMATION)
             except Exception as e:
                 self._expdata.writeexception(e)
         else:
@@ -1047,7 +1099,7 @@ class SonoUnoGUI (gui.FrameDesign):
                 )
 
     def _setdatagridpage(self, pos):
-        data = self.get_dataframe()
+        data = self._dataopened_columns.get_dataframe('actual')
         if data.shape[1]<2:
             return False
 
@@ -1109,22 +1161,14 @@ class SonoUnoGUI (gui.FrameDesign):
                     self._dataGrid.SetRowLabelValue(j-init, ' ')
 
     def dataSelection(self, data):
-        # if self._dataperpage < data.shape[0]:
-        #     if wx.MessageBox("The data file have more than 5000 values, the software might delay to show all the data array on a grid element. Do you want to display all the values on the grid element anyway?\n\nNOTE: The other functionalities (plot, math fuctions, etc) use all the values of the array in any case.", "Information", wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
-        #         rowNumber = self._dataperpage
-        #     else:
-        #         rowNumber = data.shape[0]
-        # else:
-        #     rowNumber = data.shape[0]
+        
+        # Set datafile name on the specific text space on data
+        # parameters panel
+        self._titleEdDataTextCtrl.SetValue(
+            value=self._opencolumnsdata.get_datafilename()[:-4]
+            )
 
-        if data.shape[1]<2:
-            return None, None, False
-
-        # #Chequeo si los datos son menos de cierto valor
-        # if self._dataperpage < data.shape[0]:
-        #     rowNumber = self._dataperpage
-        # else:
-        #     rowNumber = data.shape[0]
+        
 
         #Limpio la grilla
         self._dataGrid.ClearGrid()
@@ -1132,50 +1176,7 @@ class SonoUnoGUI (gui.FrameDesign):
         self._datagridslider.SetMax(pages)
         self._maxgridpagetextctrl.SetValue(str(pages))
         self._setdatagridpage(self._datagridslider.GetValue())
-        # #Redimencionamos la grilla
-        # if data.shape[1]>self._dataGrid.GetNumberCols():
-        #     self._dataGrid.AppendCols(data.shape[1]-self._dataGrid.GetNumberCols())
-        # elif data.shape[1]<self._dataGrid.GetNumberCols():
-        #     self._dataGrid.DeleteCols( numCols=(self._dataGrid.GetNumberCols()-data.shape[1]) )
-        # if rowNumber>self._dataGrid.GetNumberRows():
-        #     self._dataGrid.AppendRows(rowNumber-self._dataGrid.GetNumberRows())
-        # elif rowNumber<self._dataGrid.GetNumberRows():
-        #     self._dataGrid.DeleteRows( numRows=(self._dataGrid.GetNumberRows()-rowNumber) )
-#        #Lo coloco en la grilla
-        #dlg = wx.ProgressDialog("Loading data to the grid", " ", maximum=data.shape[0], style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT)
-        #dlg.Show()
-        # table = DataTable(data)
-        # self._dataGrid.SetTable(table, takeOwnership=True)
-        # self._dataGrid.AutoSizeColumns()
-        # self._dataGrid.HideCol(0)
 
-        # if data.shape[0] < rowNumber:
-        #     for j in range (0,data.shape[0]):
-        #         for i in range (0,data.shape[1]):
-        #             self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
-        #             if not j == 0:
-        #                 self._dataGrid.SetReadOnly(j, i, isReadOnly=True)
-        #             else:
-        #                 self._dataGrid.SetReadOnly(j, i, isReadOnly=False)
-        #         dlg.Pulse("Loading data")
-        #         #dlg.Update(j, "Loading data")
-        #         #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
-        #         if dlg.WasCancelled():
-        #             break
-        # else:
-        #     for j in range (0,rowNumber):
-        #         for i in range (0,data.shape[1]):
-        #             self._dataGrid.SetCellValue (j, i, str(data.iloc[j,i]))
-        #             if not j == 0:
-        #                 self._dataGrid.SetReadOnly(j, i, isReadOnly=True)
-        #             else:
-        #                 self._dataGrid.SetReadOnly(j, i, isReadOnly=False)
-        #         #dlg.Update(j, "Loading data")
-        #         dlg.Pulse("Loading data")
-        #         #dlg.Update (j, "%i of %i"%(j, int(data.shape[0])))
-        #         if dlg.WasCancelled():
-        #             break
-        #dlg.Destroy()
         self._axisChoiceX.Clear()
         self._axisChoiceY.Clear()
         #Inserto los titulos de los ejes en los cuadros de opciones de ejes
@@ -1189,58 +1190,15 @@ class SonoUnoGUI (gui.FrameDesign):
         self._axisChoiceX.SetSelection(0)
         self._axisChoiceY.SetSelection(1)
 
-        #Se generan los numpy array de las primeras dos columnas y se devuelven
         try:
             self._setXLabel(0)
             self._setYLabel(1)
             self._setXName(data.iloc[0,0])
             self._setYName(data.iloc[0,1])
-            #text=self.getXName()+'\n'+self.getYName()
-            #wx.MessageBox(text, 'Info', wx.OK | wx.ICON_INFORMATION)
-            x = data.loc[1:,0]
-            xnumpy = x.values.astype(np.float64)
-            y = data.loc[1:,1]
-            ynumpy = y.values.astype(np.float64)
-            status=True
         except Exception as e:
-            status=False
-            xnumpy=np.array(None)
-            ynumpy=np.array(None)
             self._expdata.writeexception(e)
 
-        self.del_xy = np.array([0,1])
-        index1 = [i for i in range(0, len(self.del_xy))]
-        if not self.del_xy.size==0:
-            self.del_xy=np.delete(self.del_xy,index1)
-
-        if status:
-            delNum=False
-            try:
-                for i in range (0, xnumpy.size):
-                    #if xnumpy[i] == nan or ynumpy[i] == nan:
-                    if math.isnan(xnumpy[i]) or math.isnan(ynumpy[i]):
-                        self.del_xy = np.append(self.del_xy, i)
-                        delNum=True
-            except Exception as e:
-                self._expdata.writeexception(e)
-            try:
-                if delNum:
-                    text="Algunos puntos se han importado vacios y han tenido que eliminarse. Los mismos estaban en las direcciones: ["
-                    for i in range (0, self.del_xy.size):
-                        if i != (self.del_xy.size-1):
-                            text=text+str(self.del_xy[i]+1)+" ; "
-                        else:
-                            text=text+str(self.del_xy[i]+1)
-                    text=text+"] del archivo original."
-                    wx.MessageBox(text,
-                                  'Information', wx.OK | wx.ICON_INFORMATION)
-                    delNum=False
-                    xnumpy=np.delete(xnumpy, self.del_xy)
-                    ynumpy=np.delete(ynumpy, self.del_xy)
-            except Exception as e:
-                self._expdata.writeexception(e)
-
-        return xnumpy, ynumpy, status
+        # return xnumpy, ynumpy, status
 
     def pandasToNumpy(self, x):
         #Se generan los numpy array de las primeras dos columnas y se devuelven
@@ -1311,8 +1269,8 @@ class SonoUnoGUI (gui.FrameDesign):
     def dataGridChange(self):
         #Cambia los nombres de columnas modificados en la grilla, pero aun no los
         #guarda en el array de datos
-        if self.get_dataframe() is not None:
-            data = self.get_dataframe()
+        if self._dataopened_columns.get_dataframe('actual') is not None:
+            data = self._dataopened_columns.get_dataframe('actual')
             if data.shape[1] == self._dataGrid.GetNumberCols():
                 self._axisChoiceX.Clear()
                 self._axisChoiceY.Clear()
@@ -1410,7 +1368,7 @@ class SonoUnoGUI (gui.FrameDesign):
             #     self._dataGrid.DeleteRows( numRows=(self._dataGrid.GetNumberRows()-rowNumber) )
 
             #Detectar los titulos de columna
-            data = self.get_dataframe()
+            data = self._dataopened_columns.get_dataframe('actual')
             self._dataGrid.SetCellValue (0, 0, str(data.iloc[0,self._axisChoiceX.GetSelection()]))
             self._dataGrid.SetCellValue (0, 1, str(data.iloc[0,self._axisChoiceY.GetSelection()]))
             self._dataGrid.SetReadOnly(0, 0, isReadOnly=True)
@@ -1445,8 +1403,8 @@ class SonoUnoGUI (gui.FrameDesign):
             # dlg.Destroy()
 
     def dataGridOriginal(self):
-        if self.get_dataframe() is not None:
-            data = self.get_dataframe()
+        if self._dataopened_columns.get_dataframe('actual') is not None:
+            data = self._dataopened_columns.get_dataframe('actual')
 
             if self._dataperpage < data.shape[0]:
                 if wx.MessageBox("The data file have more than 5000 values, the software might delay to show all the data array on a grid element. Do you want to display all the values on the grid element anyway?\n\nNOTE: The other functionalities (plot, math fuctions, etc) use all the values of the array in any case.", "Information", wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
@@ -1500,10 +1458,11 @@ class SonoUnoGUI (gui.FrameDesign):
             dlg.Destroy()
 
     def axisChoiceXMethod(self):
-        if self.get_dataframe() is not None:
+        if self._dataopened_columns.get_dataframe('actual') is not None:
+            
             if not self._ask_markpoints:
                 self.askSavePoints()
-            data = self.get_dataframe()
+            data = self._dataopened_columns.get_dataframe('actual')
             self._setXLabel(self._axisChoiceX.GetSelection())
             self._setXName(self._axisChoiceX.GetString(self._axisChoiceX.GetSelection()))
             #wx.MessageBox(self.getXName(), 'Info', wx.OK | wx.ICON_INFORMATION)
@@ -1523,10 +1482,10 @@ class SonoUnoGUI (gui.FrameDesign):
         if self.getXOriginal().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
-            if self.get_dataframe() is not None:
+            if self._dataopened_columns.get_dataframe('actual') is not None:
                 if not self._ask_markpoints:
                     self.askSavePoints()
-                data = self.get_dataframe()
+                data = self._dataopened_columns.get_dataframe('actual')
                 self._setYLabel(self._axisChoiceY.GetSelection())
                 self._setYName(self._axisChoiceY.GetString(self._axisChoiceY.GetSelection()))
                 #wx.MessageBox(self.getYName(), 'Info', wx.OK | wx.ICON_INFORMATION)
@@ -2353,20 +2312,37 @@ class SonoUnoGUI (gui.FrameDesign):
                 self.saveMarks()
 
     def detectcommand(self):
-        # yy
+        """
+        This method detect the command inserted on write functionality and
+        if the command contain or not parameters. Then call the specific 
+        method selected.
+
+        Returns
+        -------
+        None.
+        """
+        # Copy the command in a local variable
         text_original = self._writecommandtextctrl.GetLineText(0)
-        #text_original = text_original.replace(' ','')
+        # Detect if the command have parenthesis
         cut = text_original.find('(')
         cut2 = text_original.rfind(')')
-        if cut!=(-1):
-            text = text_original[:cut]
-        else:
+        # If the command don't have parenthesis (first if) or if the command
+        # present parenthesis without values (second if) search the command in
+        # command_dict_withoutparam; if not, search in command_dict_withparam
+        if cut==(-1):
             text_original = text_original.replace(' ','')
             text = text_original
+            command = 'withoutparam'
+        elif (cut2-1)==cut:
+            text = text_original[:cut]
+            command = 'withoutparam'
+        else:
+            text = text_original[:cut]
+            command = 'withparam'
         #Se chequea a que diccionario corresponde y se ejecuta el comando
-        if text in self.command_dict_withoutparam:
+        if text in self.command_dict_withoutparam and command=='withoutparam':
             self.command_dict_withoutparam[text]()
-        elif text in self.command_dict_withparam:
+        elif text in self.command_dict_withparam and command=='withparam':
             if cut==(-1) or cut2==(-1):
                 msg = ('You must enter the value between parentheses. '
                     +'Your command was: \n'+text_original)
@@ -2525,12 +2501,11 @@ class SonoUnoGUI (gui.FrameDesign):
         self._pythonShell.Execute("self._pythonShell.clear()")
 
     def _sendAllToOctave(self):
-        if self.get_dataframe() is not None:
+        if self._dataopened_columns.get_dataframe('actual') is not None:
             self._expdata.printoutput("Sending imported data to octave.")
             try:
 
-                #if data.shape[0] < rowNumber:
-                data = self.get_dataframe()
+                data = self._dataopened_columns.get_dataframe('actual')
 
                 for i in range (0, data.shape[1]):
                     #text = "octave.push('" + data.iloc[0,i] + "', data.iloc[1:,i])"
