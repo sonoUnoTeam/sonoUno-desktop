@@ -1005,7 +1005,6 @@ class SonoUnoGUI (gui.FrameDesign):
                 # Complete the data parameter section of the GUI
                 self.dataSelection(data)
                 
-                """Es necesario pasarlo a numpy? - por ahora voy a tratar de trabajar con pandas"""
                 #Se generan los numpy array de las primeras dos columnas y se devuelven
                 try:
 
@@ -1020,54 +1019,7 @@ class SonoUnoGUI (gui.FrameDesign):
                     y=np.array(None)
                     self._expdata.writeexception(e)
 
-                """Toda esta seccion era para eliminar los valores NaN"""
-                # self.del_xy = np.array([0,1])
-                # index1 = [i for i in range(0, len(self.del_xy))]
-                # if not self.del_xy.size==0:
-                #     self.del_xy=np.delete(self.del_xy,index1)
-
-                # if status:
-                #     delNum=False
-                #     try:
-                #         for i in range (0, xnumpy.size):
-                #             #if xnumpy[i] == nan or ynumpy[i] == nan:
-                #             if math.isnan(xnumpy[i]) or math.isnan(ynumpy[i]):
-                #                 self.del_xy = np.append(self.del_xy, i)
-                #                 delNum=True
-                #     except Exception as e:
-                #         self._expdata.writeexception(e)
-                #     try:
-                #         if delNum:
-                #             text="Algunos puntos se han importado vacios y han tenido que eliminarse. Los mismos estaban en las direcciones: ["
-                #             for i in range (0, self.del_xy.size):
-                #                 if i != (self.del_xy.size-1):
-                #                     text=text+str(self.del_xy[i]+1)+" ; "
-                #                 else:
-                #                     text=text+str(self.del_xy[i]+1)
-                #             text=text+"] del archivo original."
-                #             wx.MessageBox(text,
-                #                           'Information', wx.OK | wx.ICON_INFORMATION)
-                #             delNum=False
-                #             xnumpy=np.delete(xnumpy, self.del_xy)
-                #             ynumpy=np.delete(ynumpy, self.del_xy)
-                #     except Exception as e:
-                #         self._expdata.writeexception(e)
-                        
-                """Aqui seguir"""
                 
-                # # Calculate the array with the space between each 
-                # # data point the first time (then this value is updated on
-                # # play())
-                # self._minspace_x_array = x[1:] - x[:x.size-1]
-                # # Calculate the minimum space between data points
-                # #self._minspace_x = np.nanmin(self._minspace_x_array)
-                # self._minspace_x = np.nanmin(
-                #     np.where(
-                #         self._minspace_x_array == 0, 
-                #         np.nan, 
-                #         self._minspace_x_array
-                #         )
-                #     )
                 
                 # if status1:
                 self.set_actual_x(x)
