@@ -6,6 +6,7 @@ Created on Mar 6 2022
 
 @author: sonounoteam (view licence)
 """
+import numpy as np
 
 from data_export.data_export import DataExport
 
@@ -50,6 +51,38 @@ class DataOpenedColumns(object):
         else:
             return False
         
+    def set_numpyxy(self, data):
+        """
+        Parameters
+        ----------
+        dataFrame : pandas dataFrame
+            This method set an x-y numpy variable from dataFrame.
+        Returns
+        -------
+        None.
+
+        """
+        try:
+            self.x = data.loc[1:,0]
+            self.x = self.x.values.astype(np.float64)
+            self.y = data.loc[1:,1]
+            self.y = self.y.values.astype(np.float64)
+            return True, None
+        except Exception as e:
+            self.x = np.array(None)
+            self.y = np.array(None)
+            return False, e
+        
+    def get_numpyxy(self):
+        """
+        Returns
+        -------
+        x and y: numpy variables
+        
+        """
+        return self.x, self.y
+    
+        
     def get_dataframe(self, whichone='actual'):
         """
         Parameters
@@ -71,3 +104,5 @@ class DataOpenedColumns(object):
             return self.original_dataframe
         else:
             return None
+        
+    
