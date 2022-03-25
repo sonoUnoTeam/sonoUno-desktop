@@ -5,3 +5,5 @@ sonoUno/sonoUno.egg-info/
 sonoUno/.spyproject/
 sonoUno/sonouno_xcode/
 sonoUno/.pylint.d/
+sonoUno/spyder-env/
+sonoUno/*.wav
