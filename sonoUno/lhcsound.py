@@ -4,6 +4,9 @@ import time
 import os
 import numpy as np
 from scipy.io import wavfile
+import matplotlib.pyplot as plt
+import math
+import pygame
 
 """
 Functions to be added in simple sound later
@@ -143,13 +146,157 @@ def sonify_muon_WP6():
     sound = np.append(sound, sine_wave_D6)
     # Generate the wav file with the sonification
     wavfile.write(path, rate=44100, data=sound.astype(np.int16))
+    
+def make_sphere(x1,y1,z1,amplitud=1):
+    """
+    Hago una esfera
+    """
+    # Make data
+    u = np.linspace(0, 2 * np.pi, 100)
+    v = np.linspace(0, np.pi, 100)
+    x = 10 * np.outer(np.cos(u), np.sin(v)) + x1
+    y = 10 * np.outer(np.sin(u), np.sin(v)) + y1
+    z = 10 * np.outer(np.ones(np.size(u)), np.cos(v)) + z1
+    ax.plot_surface(x, y, z, color='b')
 
-sonify_electron_WP5()
+#sonify_electron_WP5()
 
 """
 calculates the square root of ( (φtrack-φcluster)squared+(θtrack-θcluster) squared)).
 If the track(s) point in 3-D to a cluster this value should be small* (<0.1?). 
 Then if it is below the cut you play a "cluster" sound simultaneous with the "track(s)" cluster.
 """
+"""
+Plot init
+"""
+# Create an empty figure or plot
+fig = plt.figure()
+# Defining the axes as a 3D axes so that we can plot 3D data into it.
+ax = plt.axes(projection="3d")
+plot_colours = ['blue','orange','green','red','purple','brown','pink','grey','olive','cyan']
+ax.set_xlabel('$X$')
+ax.set_ylabel('$Y$')
+ax.set_zlabel('$Z$')
+ax.set_xlim(-100,100)
+ax.set_ylim(-100,100)
+ax.set_zlim(0,250)
+"""
+Particle data file
+"""
+# First open the file and store it.
+file1 = open('sonification_reduced.txt','r')
+lines = file1.readlines()
+# Search the separator on the file and store the index where each event begin
+count = 0
+element_list = [0]
+for line in lines:
+    count = count + 1
+    if '---------' in str(line) and count < len(lines):
+        element_list.append(count)
+# Generate a list of tracks and clusters of the first event
+count = 0
+particles_1_tracks = []
+particles_1_clusters = []
+for line in lines:
+    if count < element_list[1]:
+        # Here we are in the first element
+        if 'track' in str(line):
+            particles_1_tracks.append(line)
+        if 'cluster' in str(line):
+            particles_1_clusters.append(line)
+    count = count + 1
+
+# Initializate sound
+pygame.mixer.init(44100, -16, channels = 1, buffer=4095)
+# Set the path to open the tickmark
+bip_path = os.path.abspath(os.path.dirname(__file__)) + '/sound_module/sounds/bip.wav'
+# Open the bip tickmark
+rate1, bip = wavfile.read(bip_path, mmap=False)
+#
+note_freqs = get_piano_notes()
+freqD6 = note_freqs['D6']
+freqF7 = note_freqs['F7']
+# Obtain pure sine wave for each frequency
+track_sound = get_sine_wave(freqD6, duration=2)
+bip_calorimeter = get_sine_wave(freqF7, duration=0.1)
+# Obtain a generic cluster sound
+data = [300,350,600,800,1000,800,800,1000,700,600]
+for x in range(0,10,1):
+    signal = get_sine_wave(data[x], 0.1)
+    if x==0:
+        cluster_sound = signal
+    else:
+        cluster_sound = np.append(cluster_sound, signal)
+# With each track calculate if it points out a cluster or not, if points a
+# cluster we will sonify the track and the cluster
+count = 0
+sonified_cluster_list = []
+cluster_tosonify = []
+for track in particles_1_tracks:
+    #for cluster in particles_1_clusters:
+    track_elements = str(track).split()
+    ax.plot3D(
+        [float(track_elements[-6]),float(track_elements[-3])],
+        [float(track_elements[-5]),float(track_elements[-2])],
+        [float(track_elements[-4]),float(track_elements[-1])],
+        plot_colours[count])
+    count = count + 1
+    for cluster in particles_1_clusters:
+        cluster_elements = str(cluster).split()
+        value = math.sqrt(
+            pow(
+                (float(track_elements[4])-float(cluster_elements[4])),
+                2) 
+            + pow(
+                (float(track_elements[5])-float(cluster_elements[5])),
+                2)
+            )
+        if value < 0.1:
+            if not cluster_elements[0] in sonified_cluster_list:
+                sonified_cluster_list.append(cluster_elements[0])
+            make_sphere(
+                float(track_elements[-3]),
+                float(track_elements[-2]),
+                float(track_elements[-1])
+                )
+            cluster_tosonify.append(cluster)
+    """
+    Plot and sonification of the tracks
+    """
+    plt.pause(0.5)
+    if cluster_tosonify:
+        # The track point out a cluster
+        if len(cluster_tosonify) > 1:
+            print('Could a track points out to more than one cluster?')
+            break
+        cluster_elements = str(cluster_tosonify[0]).split()
+        print('Sonifying '+track_elements[0]+' and '+cluster_elements[0])
+        sound = np.append(bip, track_sound)
+        sound = np.append(sound, bip_calorimeter)
+        sound = np.append(sound, cluster_sound)
+        sound_play = pygame.mixer.Sound(sound.astype('int16'))
+        sound_play.play()
+        time.sleep(3)
+    else:
+        # The track don't point out a cluster
+        print('Sonifying '+track_elements[0])
+        sound = np.append(bip, track_sound)
+        sound = np.append(sound, bip_calorimeter)
+        sound_play = pygame.mixer.Sound(sound.astype('int16'))
+        sound_play.play()
+        time.sleep(3)
+    
+    cluster_tosonify = []
+        
+for cluster in particles_1_clusters:
+    cluster_elements = str(cluster).split()
+    if not cluster_elements[0] in sonified_cluster_list:
+        print(cluster_elements[0]+" don't preset asociated track.")
+        
+
+# Showing the above plot
+plt.show()
 
 
+# Last but not least, close the file
+file1.close()
