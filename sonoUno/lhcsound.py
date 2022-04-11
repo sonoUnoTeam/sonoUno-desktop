@@ -147,16 +147,23 @@ def sonify_muon_WP6():
     # Generate the wav file with the sonification
     wavfile.write(path, rate=44100, data=sound.astype(np.int16))
     
-def make_sphere(x1,y1,z1,amplitud=1):
+def make_a_cluster(phi,theta,eta,amplitud=1):
     """
     Hago una esfera
     """
+    if np.abs(eta) < 1.5:
+        r = 150
+    else:
+        r = 210
+    x = r * np.sin(theta) * np.cos(phi)
+    y = r * np.sin(theta) * np.sin(phi)
+    z = r * np.cos(theta)
     # Make data
     u = np.linspace(0, 2 * np.pi, 100)
     v = np.linspace(0, np.pi, 100)
-    x = 10 * np.outer(np.cos(u), np.sin(v)) + x1
-    y = 10 * np.outer(np.sin(u), np.sin(v)) + y1
-    z = 10 * np.outer(np.ones(np.size(u)), np.cos(v)) + z1
+    x = 10 * np.outer(np.cos(u), np.sin(v)) + x
+    y = 10 * np.outer(np.sin(u), np.sin(v)) + y
+    z = 10 * np.outer(np.ones(np.size(u)), np.cos(v)) + z
     ax.plot_surface(x, y, z, color='b')
 
 def particles_sonification(track_list, cluster_list):
@@ -175,12 +182,20 @@ def particles_sonification(track_list, cluster_list):
         track_elements = str(track).split()
         count = count + 1
         if not track_elements[0] in sonified_tracks_list:
-            ax.plot3D(
-                [float(track_elements[-6]),float(track_elements[-3])],
-                [float(track_elements[-5]),float(track_elements[-2])],
-                [float(track_elements[-4]),float(track_elements[-1])],
-                plot_colours[count_colors])
-            count_colors = count_colors + 1
+            if int(track_elements[11])==1:
+                ax.plot3D(
+                    [float(track_elements[-6]),float(track_elements[-3])*1.5],
+                    [float(track_elements[-5]),float(track_elements[-2])*1.5],
+                    [float(track_elements[-4]),float(track_elements[-1])*1.5],
+                    plot_colours[count_colors])
+                count_colors = count_colors + 1
+            else:
+                ax.plot3D(
+                    [float(track_elements[-6]),float(track_elements[-3])],
+                    [float(track_elements[-5]),float(track_elements[-2])],
+                    [float(track_elements[-4]),float(track_elements[-1])],
+                    plot_colours[count_colors])
+                count_colors = count_colors + 1
             # check if there are a track very close
             if count < len(track_list):
                 for track2 in track_list_2[count:]:
@@ -216,11 +231,10 @@ def particles_sonification(track_list, cluster_list):
                 if value < 0.07:
                     if not cluster_elements[0] in sonified_cluster_list:
                         sonified_cluster_list.append(cluster_elements[0])
-                    make_sphere(
-                        float(track_elements[-3]),
-                        float(track_elements[-2]),
-                        float(track_elements[-1])
-                        )
+                    make_a_cluster(
+                        phi=float(track_elements[4]),
+                        theta=float(track_elements[5]),
+                        eta=float(track_elements[6]))
                     cluster_tosonify.append(cluster)
             """
             Plot and sonification of the tracks
@@ -236,7 +250,12 @@ def particles_sonification(track_list, cluster_list):
                     print('Sonifying '+track_elements[0]+' and '+cluster_elements[0])
                     sound = np.append(bip, track_sound)
                     sound = np.append(sound, bip_calorimeter)
-                    sound = np.append(sound, cluster_sound)
+                    if int(track_elements[11])==1:
+                        cluster_track = cluster_sound + track_1s
+                        sound = np.append(sound, cluster_track)
+                        sound = np.append(sound, track_1s)
+                    else:
+                        sound = np.append(sound, cluster_sound)  
                 else:
                     print('Sonifying '+track_elements[0]+', '+converted_photon+' and '+cluster_elements[0])
                     sound = np.append(bip, double_track_sound)
@@ -247,9 +266,14 @@ def particles_sonification(track_list, cluster_list):
                 print('Sonifying '+track_elements[0])
                 sound = np.append(bip, track_sound)
                 sound = np.append(sound, bip_calorimeter)
+                if int(track_elements[11])==1:
+                    sound = np.append(sound, track_sound)
             sound_play = pygame.mixer.Sound(sound.astype('int16'))
             sound_play.play()
-            time.sleep(3)
+            if int(track_elements[11])==1:
+                time.sleep(4.5)
+            else:
+                time.sleep(3)
             
             cluster_tosonify = []
             converted_photon = ' '
@@ -257,7 +281,19 @@ def particles_sonification(track_list, cluster_list):
     for cluster in cluster_list:
         cluster_elements = str(cluster).split()
         if not cluster_elements[0] in sonified_cluster_list:
-            print(cluster_elements[0]+" don't preset asociated track.")
+            #print(cluster_elements[0]+" don't preset asociated track.")
+            make_a_cluster(
+                phi=float(cluster_elements[4]),
+                theta=float(cluster_elements[5]),
+                eta=float(cluster_elements[6]))
+            plt.pause(0.5)
+            print('Sonifying '+cluster_elements[0])
+            sound = np.append(bip, silence)
+            sound = np.append(sound, bip_calorimeter)
+            sound = np.append(sound, cluster_sound)
+            sound_play = pygame.mixer.Sound(sound.astype('int16'))
+            sound_play.play()
+            time.sleep(3)
 
 #sonify_electron_WP5()
 
@@ -327,9 +363,11 @@ freqC6 = note_freqs['C6']
 freqD6 = note_freqs['D6']
 freqF7 = note_freqs['F7']
 # Obtain pure sine wave for each frequency
+track_1s = get_sine_wave(freqD6, duration=1)
 track_sound = get_sine_wave(freqD6, duration=2)
 double_track_sound = get_sine_wave(freqD6, duration=2)+get_sine_wave(freqC6, duration=2)
 bip_calorimeter = get_sine_wave(freqF7, duration=0.1)
+silence = get_sine_wave(0, duration=2)
 # Obtain a generic cluster sound
 data = [300,350,600,800,1000,800,800,1000,700,600]
 for x in range(0,10,1):
@@ -339,6 +377,8 @@ for x in range(0,10,1):
     else:
         cluster_sound = np.append(cluster_sound, signal)
 # Here we call the method to sonify and plot each pair of track and cluster
+plt.pause(0.5)
+input("Press a key to continue...")
 for i in range(0,len(particles),2):
     particles_sonification(particles[i],particles[i+1])
     key = input("Press 'Q' to close or any other key to continue...")
