@@ -50,102 +50,6 @@ def get_piano_notes():
     note_freqs = dict(zip(keys, [2**((n+1-49)/12)*base_freq for n in range(len(keys))]))
     note_freqs[''] = 0.0 # stop
     return note_freqs
-
-def sonify_muon_WP5():
-    """
-    1) bip: the beginning of the detector
-    2) continuous sound during 2 seconds: the track in the inner detector
-    3) a tone with different frequency: change from inner detector to red calorimeter
-    4) continuous sound during 4 second: the track continues passing the detectors, it represents a muon.  
-
-    """
-    # Set the path to save the sound
-    path = os.path.abspath(os.path.dirname(__file__))
-    path = path + '/muon_sound.wav'
-    # Set the path to open the tickmark
-    bip_path = os.path.abspath(os.path.dirname(__file__)) + '/sound_module/sounds/bip.wav'
-    #
-    note_freqs = get_piano_notes()
-    freqD6 = note_freqs['D6']
-    freqF7 = note_freqs['F7']
-    # Obtain pure sine wave for each frequency
-    sine_wave_D6 = get_sine_wave(freqD6, duration=2)
-    sine_wave_F7 = get_sine_wave(freqF7, duration=0.1)
-    sine_wave_D6_4 = get_sine_wave(freqD6, duration=4)
-    # Open the bip tickmark
-    rate1, data1 = wavfile.read(bip_path, mmap=False)
-    # Generate the final numpy array with all the sounds arrays
-    sound = np.append(data1, sine_wave_D6)
-    sound = np.append(sound, sine_wave_F7)
-    sound = np.append(sound, sine_wave_D6_4)
-    # Generate the wav file with the sonification
-    wavfile.write(path, rate=44100, data=sound.astype(np.int16))
-    
-def sonify_electron_WP5():
-    """
-    1) bip: the beginning of the detector
-    2) continuous sound during 2 seconds: the track in the inner detector
-    3) a tone with different frequency: change from inner detector to red calorimeter
-    4) sound corresponding to the cluster
-    
-    """
-    # Set the path to save the sound
-    path = os.path.abspath(os.path.dirname(__file__))
-    path = path + '/electron_sound.wav'
-    # Set the path to open the tickmark
-    bip_path = os.path.abspath(os.path.dirname(__file__)) + '/sound_module/sounds/bip.wav'
-    #
-    note_freqs = get_piano_notes()
-    freqD6 = note_freqs['D6']
-    freqF7 = note_freqs['F7']
-    # Obtain pure sine wave for each frequency
-    sine_wave_D6 = get_sine_wave(freqD6, duration=2)
-    sine_wave_F7 = get_sine_wave(freqF7, duration=0.1)
-    # sine_wave_D6_4 = get_sine_wave(freqD6, duration=4)
-    data = [300,350,600,800,1000,800,800,1000,700,600]
-    for x in range(0,10,1):
-        signal = get_sine_wave(data[x], 0.1)
-        if x==0:
-            cluster_sound = signal
-        else:
-            cluster_sound = np.append(cluster_sound, signal)
-    # Open the bip tickmark
-    rate1, data1 = wavfile.read(bip_path, mmap=False)
-    # Generate the final numpy array with all the sounds arrays
-    sound = np.append(data1, sine_wave_D6)
-    sound = np.append(sound, sine_wave_F7)
-    sound = np.append(sound, cluster_sound)
-    # Generate the wav file with the sonification
-    wavfile.write(path, rate=44100, data=sound.astype(np.int16))
-    
-def sonify_muon_WP6():
-    """
-    1) a tone with an specific frequency if the muon track match with (signal)?
-    2) continuous sound during 1 seconds: the track between first and second plot
-    3) a tone with the same frequency of 1) if the muon track match with (signal)?
-    4) continuous sound during 1 seconds: the track between second and third plot
-    5) a tone with the same frequency of 1) if the muon track match with (signal)?
-    6) continuous sound during 1 seconds: the muon track continue
-
-    """
-    # Set the path to save the sound
-    path = os.path.abspath(os.path.dirname(__file__))
-    path = path + '/not_muon_sound_WP6.wav'
-    #
-    note_freqs = get_piano_notes()
-    freqD6 = note_freqs['D6']
-    freqF7 = note_freqs['F7']
-    # Obtain pure sine wave for each frequency
-    sine_wave_D6 = get_sine_wave(freqD6, duration=1)
-    sine_wave_F7 = get_sine_wave(freqF7, duration=0.1)
-    # Generate the final numpy array with all the sounds arrays
-    sound = np.append(sine_wave_F7, sine_wave_D6)
-    sound = np.append(sound, sine_wave_F7)
-    sound = np.append(sound, sine_wave_D6)
-    sound = np.append(sound, sine_wave_F7)
-    sound = np.append(sound, sine_wave_D6)
-    # Generate the wav file with the sonification
-    wavfile.write(path, rate=44100, data=sound.astype(np.int16))
     
 def make_a_cluster(phi,theta,eta,amplitud=1):
     """
@@ -204,6 +108,7 @@ def particles_sonification(track_list, cluster_list):
         count = count + 1
         if not track_elements[0] in sonified_tracks_list:
             if int(track_elements[11])==1:
+                #Muon
                 ax_transversal.plot3D(
                     [float(track_elements[-6]),float(track_elements[-3])*2.5],
                     [float(track_elements[-5]),float(track_elements[-2])*2.5],
@@ -217,6 +122,7 @@ def particles_sonification(track_list, cluster_list):
                     plot_colours[count_colors])
                 count_colors = count_colors + 1
             else:
+                #Other tracks
                 ax_transversal.plot3D(
                     [float(track_elements[-6]),float(track_elements[-3])],
                     [float(track_elements[-5]),float(track_elements[-2])],
@@ -290,31 +196,46 @@ def particles_sonification(track_list, cluster_list):
                     sound = np.append(bip, track_sound)
                     sound = np.append(sound, bip_calorimeter)
                     if int(track_elements[11])==1:
+                        """
+                        1) bip: the beginning of the detector
+                        2) continuous sound during 2 seconds: the track in the inner detector
+                        3) a tone with different frequency: change from inner detector to red calorimeter
+                        4) sound corresponding to the cluster with the continuous sound of the track of the muon
+                        """
                         cluster_track = cluster_sound + track_1s
                         sound = np.append(sound, cluster_track)
                         sound = np.append(sound, track_1s)
                     else:
+                        """
+                        1) bip: the beginning of the detector
+                        2) continuous sound during 2 seconds: the track in the inner detector
+                        3) a tone with different frequency: change from inner detector to red calorimeter
+                        4) sound corresponding to the cluster
+                        """
                         sound = np.append(sound, cluster_sound)  
                 else:
+                    """
+                    1) bip: the beginning of the detector
+                    2) two continuous sound during 2 seconds: the tracks in the inner detector
+                    3) a tone with different frequency: change from inner detector to red calorimeter
+                    4) sound corresponding to the cluster
+                    """
                     print('Sonifying '+track_elements[0]+', '+converted_photon+' and '+cluster_elements[0])
                     sound = np.append(bip, double_track_sound)
                     sound = np.append(sound, bip_calorimeter)
                     sound = np.append(sound, cluster_sound)
-                    # if count == 1:
-                    #     sound_to_save = sound
-                    # else:
-                    #     sound_to_save = np.append(sound_to_save, sound)
             else:
                 # The track don't point out a cluster
+                """
+                1) bip: the beginning of the detector
+                2) continuous sound during 2 seconds: the track in the inner detector
+                3) a tone with different frequency: change from inner detector to red calorimeter
+                """
                 print('Sonifying '+track_elements[0])
                 sound = np.append(bip, track_sound)
                 sound = np.append(sound, bip_calorimeter)
                 if int(track_elements[11])==1:
                     sound = np.append(sound, track_sound)
-                # if count == 1:
-                #     sound_to_save = sound
-                # else:
-                #     sound_to_save = np.append(sound_to_save, sound)
             sound_play = pygame.mixer.Sound(sound.astype('int16'))
             sound_play.play()
             if count == 1:
@@ -327,10 +248,8 @@ def particles_sonification(track_list, cluster_list):
                 time.sleep(4.5)
             else:
                 time.sleep(3)
-            
             cluster_tosonify = []
             converted_photon = ' '
-            
     for cluster in cluster_list:
         cluster_elements = str(cluster).split()
         if not cluster_elements[0] in sonified_cluster_list:
@@ -339,6 +258,12 @@ def particles_sonification(track_list, cluster_list):
                 theta=float(cluster_elements[5]),
                 eta=float(cluster_elements[6]))
             plt.pause(0.5)
+            """
+            1) bip: the beginning of the detector
+            2) silence during 2 seconds: there are no track in the inner detector
+            3) a tone with different frequency: change from inner detector to red calorimeter
+            4) sound corresponding to the cluster
+            """
             print('Sonifying '+cluster_elements[0])
             sound = np.append(bip, silence_2s)
             sound = np.append(sound, bip_calorimeter)
@@ -357,14 +282,6 @@ calculates the square root of ( (φtrack-φcluster)squared+(θtrack-θcluster) s
 If the track(s) point in 3-D to a cluster this value should be small* (<0.1?). 
 Then if it is below the cut you play a "cluster" sound simultaneous with the "track(s)" cluster.
 """
-"""
-Plot init
-"""
-# figure, (ax_transversal, ax_longitudinal) = plt.subplots(1, 2)
-# # Defining the axes as a 3D axes so that we can plot 3D data into it.
-# ax_transversal = plt.axes(projection="3d")
-# ax_longitudinal = plt.axes(projection="3d")
-
 # set up a figure twice as wide as it is tall
 fig = plt.figure(figsize=plt.figaspect(0.5))
 # =============
