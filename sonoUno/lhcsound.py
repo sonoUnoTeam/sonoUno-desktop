@@ -164,10 +164,29 @@ def make_a_cluster(phi,theta,eta,amplitud=1):
     x = 10 * np.outer(np.cos(u), np.sin(v)) + x
     y = 10 * np.outer(np.sin(u), np.sin(v)) + y
     z = 10 * np.outer(np.ones(np.size(u)), np.cos(v)) + z
-    ax.plot_surface(x, y, z, color='b')
+    # ax.plot_surface(x, y, z, color='b')
+    # Corte longitudinal
+    ax_longitudinal.plot_surface(z, y, x, color='b')
+    ax_transversal.plot_surface(x, y, z, color='b')
 
 def particles_sonification(track_list, cluster_list):
-    ax.cla()
+    ax_longitudinal.cla()
+    ax_transversal.cla()
+    ax_transversal.set_xlabel('$X$')
+    ax_transversal.set_ylabel('$Y$')
+    ax_transversal.set_zlabel('$Z$')
+    ax_longitudinal.set_xlabel('$Z$')
+    ax_longitudinal.set_ylabel('$Y$')
+    ax_longitudinal.set_zlabel('$X$')
+    ax_transversal.set_xlim([-150,150])
+    ax_transversal.set_ylim([-150,150])
+    ax_transversal.set_zlim([-150,150])
+    ax_longitudinal.set_xlim([-300,300])
+    ax_longitudinal.set_ylim([-300,300])
+    ax_longitudinal.set_zlim([-300,300])
+    # Corte transversal
+    ax_transversal.view_init(90, 270)
+    ax_longitudinal.view_init(90, 270)
     # With each track calculate if it points out a cluster or not, if points a
     # cluster we will sonify the track and the cluster
     count = 0
@@ -177,23 +196,37 @@ def particles_sonification(track_list, cluster_list):
     cluster_tosonify = []
     converted_photon = ' '
     track_list_2 = track_list.copy()
+    # Variable to store all sound to save at the end
+    #sound_to_save = np.empty([0,0])
     for track in track_list:
         #plot the track
         track_elements = str(track).split()
         count = count + 1
         if not track_elements[0] in sonified_tracks_list:
             if int(track_elements[11])==1:
-                ax.plot3D(
-                    [float(track_elements[-6]),float(track_elements[-3])*1.5],
-                    [float(track_elements[-5]),float(track_elements[-2])*1.5],
-                    [float(track_elements[-4]),float(track_elements[-1])*1.5],
+                ax_transversal.plot3D(
+                    [float(track_elements[-6]),float(track_elements[-3])*2.5],
+                    [float(track_elements[-5]),float(track_elements[-2])*2.5],
+                    [float(track_elements[-4]),float(track_elements[-1])*2.5],
+                    plot_colours[count_colors])
+                # Corte longitudinal
+                ax_longitudinal.plot3D(
+                    [float(track_elements[-4]),float(track_elements[-1])*2.5],
+                    [float(track_elements[-5]),float(track_elements[-2])*2.5],
+                    [float(track_elements[-6]),float(track_elements[-3])*2.5],
                     plot_colours[count_colors])
                 count_colors = count_colors + 1
             else:
-                ax.plot3D(
+                ax_transversal.plot3D(
                     [float(track_elements[-6]),float(track_elements[-3])],
                     [float(track_elements[-5]),float(track_elements[-2])],
                     [float(track_elements[-4]),float(track_elements[-1])],
+                    plot_colours[count_colors])
+                # Corte longitudinal
+                ax_longitudinal.plot3D(
+                    [float(track_elements[-4]),float(track_elements[-1])],
+                    [float(track_elements[-5]),float(track_elements[-2])],
+                    [float(track_elements[-6]),float(track_elements[-3])],
                     plot_colours[count_colors])
                 count_colors = count_colors + 1
             # check if there are a track very close
@@ -211,10 +244,16 @@ def particles_sonification(track_list, cluster_list):
                     if value_tracks < 0.02:
                         if not track2_elements[0] in sonified_tracks_list:
                             sonified_tracks_list.append(track2_elements[0])
-                        ax.plot3D(
+                        ax_transversal.plot3D(
                             [float(track2_elements[-6]),float(track2_elements[-3])],
                             [float(track2_elements[-5]),float(track2_elements[-2])],
                             [float(track2_elements[-4]),float(track2_elements[-1])],
+                            plot_colours[count_colors])
+                        # Corte longitudinal
+                        ax_longitudinal.plot3D(
+                            [float(track2_elements[-4]),float(track2_elements[-1])],
+                            [float(track2_elements[-5]),float(track2_elements[-2])],
+                            [float(track2_elements[-6]),float(track2_elements[-3])],
                             plot_colours[count_colors])
                         count_colors = count_colors + 1
                         converted_photon = track2_elements[0]
@@ -261,6 +300,10 @@ def particles_sonification(track_list, cluster_list):
                     sound = np.append(bip, double_track_sound)
                     sound = np.append(sound, bip_calorimeter)
                     sound = np.append(sound, cluster_sound)
+                    # if count == 1:
+                    #     sound_to_save = sound
+                    # else:
+                    #     sound_to_save = np.append(sound_to_save, sound)
             else:
                 # The track don't point out a cluster
                 print('Sonifying '+track_elements[0])
@@ -268,8 +311,18 @@ def particles_sonification(track_list, cluster_list):
                 sound = np.append(sound, bip_calorimeter)
                 if int(track_elements[11])==1:
                     sound = np.append(sound, track_sound)
+                # if count == 1:
+                #     sound_to_save = sound
+                # else:
+                #     sound_to_save = np.append(sound_to_save, sound)
             sound_play = pygame.mixer.Sound(sound.astype('int16'))
             sound_play.play()
+            if count == 1:
+                sound_to_save = sound
+            else:
+                sound_to_save = np.append(sound_to_save, sound)
+            sound_to_save = np.append(sound_to_save, silence_1s)
+            
             if int(track_elements[11])==1:
                 time.sleep(4.5)
             else:
@@ -281,19 +334,21 @@ def particles_sonification(track_list, cluster_list):
     for cluster in cluster_list:
         cluster_elements = str(cluster).split()
         if not cluster_elements[0] in sonified_cluster_list:
-            #print(cluster_elements[0]+" don't preset asociated track.")
             make_a_cluster(
                 phi=float(cluster_elements[4]),
                 theta=float(cluster_elements[5]),
                 eta=float(cluster_elements[6]))
             plt.pause(0.5)
             print('Sonifying '+cluster_elements[0])
-            sound = np.append(bip, silence)
+            sound = np.append(bip, silence_2s)
             sound = np.append(sound, bip_calorimeter)
             sound = np.append(sound, cluster_sound)
             sound_play = pygame.mixer.Sound(sound.astype('int16'))
             sound_play.play()
+            sound_to_save = np.append(sound_to_save, sound)
+            sound_to_save = np.append(sound_to_save, silence_1s)
             time.sleep(3)
+    return sound_to_save
 
 #sonify_electron_WP5()
 
@@ -305,17 +360,31 @@ Then if it is below the cut you play a "cluster" sound simultaneous with the "tr
 """
 Plot init
 """
-# Create an empty figure or plot
-fig = plt.figure()
-# Defining the axes as a 3D axes so that we can plot 3D data into it.
-ax = plt.axes(projection="3d")
+# figure, (ax_transversal, ax_longitudinal) = plt.subplots(1, 2)
+# # Defining the axes as a 3D axes so that we can plot 3D data into it.
+# ax_transversal = plt.axes(projection="3d")
+# ax_longitudinal = plt.axes(projection="3d")
+
+# set up a figure twice as wide as it is tall
+fig = plt.figure(figsize=plt.figaspect(0.5))
+# =============
+# First subplot
+# =============
+# set up the axes for the first plot
+ax_transversal = fig.add_subplot(1, 2, 1, projection='3d')
+ax_transversal.set_xlim([-250,250])
+ax_transversal.set_ylim([-250,250])
+ax_transversal.set_zlim([-250,250])
+# ==============
+# Second subplot
+# ==============
+# set up the axes for the second plot
+ax_longitudinal = fig.add_subplot(1, 2, 2, projection='3d')
+ax_longitudinal.set_xlim([-250,250])
+ax_longitudinal.set_ylim([-250,250])
+ax_longitudinal.set_zlim([-250,250])
+
 plot_colours = ['blue','orange','green','red','purple','brown','pink','grey','olive','cyan']
-ax.set_xlabel('$X$')
-ax.set_ylabel('$Y$')
-ax.set_zlabel('$Z$')
-ax.set_xlim(-100,100)
-ax.set_ylim(-100,100)
-ax.set_zlim(0,250)
 """
 Particle data file
 """
@@ -367,7 +436,8 @@ track_1s = get_sine_wave(freqD6, duration=1)
 track_sound = get_sine_wave(freqD6, duration=2)
 double_track_sound = get_sine_wave(freqD6, duration=2)+get_sine_wave(freqC6, duration=2)
 bip_calorimeter = get_sine_wave(freqF7, duration=0.1)
-silence = get_sine_wave(0, duration=2)
+silence_2s = get_sine_wave(0, duration=2)
+silence_1s = get_sine_wave(0, duration=1)
 # Obtain a generic cluster sound
 data = [300,350,600,800,1000,800,800,1000,700,600]
 for x in range(0,10,1):
@@ -379,14 +449,21 @@ for x in range(0,10,1):
 # Here we call the method to sonify and plot each pair of track and cluster
 plt.pause(0.5)
 input("Press a key to continue...")
+count = 0
 for i in range(0,len(particles),2):
-    particles_sonification(particles[i],particles[i+1])
+    count = count + 1
+    sound_var = particles_sonification(particles[i],particles[i+1])
+    plot_path = 'lhc_output/plot_dataset_' + str(count) + '.png'
+    plt.savefig(plot_path, format='png')
+    # Generate the wav file with the sonification
+    sound_path = 'lhc_output/sound_dataset_' + str(count) + '.wav'
+    wavfile.write(sound_path, rate=44100, data=sound_var.astype(np.int16))
     key = input("Press 'Q' to close or any other key to continue...")
-    print(key)
     if key == 'Q' or key == 'q':
         plt.close()
         break
 # Showing the above plot
 plt.show()
+plt.close()
 # Last but not least, close the file
 file1.close()
