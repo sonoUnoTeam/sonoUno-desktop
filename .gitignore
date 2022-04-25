@@ -8,3 +8,4 @@ sonoUno/.pylint.d/
 sonoUno/spyder-env/
 sonoUno/*.wav
 sonoUno/sonification_reduced.txt
+sonoUno/lhc_output/
