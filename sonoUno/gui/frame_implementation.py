@@ -938,6 +938,76 @@ class SonoUnoGUI (gui.FrameDesign):
             # If there are unsaved marks on data, ask if the user want to save them
             if not self._ask_markpoints:
                 self.askSavePoints()
+            # Prepare the GUI
+            # enable menu items for 2D display
+            self._deleteallmarksmenuitem.Enable(True)
+            self._savemarksmenuitem.Enable(True)
+            self._markmenuitem.Enable(True)
+            self._deletelastmarkmenuitem.Enable(True)
+            # Restore the menus to the complete version
+            if self._menubar.FindMenu(self._menudataop.GetTitle()) == wx.NOT_FOUND:
+                self._menubar.Insert(
+                    pos = 2,
+                    menu = self._menudataop,
+                    title = 'Data Operations'
+                    )
+            if self._menubar.FindMenu(self._menuconfigpanels.GetTitle()) == wx.NOT_FOUND:
+                self._menubar.Insert(
+                    pos = 3,
+                    menu = self._menuconfigpanels,
+                    title = 'Panels'
+                    )
+            if self._menubar.FindMenu(self._menusettings.GetTitle()) == wx.NOT_FOUND:
+                self._menubar.Insert(
+                    pos = 4,
+                    menu = self._menusettings,
+                    title = 'Settings'
+                    )
+            # show hidden buttons
+            self._markPtButton.Show()
+            self._deleteLastPtButton.Show()
+            self._contdiscsound_display_ToggleBtn.Show()
+            # refresh the window
+            self.SendSizeEvent()
+            # Reset the command line options
+            # without parameters
+            self.command_dict_withoutparam = {
+                'open':self.open_method,
+                'dellastmark':self.deleteLastMark,
+                'delallmarks':self.deleteAllMark,
+                'delallmark':self.deleteAllMark,
+                'savedata':self.saveData,
+                'savemarks':self.saveMarks,
+                'savemark':self.saveMarks,
+                'saveplot':self.savePlot,
+                'savesound':self.eSound,
+                'quit':self.Close,
+                'exit':self.Close,
+                'play':self.playMethod,
+                'playloop':self.playinloop,
+                'pause':self.playMethod,
+                'stop':self.stopMethod,
+                'markpoint':self.markPoints,
+                'originaldata':self.originaldata_command,
+                'xlastcut':self.xlastcut_command,
+                'inverse_mf':self.inverse_command,
+                'square_mf':self.square_command,
+                'squareroot_mf':self.squareroot_command,
+                'logarithm_mf':self.logarithm_command
+                }
+            # with parameters
+            self.command_dict_withparam = {
+                'open':self.open_method,
+                'xposition':self.xposition_command,
+                'tempo':self.selecttempo_command,
+                'xlowerlimit':self.xlowerlimit_command,
+                'xupperlimit':self.xupperlimit_command,
+                'octave':self._octaveInput_command,
+                'fromoctave':self._retrieveFromOctave_command,
+                'play_time':self.play_with_time,
+                'playloop_time':self.play_with_time_inloop,
+                'set_1min_loops':self.set_number_1min_loops
+                }
             # Get the path where the datafile exist on the computer, the
             # type of datafile to open and False status if there are a 
             # problem.
@@ -1027,6 +1097,49 @@ class SonoUnoGUI (gui.FrameDesign):
                     style=wx.OK | wx.ICON_INFORMATION
                     )
                 self._expdata.writeexception(msg)
+        elif datatype == 2:
+            # Prepare the GUI
+            # disable unused menu items
+            self._deleteallmarksmenuitem.Enable(False)
+            self._savemarksmenuitem.Enable(False)
+            self._markmenuitem.Enable(False)
+            self._deletelastmarkmenuitem.Enable(False)
+            # remove the menu items that can't be used
+            pos = self._menubar.FindMenu(self._menudataop.GetTitle())
+            self._menubar.Remove(pos)
+            pos = self._menubar.FindMenu(self._menuconfigpanels.GetTitle())
+            self._menubar.Remove(pos)
+            pos = self._menubar.FindMenu(self._menusettings.GetTitle())
+            self._menubar.Remove(pos)
+            # hide buttons
+            self._markPtButton.Hide()
+            self._deleteLastPtButton.Hide()
+            self._contdiscsound_display_ToggleBtn.Hide()
+            self.SendSizeEvent()
+            # Prepare the command line options
+            # without parameters
+            self.command_dict_withoutparam = {
+                'open':self.open_method,
+                'savedata':self.saveData,
+                'saveplot':self.savePlot,
+                'savesound':self.eSound,
+                'quit':self.Close,
+                'exit':self.Close,
+                'play':self.playMethod,
+                'playloop':self.playinloop,
+                'pause':self.playMethod,
+                'stop':self.stopMethod,
+                }
+            # with parameters
+            self.command_dict_withparam = {
+                'open':self.open_method,
+                'xposition':self.xposition_command,
+                'tempo':self.selecttempo_command,
+                'play_time':self.play_with_time,
+                'playloop_time':self.play_with_time_inloop,
+                'set_1min_loops':self.set_number_1min_loops
+                }
+            
         else:
             wx.MessageBox(
                 message=("The data type selected to open is not available "

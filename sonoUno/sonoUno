@@ -26,14 +26,6 @@ class SonoUnoCore (gui.SonoUnoGUI):
         # This class inherit from gui module, class FrameDesign
         gui.SonoUnoGUI.__init__(self)
         
-    # def open_method(self, datatype=1):
-        
-    #     """
-    #     This method allow to open a dataset serching it on the computer file
-    #     system.
-    #     """
-    #     datatype = int(datatype)
-        
     
 
 if __name__ == '__main__':
