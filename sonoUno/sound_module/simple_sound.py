@@ -310,3 +310,12 @@ class tickMark(object):
     def loop(self):
         base_path = os.path.abspath(os.path.dirname(__file__))
         pygame.mixer.Sound(os.path.join(base_path, 'sounds','alto_gong.wav')).play()
+
+    def bip(self):
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        pygame.mixer.Sound(os.path.join(base_path, 'sounds','bip.wav')).play()
+        
+    def explosion(self):
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        pygame.mixer.Sound(os.path.join(base_path, 'sounds','alto_gong.wav')).play()
+    

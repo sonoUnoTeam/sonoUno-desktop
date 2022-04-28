@@ -5,6 +5,8 @@ sonoUno/sonoUno.egg-info/
 sonoUno/.spyproject/
 sonoUno/sonouno_xcode/
 sonoUno/.pylint.d/
-Spyder-env/
-sonification_reduced.txt
 sonoUno/*.png
+sonoUno/spyder-env/
+sonoUno/*.wav
+sonoUno/sonification_reduced.txt
+sonoUno/lhc_output/
