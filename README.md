@@ -58,7 +58,7 @@ Centos: ```yum install SDL```\
 
 5.	If you want to download the software from the repository install git, if not you can use the version on Pypi.
 
-## Opening the software
+## Opening the software with Graphic User Interface
 
 ### From Pypi (only Linux and Mac)
 
@@ -82,3 +82,36 @@ Then, on the terminal, go to the folder which contain the setup.py and install i
 To open the sonoUno software:\
 ```cd sonoUno```\
 ```python3 sonoUno```
+
+## Using sonify_bash.py to sonify data files in bash mode
+
+To run this script:
+```cd sonoUno```\
+```python3 sonify_bash.py -t "files_extension" -d "path_to_directory"```
+
+### Description
+
+The script sonify the first two columns of csv or txt files. The script search inside the folder provided by the user all the data files with the given extension (if not, txt extension is setted as default) and sonify it; then, store the wav files with the same data file name adding '_sound' at the end.
+  The script additionally allow to save the plot with '-p True', as default is setted on False.
+
+### Parameters to set
+
+To use the script the directory where the data files are located has to be send when you run the script with the '-d' indication.
+In addition, if you will sonify data files with csv extension, you must indicate it with the '-t'. 
+To additionally save the plot of each data set, indicate it with '-p True'
+If you need help to run the script you can write:
+```python3 sonify_bash.py -h```
+
+### Default parameters
+
+About the data files:
+    If not extension is given, by default search txt files.
+    About the plot, as default the script don't save it.
+    At the moment search all files with the given extension inside the folder, we hope to add the posibility to use a text file with names, or the data file name to sonify only this file.
+    
+About the sound the presets are:
+    *SonoUno continuous sound
+    *Celesta as the waveform
+    *A time base of 0.05
+    We continue working to allow to change this preset from the command line.
+    

@@ -38,7 +38,7 @@ class SonoUnoGUI (gui.FrameDesign):
         # This class inherit from gui module, class FrameDesign
         gui.FrameDesign.__init__(self)
         # Class instantiation
-        self._expdata = DataExport()
+        self._expdata = DataExport(True)
         self._opendata = DataImport()
         self._datasound = simpleSound()
         self._tickmark = tickMark()

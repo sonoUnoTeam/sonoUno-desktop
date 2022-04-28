@@ -264,11 +264,11 @@ class simpleSound(object):
 
     def save_sound(self, path, data_x, data_y):
         #Se genera un objeto Track
-        try:
-            output_file = wave.open(path,'w')
+        # try:
+        #     output_file = wave.open(path,'w')
 
-        except Exception as e:
-            self.expErrSs.writeexception(e)
+        # except Exception as e:
+        #     self.expErrSs.writeexception(e)
         #Se recorre el array agregando las notas al Track.
         try:
             #rango, offset = self.reproductor.getRange()
@@ -295,12 +295,12 @@ class simpleSound(object):
         except Exception as e:
             self.expErrSs.writeexception(e)
         #Finalmente se guarda el la ruta seleccionada.
-        try:
-            #MidiFileOut.write_Track(path, localTrack)
-            #TODO: Escribir archivo de salida (wav?)
-            self.expErrSs.writeinfo("Metodo no implementado")
-        except Exception as e:
-            self.expErrSs.writeexception(e)
+        # try:
+        #     #MidiFileOut.write_Track(path, localTrack)
+        #     #TODO: Escribir archivo de salida (wav?)
+        #     self.expErrSs.writeinfo("Metodo no implementado")
+        # except Exception as e:
+        #     self.expErrSs.writeexception(e)
 
 class tickMark(object):
     def __init__(self):
