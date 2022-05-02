@@ -25,7 +25,9 @@ from sound_module.simple_sound import tickMark
 from data_export.data_export import DataExport
 from data_transform.predef_math_functions import PredefMathFunctions
 from data_transform.data_opened import DataOpenedColumns
-
+from data_lhc import lhc_plot
+from data_lhc import lhc_sonification
+from data_lhc import lhc_data
 
 class SonoUnoGUI (gui.FrameDesign):
 
@@ -54,6 +56,13 @@ class SonoUnoGUI (gui.FrameDesign):
             event=wx.EVT_TIMER, 
             handler=self._sonificationloop_event, 
             source=self._timer
+            )
+        # Timer to sonify LHC data
+        self._timer_lhc = wx.Timer(self)
+        self.Bind(
+            event=wx.EVT_TIMER, 
+            handler=self._sonificationloop_lhc, 
+            source=self._timer_lhc
             )
         # Second timer to sonify the sound envelope
         self._timer_envelope = wx.Timer(self)
@@ -756,6 +765,19 @@ class SonoUnoGUI (gui.FrameDesign):
             self.SendSizeEvent()
             # Restore the value of the flag to redraw the plot on other methods
             self._redraw_panel = True
+            
+    def _sonificationloop_lhc (self, event):
+        lhc_data.particles_sonification(self.particles[self.count_lhc], 
+                                        self.particles[self.count_lhc+1], 
+                                        self.ax_transversal, 
+                                        self.ax_longitudinal
+                                        )
+        self.count_lhc = self.count_lhc + 2
+        plot_path = 'lhc_output/plot_dataset_' + str(self.count_lhc) + '.png'
+        self._figure.savefig(plot_path, format='png')
+        # Generate the wav file with the sonification
+        sound_path = 'lhc_output/sound_dataset_' + str(self.count_lhc) + '.wav'
+        lhc_sonification.save_sound(sound_path)
 
     def _sonificationloop_event (self, event):
         
@@ -1139,7 +1161,14 @@ class SonoUnoGUI (gui.FrameDesign):
                 'playloop_time':self.play_with_time_inloop,
                 'set_1min_loops':self.set_number_1min_loops
                 }
-            
+            # Load data set
+            file = lhc_data.openfile('path')
+            self.particles = lhc_data.read_content(file)
+            # Receive the first plot update
+            self.ax_transversal, self.ax_longitudinal = lhc_plot.plot3D_init(self._figure)
+            # Sound init
+            lhc_sonification.sound_init()
+            lhc_sonification.set_bip()
         else:
             wx.MessageBox(
                 message=("The data type selected to open is not available "
@@ -1773,29 +1802,69 @@ class SonoUnoGUI (gui.FrameDesign):
             else:
                 self._expdata.printoutput("The envelope sound is alredy on when the user press Play envelope.")
 
-    def playMethod(self):
-        if self.getXActual().any()==None:
-            self._expdata.writeinfo("The data has not been imported yet.")
-            self._playButton.SetValue(False)
-            self._playmenuitem.Check(False)
-        else:
-            if not self._timer.IsRunning():
+    def playMethod(self, datatype=2):
+        if datatype == 1:
+            if self.getXActual().any()==None:
+                self._expdata.writeinfo("The data has not been imported yet.")
+                self._playButton.SetValue(False)
+                self._playmenuitem.Check(False)
+            else:
+                if not self._timer.IsRunning():
+                    self._expdata.printoutput("Play button is pressed.")
+                    self._playButton.SetLabel("Pause")
+                    self._playButton.SetValue(True)
+                    self._playmenuitem.SetItemLabel('Pause' + '\t' + 'Alt+Shift+P')
+                    self._playmenuitem.Check(True)
+                    self.play()
+                elif self._timer.IsRunning():
+                    self._expdata.printoutput("Pause button is pressed.")
+                    self._playButton.SetLabel("Play")
+                    self._playButton.SetValue(False)
+                    self._playmenuitem.SetItemLabel('Play' + '\t' + 'Alt+Shift+P')
+                    self._playmenuitem.Check(False)
+                    #self._datasound.make_sound(0, -1)
+                    self._timer.Stop()
+                else:
+                    self._expdata.writeinfo("Error con el contador del botón Play-Pausa")
+        elif datatype == 2:
+            if not self._timer_lhc.IsRunning():
                 self._expdata.printoutput("Play button is pressed.")
                 self._playButton.SetLabel("Pause")
                 self._playButton.SetValue(True)
                 self._playmenuitem.SetItemLabel('Pause' + '\t' + 'Alt+Shift+P')
                 self._playmenuitem.Check(True)
-                self.play()
-            elif self._timer.IsRunning():
+                if self._timer_envelope.IsRunning():
+                    self._timer_envelope.Stop()
+                    self._set_timerenvelopeindex(0)
+                    self._envelopeplaytogglebtn.SetLabel('Play envelope\nsound')
+                    self._envelopeplaytogglebtn.SetValue(False)
+                if self._timer.IsRunning():
+                    self._timer.Stop()
+                    self._timerindex_space = 0
+                    self._set_timerindex(0)
+                #Seteo el tempo dependiendo del tiempo del timer
+                self.count_lhc = 0
+                self._timer_lhc.Start((self._getVelocity()*2) + 10)
+                self._datasound.reproductor.set_time_base(self._timer_lhc.GetInterval()/1000.0)
+            elif self._timer_lhc.IsRunning():
                 self._expdata.printoutput("Pause button is pressed.")
                 self._playButton.SetLabel("Play")
                 self._playButton.SetValue(False)
                 self._playmenuitem.SetItemLabel('Play' + '\t' + 'Alt+Shift+P')
                 self._playmenuitem.Check(False)
-                #self._datasound.make_sound(0, -1)
-                self._timer.Stop()
+                self._timer_lhc.Stop()
             else:
                 self._expdata.writeinfo("Error con el contador del botón Play-Pausa")
+        else:
+            wx.MessageBox(
+                message=("The data type selected to open is not available "
+                    + "yet./nPlease check on the manual that the number "
+                    + "selected match with the data type that you try to "
+                    + "open./n/nFor more information contact the sonoUno team."
+                    + "/nContact mail: sonounoteam@gmail.com."),
+                caption='Information', 
+                style=wx.OK | wx.ICON_INFORMATION
+                )
     
     def playinloop(self):
         self.playinloop_state = True

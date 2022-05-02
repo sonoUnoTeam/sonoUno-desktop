@@ -369,6 +369,7 @@ input("Press a key to continue...")
 count = 0
 for i in range(0,len(particles),2):
     count = count + 1
+    # init the plot in sonouno
     sound_var = particles_sonification(particles[i],particles[i+1])
     plot_path = 'lhc_output/plot_dataset_' + str(count) + '.png'
     plt.savefig(plot_path, format='png')
