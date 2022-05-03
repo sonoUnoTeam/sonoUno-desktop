@@ -10,3 +10,5 @@ sonoUno/spyder-env/
 sonoUno/*.wav
 sonoUno/sonification_reduced.txt
 sonoUno/lhc_output/
+sonoUno/data_lhc/sonification_reduced.txt
+sonoUno/data_lhc/lhc_output/
