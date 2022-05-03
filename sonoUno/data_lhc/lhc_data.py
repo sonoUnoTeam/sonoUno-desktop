@@ -12,6 +12,11 @@ import math
 from . import lhc_plot
 from . import lhc_sonification
 
+#Global lists to sonification and plot
+sonified_cluster_list = []
+sonified_tracks_list = []
+cluster_tosonify = []
+
 def openfile(path):
     """
     This method open the file with the given path, read its lines and return 
@@ -57,25 +62,27 @@ def read_content(file):
     # clusters for each event.
     return particles
 
-def particles_sonification(track_list, cluster_list, ax_transversal, ax_longitudinal):
+def particles_sonification(index, element, track_list, cluster_list, ax_transversal, ax_longitudinal):
     # With each track calculate if it points out a cluster or not, if points a
     # cluster we will sonify the track and the cluster
-    lhc_plot.set_count_colors(0)
-    count = 0
-    sonified_cluster_list = []
-    sonified_tracks_list = []
+    global sonified_cluster_list, sonified_tracks_list, cluster_tosonify
+    if index == 0:
+        lhc_plot.set_count_colors(0)
+        sonified_cluster_list = []
+        sonified_tracks_list = []
     cluster_tosonify = []
     converted_photon = ' '
     track_list_2 = track_list.copy()
-    print("%%%%%%%%%%%%%%%%%%%%%%")
-    print(track_list)
-    print("%%%%%%%%%%%%%%%%%%%%%%")
-    print(cluster_list)
     # Variable to store all sound to save at the end
-    for track in track_list:
+    # for track in track_list:
+    """
+    Trying to use events not for
+    """
+    if element == 'Track':
         #plot the track
+        track = track_list[index]
         track_elements = str(track).split()
-        count = count + 1
+        count = index + 1
         if not track_elements[0] in sonified_tracks_list:
             if int(track_elements[11])==1:
                 #Muon
@@ -129,7 +136,7 @@ def particles_sonification(track_list, cluster_list, ax_transversal, ax_longitud
                     #Arreglar el mensaje aqui
                     print('Could a track points out to more than one cluster?')
                     print(cluster_tosonify)
-                    break
+                    return
                 cluster_elements = str(cluster_tosonify[0]).split()
                 if converted_photon == ' ':
                     print('Sonifying '+track_elements[0]+' and '+cluster_elements[0])
@@ -169,18 +176,18 @@ def particles_sonification(track_list, cluster_list, ax_transversal, ax_longitud
                 sound = lhc_sonification.singletrack_only()
                 if int(track_elements[11])==1:
                     sound = lhc_sonification.doubletrack_only()
-            print("**********************")
-            print(sound)
             lhc_sonification.play_sound(sound)
             if count == 1:
                 lhc_sonification.array_savesound(sound)
             else:
                 lhc_sonification.add_array_savesound(sound)
             lhc_sonification.add_array_savesound(lhc_sonification.get_silence_1s())
-            
             cluster_tosonify = []
             converted_photon = ' '
-    for cluster in cluster_list:
+    
+    elif element == 'Cluster':
+    #for cluster in cluster_list:
+        cluster = cluster_list[index]
         cluster_elements = str(cluster).split()
         if not cluster_elements[0] in sonified_cluster_list:
             lhc_plot.plot_cluster(
@@ -195,9 +202,8 @@ def particles_sonification(track_list, cluster_list, ax_transversal, ax_longitud
             """
             print('Sonifying '+cluster_elements[0])
             sound = lhc_sonification.cluster_only()
-            print("**********************")
-            print(sound)
             lhc_sonification.play_sound(sound)
             lhc_sonification.add_array_savesound(sound)
             lhc_sonification.add_array_savesound(lhc_sonification.get_silence_1s())
-
+    else:
+        print("problem with element!!!!")
