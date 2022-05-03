@@ -16,6 +16,7 @@ from wx.lib import dialogs
 import oct2py
 import re
 import webbrowser
+import os
 
 import gui.frame_design as gui
 from data_import.data_import import DataImport
@@ -767,17 +768,36 @@ class SonoUnoGUI (gui.FrameDesign):
             self._redraw_panel = True
             
     def _sonificationloop_lhc (self, event):
-        lhc_data.particles_sonification(self.particles[self.count_lhc], 
-                                        self.particles[self.count_lhc+1], 
+        if self.count_lhc_2 == 0:
+            lhc_plot.plot_reset()
+        if self.count_lhc_2 <= len(self.particles[self.count_lhc_1])-1:
+            element = 'Track'
+            index = self.count_lhc_2
+        elif self.count_lhc_2 <= len(self.particles[self.count_lhc_1]) + len(self.particles[self.count_lhc_1+1]) - 2:
+            element = 'Cluster'
+            index = self.count_lhc_2 - len(self.particles[self.count_lhc_1]) - 1
+        lhc_data.particles_sonification(index,
+                                        element,
+                                        self.particles[self.count_lhc_1], 
+                                        self.particles[self.count_lhc_1+1], 
                                         self.ax_transversal, 
                                         self.ax_longitudinal
                                         )
-        self.count_lhc = self.count_lhc + 2
-        plot_path = 'lhc_output/plot_dataset_' + str(self.count_lhc) + '.png'
-        self._figure.savefig(plot_path, format='png')
-        # Generate the wav file with the sonification
-        sound_path = 'lhc_output/sound_dataset_' + str(self.count_lhc) + '.wav'
-        lhc_sonification.save_sound(sound_path)
+        
+        if self.count_lhc_2 == len(self.particles[self.count_lhc_1]) + len(self.particles[self.count_lhc_1+1]) - 2:
+            self.count_lhc_1 = self.count_lhc_1 + 2
+            self.count_lhc_2 = 0
+            self.count_lhc_3 = self.count_lhc_3 + 1
+            # actualpath = os.path.abspath(os.getcwd())
+            # plot_path = actualpath + '\\lhc_output\\plot_dataset_' + str(self.count_lhc_1) + '.png'
+            # self._figure.savefig(plot_path, format='png')
+            # # Generate the wav file with the sonification
+            # sound_path = actualpath + '\\lhc_output\\sound_dataset_' + str(self.count_lhc_1) + '.wav'
+            # lhc_sonification.save_sound(sound_path)
+        else:
+            self.count_lhc_2 = self.count_lhc_2 + 1 
+        if self.count_lhc_1 == len(self.particles) - 1:
+            self.stopMethod()
 
     def _sonificationloop_event (self, event):
         
@@ -1843,8 +1863,10 @@ class SonoUnoGUI (gui.FrameDesign):
                     self._timerindex_space = 0
                     self._set_timerindex(0)
                 #Seteo el tempo dependiendo del tiempo del timer
-                self.count_lhc = 0
-                self._timer_lhc.Start((self._getVelocity()*2) + 10)
+                self.count_lhc_1 = 0
+                self.count_lhc_2 = 0
+                self.count_lhc_3 = 0
+                self._timer_lhc.Start(6000)#(self._getVelocity()*2) + 10)
                 self._datasound.reproductor.set_time_base(self._timer_lhc.GetInterval()/1000.0)
             elif self._timer_lhc.IsRunning():
                 self._expdata.printoutput("Pause button is pressed.")
@@ -1906,27 +1928,33 @@ class SonoUnoGUI (gui.FrameDesign):
         """
         self.number_1min_loops = int(num)
 
-    def stopMethod(self):
+    def stopMethod(self, datatype=2):
         self._playButton.SetValue(False)
         self._playmenuitem.Check(False)
         self._playButton.SetLabel("Play")
         self._playmenuitem.SetItemLabel('Play' + '\t' + 'Alt+Shift+P')
-        
-        # After reproduction the non reduce array x-y was setted
-        self.set_actual_x(self.prev_setted_time_x)
-        self.set_actual_y(self.prev_setted_time_y)
-
-        if self.getXActual().any()==None or self.getYActual().any()==None:
-            self._expdata.writeinfo("The data has not been imported yet.")
-        else:
-            if self._timer.IsRunning():
-                #self._datasound.make_sound(0, -1)
-                self._timer.Stop()
-            self._timerindex_space = 0
-            self._set_timerindex(0)
-            self._abspos_slider.SetValue(0)
-            self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
-            self.replot_xy(self.getXActual(), self.getYActual())
+        if datatype == 1:
+            # After reproduction the non reduce array x-y was setted
+            self.set_actual_x(self.prev_setted_time_x)
+            self.set_actual_y(self.prev_setted_time_y)
+    
+            if self.getXActual().any()==None or self.getYActual().any()==None:
+                self._expdata.writeinfo("The data has not been imported yet.")
+            else:
+                if self._timer.IsRunning():
+                    #self._datasound.make_sound(0, -1)
+                    self._timer.Stop()
+                self._timerindex_space = 0
+                self._set_timerindex(0)
+                self._abspos_slider.SetValue(0)
+                self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
+                self.replot_xy(self.getXActual(), self.getYActual())
+        elif datatype == 2:
+            if self._timer_lhc.IsRunning():
+                self._timer_lhc.Stop()
+                self.count_lhc_1 = 0
+                self.count_lhc_2 = 0
+                self.count_lhc_3 = 0
 
     def markPoints (self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
