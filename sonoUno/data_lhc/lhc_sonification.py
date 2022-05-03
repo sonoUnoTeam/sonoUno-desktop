@@ -99,6 +99,7 @@ def get_cluster():
             cluster_sound = signal
         else:
             cluster_sound = np.append(cluster_sound, signal)
+    return cluster_sound
 
 def get_silence_2s():
     return get_sine_wave(0, duration=2)
