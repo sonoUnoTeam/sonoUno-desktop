@@ -11,7 +11,7 @@ import pygame
 """
 Functions to be added in simple sound later
 """
-def get_sine_wave(frequency, duration, sample_rate=44100, amplitude=4096):
+def get_sine_wave(frequency, duration, sample_rate=44100, amplitude=2000):
     """
     Parameters
     ----------

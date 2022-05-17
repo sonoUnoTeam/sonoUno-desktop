@@ -125,6 +125,8 @@ def plot_cluster(phi,theta,eta,amplitud=10):
     """
     Hago una esfera
     """
+    if amplitud != 10:
+        amplitud = amplitud * 10 + 2
     if np.abs(eta) < 1.5:
         r = 150
     else:
@@ -139,8 +141,8 @@ def plot_cluster(phi,theta,eta,amplitud=10):
     y = amplitud * np.outer(np.sin(u), np.sin(v)) + y
     z = amplitud * np.outer(np.ones(np.size(u)), np.cos(v)) + z
     # Plot
-    ax_longitudinal.plot_surface(z, y, x, color='b')
-    ax_transversal.plot_surface(x, y, z, color='b')
+    ax_longitudinal.plot_surface(z, y, x, color='k')
+    ax_transversal.plot_surface(x, y, z, color='k')
     # Refresh plot
     fig.tight_layout()
     fig.canvas.draw()

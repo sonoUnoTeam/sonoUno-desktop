@@ -23,7 +23,7 @@ def set_bip():
     rate1, bip_local = wavfile.read(bip_path, mmap=False)
     bip = bip_local
 
-def get_sine_wave(frequency, duration, sample_rate=44100, amplitude=4096):
+def get_sine_wave(frequency, duration, sample_rate=44100, amplitude=2000):
     """
     Parameters
     ----------
@@ -90,11 +90,13 @@ def get_tickmark_inner_calorimeter(freq=440, duration=0.1):
     bip_calorimeter = get_sine_wave(freqF7, duration=0.1)
     return bip_calorimeter
 
-def get_cluster():
+def get_cluster(amplitude):
     # Obtain a generic cluster sound
     data = [300,350,600,800,1000,800,800,1000,700,600]
+    if amplitude != 0:
+        amplitude = amplitude*2000 + 100
     for x in range(0,10,1):
-        signal = get_sine_wave(data[x], 0.1)
+        signal = get_sine_wave(data[x], 0.1, amplitude=amplitude)
         if x==0:
             cluster_sound = signal
         else:
@@ -107,24 +109,24 @@ def get_silence_2s():
 def get_silence_1s():
     return get_sine_wave(0, duration=1)
 
-def muontrack_withcluster():
+def muontrack_withcluster(amplitude):
     sound = np.append(bip, get_innersingletrack())
     sound = np.append(sound, get_tickmark_inner_calorimeter())
-    cluster_track = get_cluster() + get_innersingletrack(duration=1)
+    cluster_track = get_cluster(amplitude) + get_innersingletrack(duration=1)
     sound = np.append(sound, cluster_track)
     sound = np.append(sound, get_innersingletrack())
     return sound
 
-def singletrack_withcluster():
+def singletrack_withcluster(amplitude):
     sound = np.append(bip, get_innersingletrack())
     sound = np.append(sound, get_tickmark_inner_calorimeter())
-    sound = np.append(sound, get_cluster())
+    sound = np.append(sound, get_cluster(amplitude))
     return sound
 
-def doubletrack_withcluster():
+def doubletrack_withcluster(amplitude):
     sound = np.append(bip, get_innerdoubletrack())
     sound = np.append(sound, get_tickmark_inner_calorimeter())
-    sound = np.append(sound, get_cluster())
+    sound = np.append(sound, get_cluster(amplitude))
     return sound
 
 def singletrack_only():
@@ -137,10 +139,10 @@ def doubletrack_only():
     sound = np.append(sound, get_tickmark_inner_calorimeter())
     return sound
 
-def cluster_only():
+def cluster_only(amplitude):
     sound = np.append(bip, get_silence_2s())
     sound = np.append(sound, get_tickmark_inner_calorimeter())
-    sound = np.append(sound, get_cluster())
+    sound = np.append(sound, get_cluster(amplitude))
     return sound
 
 def play_sound(sound):
