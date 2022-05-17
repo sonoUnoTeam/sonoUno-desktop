@@ -144,6 +144,7 @@ class SonoUnoGUI (gui.FrameDesign):
         self._dataperpage = 101
         self._waitonloop = 500
         self.number_1min_loops = 1500
+        self.actual_datatype = '2d_basic_xy'
         # Here we set some class variables with setter and getter methods
         # 1)Data file variables
         self.set_actual_x(np.array(None))
@@ -797,7 +798,7 @@ class SonoUnoGUI (gui.FrameDesign):
         else:
             self.count_lhc_2 = self.count_lhc_2 + 1 
         if self.count_lhc_1 == len(self.particles) - 1:
-            self.stopMethod()
+            self.stopMethod('lhc')
 
     def _sonificationloop_event (self, event):
         
@@ -899,7 +900,7 @@ class SonoUnoGUI (gui.FrameDesign):
                     self._abspos_slider.SetValue(0)
                     self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
                 else:
-                    self.stopMethod()
+                    self.stopMethod('2d_basic_xy')
                 
     def _playenvelope_event(self, event):
         
@@ -960,23 +961,27 @@ class SonoUnoGUI (gui.FrameDesign):
             self._expdata.writeexception(Error)
             return self._prevpath, self._prevfiletipe, False
 
-    def open_method(self, datatype=1):
+    def open_method(self, datatype='2d_basic_xy'):
         
         """
         This method allow to open a dataset serching it on the computer file
         system.
         """
-        datatype = int(datatype)
+        if self.actual_datatype == 'lhc':
+            self._figure.clf()
+            self.panel = self._figure.add_subplot(111)
+            self.stopMethod('2d_basic_xy')
+        self.actual_datatype = datatype
         # Check if the sonification loop is running to stop it
         if self._timer.IsRunning():
-            self.stopMethod()
+            self.stopMethod(self.actual_datatype)
             # wx.MessageBox(
             #     message=("The previous reproduction of the data has been "
             #              + "stopped."),
             #     caption='Information', 
             #     style=wx.OK | wx.ICON_INFORMATION
             #     )
-        if datatype == 1:
+        if datatype == '2d_basic_xy':
             # If there are unsaved marks on data, ask if the user want to save them
             if not self._ask_markpoints:
                 self.askSavePoints()
@@ -1071,7 +1076,7 @@ class SonoUnoGUI (gui.FrameDesign):
             self._prevfiletipe = fileTipe
             # Refresh if the previous reproduction was in pause
             if self._posline_exist:
-                self.stopMethod()
+                self.stopMethod('2d_basic_xy')
             # Open the dataset using the previous path
             data, status, msg = self._opencolumnsdata.set_arrayfromfile(
                 pathName, 
@@ -1139,7 +1144,7 @@ class SonoUnoGUI (gui.FrameDesign):
                     style=wx.OK | wx.ICON_INFORMATION
                     )
                 self._expdata.writeexception(msg)
-        elif datatype == 2:
+        elif datatype == 'lhc':
             # Prepare the GUI
             # disable unused menu items
             self._deleteallmarksmenuitem.Enable(False)
@@ -1189,6 +1194,10 @@ class SonoUnoGUI (gui.FrameDesign):
             # Sound init
             lhc_sonification.sound_init()
             lhc_sonification.set_bip()
+            #Seteo el tempo dependiendo del tiempo del timer
+            self.count_lhc_1 = 0
+            self.count_lhc_2 = 0
+            self.count_lhc_3 = 0
         else:
             wx.MessageBox(
                 message=("The data type selected to open is not available "
@@ -1813,7 +1822,11 @@ class SonoUnoGUI (gui.FrameDesign):
             self._envelopeplaytogglebtn.SetValue(False)
         else:
             if self._timer.IsRunning():
-                self.stopMethod()
+                self.stopMethod('2d_basic_xy')
+                wx.MessageBox("The previous reproduction of the data has been stopped to reproduce the envelope of the sound.",
+                              'Information', wx.OK | wx.ICON_INFORMATION)
+            elif self._timer_lhc.IsRunning():
+                self.stopMethod('lhc')
                 wx.MessageBox("The previous reproduction of the data has been stopped to reproduce the envelope of the sound.",
                               'Information', wx.OK | wx.ICON_INFORMATION)
             if not self._timer_envelope.IsRunning():
@@ -1822,8 +1835,8 @@ class SonoUnoGUI (gui.FrameDesign):
             else:
                 self._expdata.printoutput("The envelope sound is alredy on when the user press Play envelope.")
 
-    def playMethod(self, datatype=2):
-        if datatype == 1:
+    def playMethod(self, datatype='2d_basic_xy'):
+        if datatype == '2d_basic_xy':
             if self.getXActual().any()==None:
                 self._expdata.writeinfo("The data has not been imported yet.")
                 self._playButton.SetValue(False)
@@ -1846,7 +1859,7 @@ class SonoUnoGUI (gui.FrameDesign):
                     self._timer.Stop()
                 else:
                     self._expdata.writeinfo("Error con el contador del botón Play-Pausa")
-        elif datatype == 2:
+        elif datatype == 'lhc':
             if not self._timer_lhc.IsRunning():
                 self._expdata.printoutput("Play button is pressed.")
                 self._playButton.SetLabel("Pause")
@@ -1862,10 +1875,6 @@ class SonoUnoGUI (gui.FrameDesign):
                     self._timer.Stop()
                     self._timerindex_space = 0
                     self._set_timerindex(0)
-                #Seteo el tempo dependiendo del tiempo del timer
-                self.count_lhc_1 = 0
-                self.count_lhc_2 = 0
-                self.count_lhc_3 = 0
                 self._timer_lhc.Start(6000)#(self._getVelocity()*2) + 10)
                 self._datasound.reproductor.set_time_base(self._timer_lhc.GetInterval()/1000.0)
             elif self._timer_lhc.IsRunning():
@@ -1891,12 +1900,12 @@ class SonoUnoGUI (gui.FrameDesign):
     def playinloop(self):
         self.playinloop_state = True
         self.playwithtime_status = False
-        self.playMethod()
+        self.playMethod('2d_basic_xy')
         
     def playonce(self):
         self.playinloop_state = False
         self.playwithtime_status = False
-        self.playMethod()
+        self.playMethod('2d_basic_xy')
     
     def play_with_time(self, time):
         
@@ -1907,7 +1916,7 @@ class SonoUnoGUI (gui.FrameDesign):
         self.playwithtime_status = True
         self.playinloop_state = False
         self.playwithtime_value = float(time)
-        self.playMethod()
+        self.playMethod('2d_basic_xy')
         
     def play_with_time_inloop(self, time):
         
@@ -1918,7 +1927,7 @@ class SonoUnoGUI (gui.FrameDesign):
         self.playwithtime_status = True
         self.playinloop_state = True
         self.playwithtime_value = float(time)
-        self.playMethod()
+        self.playMethod('2d_basic_xy')
 
     def set_number_1min_loops(self, num):
         
@@ -1928,12 +1937,12 @@ class SonoUnoGUI (gui.FrameDesign):
         """
         self.number_1min_loops = int(num)
 
-    def stopMethod(self, datatype=2):
+    def stopMethod(self, datatype='2d_basic_xy'):
         self._playButton.SetValue(False)
         self._playmenuitem.Check(False)
         self._playButton.SetLabel("Play")
         self._playmenuitem.SetItemLabel('Play' + '\t' + 'Alt+Shift+P')
-        if datatype == 1:
+        if datatype == '2d_basic_xy':
             # After reproduction the non reduce array x-y was setted
             self.set_actual_x(self.prev_setted_time_x)
             self.set_actual_y(self.prev_setted_time_y)
@@ -1949,7 +1958,7 @@ class SonoUnoGUI (gui.FrameDesign):
                 self._abspos_slider.SetValue(0)
                 self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
                 self.replot_xy(self.getXActual(), self.getYActual())
-        elif datatype == 2:
+        elif datatype == 'lhc':
             if self._timer_lhc.IsRunning():
                 self._timer_lhc.Stop()
                 self.count_lhc_1 = 0
@@ -2448,7 +2457,7 @@ class SonoUnoGUI (gui.FrameDesign):
     def askSavePoints(self):
         self._ask_markpoints = True
         if self._timer.IsRunning():
-            self.stopMethod()
+            self.stopMethod('2d_basic_xy')
         xp = self._get_markedpoints_xcoord()
         yp = self._get_markedpoints_ycoord()
         if not xp.size==0:
@@ -3488,7 +3497,7 @@ class SonoUnoGUI (gui.FrameDesign):
 
     def _eventopen( self, event ):
         self._expdata.printoutput("Open button pressed.")
-        self.open_method(1)
+        self.open_method('2d_basic_xy')
 
     def _eventTitleEdData( self, event ):
         self._expdata.printoutput("Enter key pressed on the text box of data title.")
@@ -3549,7 +3558,7 @@ class SonoUnoGUI (gui.FrameDesign):
     def _eventplay( self, event ):
         self.playinloop_state = False
         self.playwithtime_status = False
-        self.playMethod()
+        self.playMethod(self.actual_datatype)
 
 #    def _eventPause( self, event ):
 #        self._expdata.printoutput("Pause button is pressed.")
@@ -3558,7 +3567,7 @@ class SonoUnoGUI (gui.FrameDesign):
 
     def _eventstop( self, event ):
         self._expdata.printoutput("Stop button is pressed.")
-        self.stopMethod()
+        self.stopMethod(self.actual_datatype)
 
     def _eventmarkpoint( self, event ):
         self._expdata.printoutput("Mark point button is pressed.")
