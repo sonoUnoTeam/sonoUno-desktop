@@ -49,7 +49,7 @@ def particles_sonification(track_list, cluster_list):
                             (float(track_elements[5])-float(track2_elements[5])),
                             2)
                         )
-                    if value_tracks < 0.02:
+                    if value_tracks < 0.04 and track_elements[1] != track2_elements[1]:
                         if not track2_elements[0] in sonified_tracks_list:
                             sonified_tracks_list.append(track2_elements[0])
                         lhc_plot.plot_innertrack(track_elements)
