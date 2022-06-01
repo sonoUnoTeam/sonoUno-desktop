@@ -29,6 +29,7 @@ from data_transform.data_opened import DataOpenedColumns
 from data_lhc import lhc_plot
 from data_lhc import lhc_sonification
 from data_lhc import lhc_data
+from data_transform import smooth
 
 class SonoUnoGUI (gui.FrameDesign):
 
@@ -116,7 +117,8 @@ class SonoUnoGUI (gui.FrameDesign):
             'inverse_mf':self.inverse_command,
             'square_mf':self.square_command,
             'squareroot_mf':self.squareroot_command,
-            'logarithm_mf':self.logarithm_command
+            'logarithm_mf':self.logarithm_command,
+            'smooth':self.apply_smooth
             }
         # Here we generate a dictionary of functions with parameters
         # to use on the command line for the GUI
@@ -1040,7 +1042,8 @@ class SonoUnoGUI (gui.FrameDesign):
                 'inverse_mf':self.inverse_command,
                 'square_mf':self.square_command,
                 'squareroot_mf':self.squareroot_command,
-                'logarithm_mf':self.logarithm_command
+                'logarithm_mf':self.logarithm_command,
+                'smooth':self.apply_smooth
                 }
             # with parameters
             self.command_dict_withparam = {
@@ -2468,6 +2471,18 @@ class SonoUnoGUI (gui.FrameDesign):
                 self._set_markedpoints_ycoord(np.delete(yp,index))
             else:
                 self.saveMarks()
+                
+    def apply_smooth(self):
+        if self.getXActual().any()==None or self.getYActual().any()==None:
+            self._expdata.writeinfo("The data has not been imported yet.")
+        else:
+            #Se eliminarán los datos cada vez que se guardan o que se ingresa un archivo de datos nuevo.
+            x = self.getXActual()
+            y = self.getYActual()
+            yhat = smooth.savitzky_golay(y, 51, 3)
+            self.set_actual_y(yhat)
+            self.replot_xy(x, yhat)
+            
 
     def detectcommand(self):
         """
