@@ -21,93 +21,105 @@ def openfile(path):
     """
     This method open the file with the given path, read its lines and return 
     a list with its content.
-
     """
-    # First open the file and store it.
-    # path = 'sonification_reduced.txt'
     file = open(path,'r')
     lines = file.readlines()
     return lines
 
 def read_content(file):
-    # Search the separator on the file and store the index where each event begin
+    """
+    This method require the lines readed from a file that contain the lhc events
+
+    Parameters
+    ----------
+    file : TYPE list
+    
+    Returns
+    -------
+    particles : TYPE list, contain diferent lists of each event, where inside 
+        each event there are lists of each track and cluster found in it.
+    """
+    # Search the separator '------------' on the file, which one indicate the
+    # beginning of a new event, and store the index
     count = 0
     element_list = [0]
     for line in file:
         count = count + 1
         if '---------' in str(line) and count <= len(file):
             element_list.append(count)
-    # Generate a list of tracks and clusters of the first event
+    # Initialize the counter and the list where events will be saved
     count = 0
     particles = []
+    # Initialize a list of tracks and clusters where their will be stored before
+    # to save it in the final list
     particles_1_tracks = []
     particles_1_clusters = []
-    # Here generate the list with all list of tracks and clusters
+    # Generate a loop with the number of events found
     for i in element_list:
         if i == 0:
             iant = i
             continue
+        # Iterates through the file as many times as there are events in the file
         for line in file[iant:i]:
-            # Here we are in the first element
+            # Store each track on a list and each cluster on other list
             if 'track' in str(line):
                 particles_1_tracks.append(line)
             if 'cluster' in str(line):
                 particles_1_clusters.append(line)
+        # Add the tracks and cluster lists of the specific event on the general
+        # list
         particles.append(particles_1_tracks)
         particles.append(particles_1_clusters)
+        # Restore the specific track and cluster lists for the next iteration
         particles_1_tracks = []
         particles_1_clusters = []
+        # Update the iant for stablish the next file part to be revised
         iant = i
-    # Particles is a list of list that contain a list of tracks and a list of
-    # clusters for each event.
     return particles
 
-def particles_sonification(index, element, track_list, cluster_list, ax_transversal, ax_longitudinal, sonified_tracks_list, sonified_cluster_list, play_sound_status=True):
-    # With each track calculate if it points out a cluster or not, if points a
-    # cluster we will sonify the track and the cluster
-    global cluster_tosonify#, sonified_cluster_list, sonified_tracks_list
-    if index == 0:
+def particles_sonification(index, element, track_list, cluster_list, play_sound_status=True):
+    """
+    This method allows to iterate through a given event ploting and sonifying 
+    the data provided.
+
+    Parameters
+    ----------
+    index : TYPE int, where we are located in the event reproduction
+    element : TYPE str, indicate Track or Cluster
+    track_list : TYPE list, contain the track elements
+    cluster_list : TYPE list, contain the cluster element
+    play_sound_status : TYPE bool, optional-default True, to not play sound
+    """
+    # Enable the global variables to be used and modified
+    global cluster_tosonify, sonified_cluster_list, sonified_tracks_list
+    # If this is the first track element of the event, initialize colour counter
+    # and sonified elements lists
+    if index == 0 and element == 'Track':
         lhc_plot.set_count_colors(0)
-        # sonified_cluster_list = []
-        # sonified_tracks_list = []
+        sonified_cluster_list = []
+        sonified_tracks_list = []
+    # Restore variables
     cluster_tosonify = []
     converted_photon = ' '
+    # Copy the track list to be used to search a close track
     track_list_2 = track_list.copy()
-    # Variable to store all sound to save at the end
-    # for track in track_list:
-    """
-    Trying to use events not for
-    """
+    # Select action depending on Track or Cluster reproduction
     if element == 'Track':
-        #plot the track
+        # Obtain track elements to be reproduced
         track = track_list[index]
         track_elements = str(track).split()
-        count = index + 1
+        nextindex = index + 1
+        # Check if the track has been sonified
         if not track_elements[0] in sonified_tracks_list:
             if int(track_elements[11])==1:
-                #Muon
+                # If the track is a muon plot it
                 lhc_plot.plot_muontrack(track_elements)
             else:
-                #Other tracks
+                # If the track is not a muon plot a simple track
                 lhc_plot.plot_innertrack(track_elements)
-            # check if there are a track very close
-            if count < len(track_list):
-                for track2 in track_list_2[count:]:
-                    track2_elements = str(track2).split()
-                    # Search for a close track
-                    value_tracks = math.sqrt(
-                        pow(
-                            (float(track_elements[4])-float(track2_elements[4])),
-                            2) 
-                        + pow(
-                            (float(track_elements[5])-float(track2_elements[5])),
-                            2)
-                        )
-                    if value_tracks < 0.04 and track_elements[1] != track2_elements[1]:
-                        if not track2_elements[0] in sonified_tracks_list:
-                            sonified_tracks_list.append(track2_elements[0])
-                        lhc_plot.plot_innertrack(track_elements)
-                        converted_photon = track2_elements[0]
+            # With each track calculate if it points out a cluster or not, if points a
+            # cluster we will sonify the track and the cluster; and check if there
+            # are a close track
             for cluster in cluster_list:
                 cluster_elements = str(cluster).split()
                 # Search if the track points a cluster
@@ -120,6 +132,8 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
                         2)
                     )
                 if value < 0.07:
+                    # If the track points to the cluster, plot it and include it
+                    # in the list to sonify.
                     if not cluster_elements[0] in sonified_cluster_list:
                         sonified_cluster_list.append(cluster_elements[0])
                     lhc_plot.plot_cluster(
@@ -128,8 +142,29 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
                         eta=float(track_elements[6]),
                         amplitud=float(cluster_elements[3])/100)
                     cluster_tosonify.append(cluster)
+                    # In addition, search if there are a close track
+                    if nextindex < len(track_list):
+                        for track2 in track_list_2[nextindex:]:
+                            track2_elements = str(track2).split()
+                            value_tracks = math.sqrt(
+                                pow(
+                                    (float(track_elements[4])-float(track2_elements[4])),
+                                    2) 
+                                + pow(
+                                    (float(track_elements[5])-float(track2_elements[5])),
+                                    2)
+                                )
+                            if value_tracks < 0.04 and track_elements[1] != track2_elements[1]:
+                                # If exist a track very close, plot it and set the variable
+                                # to reproduce the converted photon sound
+                                if not track2_elements[0] in sonified_tracks_list:
+                                    sonified_tracks_list.append(track2_elements[0])
+                                    print(sonified_tracks_list)
+                                lhc_plot.plot_innertrack(track2_elements)
+                                converted_photon = track2_elements[0]
+                                print(converted_photon)
             """
-            Sonification of the tracks
+            Sonification part
             """
             if cluster_tosonify:
                 # The track point out a cluster
@@ -142,6 +177,7 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
                 if converted_photon == ' ':
                     print('Sonifying '+track_elements[0]+' and '+cluster_elements[0])
                     if int(track_elements[11])==1:
+                        # The element is a muon with cluster
                         """
                         1) bip: the beginning of the detector
                         2) continuous sound during 2 seconds: the track in the inner detector
@@ -153,6 +189,7 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
                         # to normalize it.
                         sound = lhc_sonification.muontrack_withcluster(float(cluster_elements[3])/100)
                     else:
+                        # The element is an electron
                         """
                         1) bip: the beginning of the detector
                         2) continuous sound during 2 seconds: the track in the inner detector
@@ -161,6 +198,7 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
                         """
                         sound = lhc_sonification.singletrack_withcluster(float(cluster_elements[3])/100)
                 else:
+                    # The element is a converted photon
                     """
                     1) bip: the beginning of the detector
                     2) two continuous sound during 2 seconds: the tracks in the inner detector
@@ -179,27 +217,34 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
                 print('Sonifying '+track_elements[0])
                 sound = lhc_sonification.singletrack_only()
                 if int(track_elements[11])==1:
+                    # The element is a muon
                     sound = lhc_sonification.doubletrack_only()
+            # check the flag and sonify
             if play_sound_status:
                 lhc_sonification.play_sound(sound)
-            if count == 1:
+            # Store the element in the array to save sound
+            if nextindex == 1:
                 lhc_sonification.array_savesound(sound)
             else:
                 lhc_sonification.add_array_savesound(sound)
+            # Add a silence between each element
             lhc_sonification.add_array_savesound(lhc_sonification.get_silence(1))
+            # Restore variables
             cluster_tosonify = []
             converted_photon = ' '
-    
     elif element == 'Cluster':
-    #for cluster in cluster_list:
+        # Obtain Cluster elements to be reproduced
         cluster = cluster_list[index]
         cluster_elements = str(cluster).split()
+        # Check if the cluster has been sonified
         if not cluster_elements[0] in sonified_cluster_list:
+            # Plot the cluster
             lhc_plot.plot_cluster(
                 phi=float(cluster_elements[4]),
                 theta=float(cluster_elements[5]),
                 eta=float(cluster_elements[6]),
                 amplitud=float(cluster_elements[3])/100)
+            # Sonify the cluster
             """
             1) bip: the beginning of the detector
             2) silence during 2 seconds: there are no track in the inner detector
@@ -208,10 +253,11 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
             """
             print('Sonifying '+cluster_elements[0])
             sound = lhc_sonification.cluster_only(float(cluster_elements[3])/100)
+            # Check the flag and reproduce the sound
             if play_sound_status:
                 lhc_sonification.play_sound(sound)
+            # Store the sound to be saved later
             lhc_sonification.add_array_savesound(sound)
             lhc_sonification.add_array_savesound(lhc_sonification.get_silence(1))
     else:
-        print("problem with element!!!!")
-    return sonified_tracks_list, sonified_cluster_list
+        print("The element provided is unknown")

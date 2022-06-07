@@ -10,7 +10,7 @@ Then if it is below the cut you play a "cluster" sound simultaneous with the "tr
 """
 # set up a figure twice as wide as it is tall
 fig = plt.figure(figsize=plt.figaspect(0.5))
-ax_transversal, ax_longitudinal = lhc_data.lhc_plot.plot3D_init(fig)
+lhc_data.lhc_plot.plot3D_init(fig)
 """
 Particle data file
 """
@@ -26,38 +26,24 @@ count = 0
 for i in range(0,len(particles),2):
     count = count + 1
     index = 0
-    sonified_cluster_list = []
-    sonified_tracks_list = []
     for tracks in particles[i]:
         element = 'Track'
-        sonified_tracks, sonified_cluster = lhc_data.particles_sonification(index,
+        lhc_data.particles_sonification(index,
                                         element,
                                         particles[i], 
                                         particles[i+1], 
-                                        ax_transversal, 
-                                        ax_longitudinal,
-                                        sonified_tracks_list,
-                                        sonified_cluster_list,
                                         play_sound_status=False
                                         )
-        sonified_tracks_list = sonified_tracks_list + sonified_tracks
-        sonified_cluster_list = sonified_cluster_list + sonified_cluster
         index = index + 1
     index = 0
     for cluster in particles[i+1]:
         element = 'Cluster'
-        sonified_tracks, sonified_cluster = lhc_data.particles_sonification(index,
+        lhc_data.particles_sonification(index,
                                         element,
                                         particles[i], 
                                         particles[i+1], 
-                                        ax_transversal, 
-                                        ax_longitudinal,
-                                        sonified_tracks_list,
-                                        sonified_cluster_list,
                                         play_sound_status=False
                                         )
-        sonified_tracks_list = sonified_tracks_list + sonified_tracks
-        sonified_cluster_list = sonified_cluster_list + sonified_cluster
         index = index + 1
     plot_path = 'data_lhc/lhc_output/plot_dataset_' + str(count) + '.png'
     plt.savefig(plot_path, format='png')
@@ -65,6 +51,3 @@ for i in range(0,len(particles),2):
     sound_path = 'data_lhc/lhc_output/sound_dataset_' + str(count) + '.wav'
     lhc_data.lhc_sonification.save_sound(sound_path)
     lhc_data.lhc_plot.plot_reset()
-
-
-

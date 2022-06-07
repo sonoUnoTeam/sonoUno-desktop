@@ -773,25 +773,17 @@ class SonoUnoGUI (gui.FrameDesign):
     def _sonificationloop_lhc (self, event):
         if self.count_lhc_2 == 0:
             lhc_plot.plot_reset()
-            self.sonified_cluster_list = []
-            self.sonified_tracks_list = []
         if self.count_lhc_2 <= len(self.particles[self.count_lhc_1])-1:
             element = 'Track'
             index = self.count_lhc_2
         elif self.count_lhc_2 <= len(self.particles[self.count_lhc_1]) + len(self.particles[self.count_lhc_1+1]) - 2:
             element = 'Cluster'
             index = self.count_lhc_2 - len(self.particles[self.count_lhc_1]) - 1
-        self.sonified_tracks, self.sonified_cluster = lhc_data.particles_sonification(index,
+        lhc_data.particles_sonification(index,
                                         element,
                                         self.particles[self.count_lhc_1], 
-                                        self.particles[self.count_lhc_1+1], 
-                                        self.ax_transversal, 
-                                        self.ax_longitudinal,
-                                        self.sonified_tracks_list,
-                                        self.sonified_cluster_list
+                                        self.particles[self.count_lhc_1+1]
                                         )
-        self.sonified_tracks_list = self.sonified_tracks_list + self.sonified_tracks
-        self.sonified_cluster_list = self.sonified_cluster_list + self.sonified_cluster
         if self.count_lhc_2 == len(self.particles[self.count_lhc_1]) + len(self.particles[self.count_lhc_1+1]) - 2:
             self.count_lhc_1 = self.count_lhc_1 + 2
             self.count_lhc_2 = 0
@@ -1198,7 +1190,7 @@ class SonoUnoGUI (gui.FrameDesign):
             file = lhc_data.openfile('sonification_reduced.txt')
             self.particles = lhc_data.read_content(file)
             # Receive the first plot update
-            self.ax_transversal, self.ax_longitudinal = lhc_plot.plot3D_init(self._figure)
+            lhc_plot.plot3D_init(self._figure)
             # Sound init
             lhc_sonification.sound_init()
             lhc_sonification.set_bip()
