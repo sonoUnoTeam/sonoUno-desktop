@@ -55,7 +55,8 @@ extension = '*.' + ext
 i = 1
 if plot_flag:
     # Create an empty figure or plot to save it
-    fig = plt.figure()
+    cm = 1/2.54  # centimeters in inches
+    fig = plt.figure(figsize=(15*cm, 10*cm), dpi=300)
     # Defining the axes so that we can plot data into it.
     ax = plt.axes()
 # Loop to walk the directory and sonify each data file
@@ -81,9 +82,9 @@ for filename in glob.glob(os.path.join(path, extension)):
         ax.cla()
         # First file of the column is setted as axis name
         x_name = str(data.iloc[0,0])
-        ax.set_xlabel(x_name)
+        ax.set_xlabel('x')
         y_name = str(data.iloc[0,0])
-        ax.set_ylabel(y_name)
+        ax.set_ylabel('y')
         # Separate the name file from the path to set the plot title
         head, tail = os.path.split(filename)
         ax.set_title(tail)

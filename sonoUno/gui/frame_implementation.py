@@ -773,20 +773,25 @@ class SonoUnoGUI (gui.FrameDesign):
     def _sonificationloop_lhc (self, event):
         if self.count_lhc_2 == 0:
             lhc_plot.plot_reset()
+            self.sonified_cluster_list = []
+            self.sonified_tracks_list = []
         if self.count_lhc_2 <= len(self.particles[self.count_lhc_1])-1:
             element = 'Track'
             index = self.count_lhc_2
         elif self.count_lhc_2 <= len(self.particles[self.count_lhc_1]) + len(self.particles[self.count_lhc_1+1]) - 2:
             element = 'Cluster'
             index = self.count_lhc_2 - len(self.particles[self.count_lhc_1]) - 1
-        lhc_data.particles_sonification(index,
+        self.sonified_tracks, self.sonified_cluster = lhc_data.particles_sonification(index,
                                         element,
                                         self.particles[self.count_lhc_1], 
                                         self.particles[self.count_lhc_1+1], 
                                         self.ax_transversal, 
-                                        self.ax_longitudinal
+                                        self.ax_longitudinal,
+                                        self.sonified_tracks_list,
+                                        self.sonified_cluster_list
                                         )
-        
+        self.sonified_tracks_list = self.sonified_tracks_list + self.sonified_tracks
+        self.sonified_cluster_list = self.sonified_cluster_list + self.sonified_cluster
         if self.count_lhc_2 == len(self.particles[self.count_lhc_1]) + len(self.particles[self.count_lhc_1+1]) - 2:
             self.count_lhc_1 = self.count_lhc_1 + 2
             self.count_lhc_2 = 0
