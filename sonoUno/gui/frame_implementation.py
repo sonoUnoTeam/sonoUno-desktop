@@ -1190,7 +1190,7 @@ class SonoUnoGUI (gui.FrameDesign):
                 'set_1min_loops':self.set_number_1min_loops
                 }
             # Load data set
-            file = lhc_data.openfile('path')
+            file = lhc_data.openfile('sonification_reduced.txt')
             self.particles = lhc_data.read_content(file)
             # Receive the first plot update
             self.ax_transversal, self.ax_longitudinal = lhc_plot.plot3D_init(self._figure)

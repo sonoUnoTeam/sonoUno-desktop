@@ -24,7 +24,7 @@ def openfile(path):
 
     """
     # First open the file and store it.
-    path = 'sonification_reduced.txt'
+    # path = 'sonification_reduced.txt'
     file = open(path,'r')
     lines = file.readlines()
     return lines
@@ -62,7 +62,7 @@ def read_content(file):
     # clusters for each event.
     return particles
 
-def particles_sonification(index, element, track_list, cluster_list, ax_transversal, ax_longitudinal):
+def particles_sonification(index, element, track_list, cluster_list, ax_transversal, ax_longitudinal, play_sound_status=True):
     # With each track calculate if it points out a cluster or not, if points a
     # cluster we will sonify the track and the cluster
     global sonified_cluster_list, sonified_tracks_list, cluster_tosonify
@@ -180,12 +180,13 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
                 sound = lhc_sonification.singletrack_only()
                 if int(track_elements[11])==1:
                     sound = lhc_sonification.doubletrack_only()
-            lhc_sonification.play_sound(sound)
+            if play_sound_status:
+                lhc_sonification.play_sound(sound)
             if count == 1:
                 lhc_sonification.array_savesound(sound)
             else:
                 lhc_sonification.add_array_savesound(sound)
-            lhc_sonification.add_array_savesound(lhc_sonification.get_silence_1s())
+            lhc_sonification.add_array_savesound(lhc_sonification.get_silence(1))
             cluster_tosonify = []
             converted_photon = ' '
     
@@ -207,9 +208,10 @@ def particles_sonification(index, element, track_list, cluster_list, ax_transver
             """
             print('Sonifying '+cluster_elements[0])
             sound = lhc_sonification.cluster_only(float(cluster_elements[3])/100)
-            lhc_sonification.play_sound(sound)
+            if play_sound_status:
+                lhc_sonification.play_sound(sound)
             lhc_sonification.add_array_savesound(sound)
-            lhc_sonification.add_array_savesound(lhc_sonification.get_silence_1s())
+            lhc_sonification.add_array_savesound(lhc_sonification.get_silence(1))
     else:
         print("problem with element!!!!")
         
