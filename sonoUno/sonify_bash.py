@@ -82,12 +82,13 @@ for filename in glob.glob(os.path.join(path, extension)):
         ax.cla()
         # First file of the column is setted as axis name
         x_name = str(data.iloc[0,0])
-        ax.set_xlabel('x')
+        ax.set_xlabel('Wavelength (nm)')
         y_name = str(data.iloc[0,0])
-        ax.set_ylabel('y')
+        ax.set_ylabel('Flux [10-17 ergs/s/cm2/Å]')
         # Separate the name file from the path to set the plot title
         head, tail = os.path.split(filename)
-        ax.set_title(tail)
+        ax.set_title('Galaxy Spectrum')
+        xnumpy = xnumpy / 10
         ax.plot(xnumpy, ynumpy)
         # Set the path to save the plot and save it
         plot_path = path + '\\' + os.path.basename(filename) + '_plot.png'

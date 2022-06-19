@@ -159,10 +159,8 @@ def particles_sonification(index, element, track_list, cluster_list, play_sound_
                                 # to reproduce the converted photon sound
                                 if not track2_elements[0] in sonified_tracks_list:
                                     sonified_tracks_list.append(track2_elements[0])
-                                    print(sonified_tracks_list)
                                 lhc_plot.plot_innertrack(track2_elements)
                                 converted_photon = track2_elements[0]
-                                print(converted_photon)
             """
             Sonification part
             """
