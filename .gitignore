@@ -13,3 +13,6 @@ sonoUno/lhc_output/
 sonoUno/data_lhc/sonification_reduced.txt
 sonoUno/data_lhc/lhc_output/
 sonoUno/*.csv
+sonoUno/*.txt
+sonoUno/data_lhc/*.png
+sonoUno/data_muon/data
