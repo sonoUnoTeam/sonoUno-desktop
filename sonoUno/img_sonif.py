@@ -8,19 +8,25 @@ Created on Thu Apr 21 12:04:39 2022
 import numpy as np
 import cv2 as cv
 import time
+import argparse
 from sound_module.simple_sound import simpleSound
 
-img = cv.imread('blip.png')
+# The argparse library is used to pass the path and extension where the data
+# files are located
+parser = argparse.ArgumentParser()
+# Receive the directory path from the arguments
+parser.add_argument("-d", "--path", type=str,
+                    help="Indicate the path to the image to sonify.")
+# Alocate the arguments in variables, if extension is empty, select txt as
+# default
+args = parser.parse_args()
+path = args.path
+
+img = cv.imread(path)
 img = cv.resize(img, (960, 540))
 
 gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-# print(gray_img.shape)
-# column = gray_img[0:223, 0:226]
-
-# Para mostrar la imagen
-# cv.imshow('Corazon', img)
-# cv.waitKey(0)
 cv.imshow('Windows', img)
 cv.waitKey(0)
 print('Press ESC to exit the sonification.')

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+import argparse
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -18,9 +19,19 @@ plt.pause(0.5)
 """
 Particle data file
 """
+# The argparse library is used to pass the path and extension where the data
+# files are located
+parser = argparse.ArgumentParser()
+# Receive the directory path from the arguments
+parser.add_argument("-d", "--path", type=str,
+                    help="Indicate the path to the image to sonify.")
+# Alocate the arguments in variables, if extension is empty, select txt as
+# default
+args = parser.parse_args()
+path = args.path
 
 """Using lhc_data"""
-lines = lhc_data.openfile('sonification_reduced.txt')
+lines = lhc_data.openfile(path)
 """Using lhc_data"""
 particles = lhc_data.read_content(lines)
  

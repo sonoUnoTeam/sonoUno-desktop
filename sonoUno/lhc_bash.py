@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import argparse
 import matplotlib.pyplot as plt
 from data_lhc import lhc_data
 
@@ -14,9 +15,19 @@ lhc_data.lhc_plot.plot3D_init(fig)
 """
 Particle data file
 """
+# The argparse library is used to pass the path and extension where the data
+# files are located
+parser = argparse.ArgumentParser()
+# Receive the directory path from the arguments
+parser.add_argument("-d", "--path", type=str,
+                    help="Indicate the path to the image to sonify.")
+# Alocate the arguments in variables, if extension is empty, select txt as
+# default
+args = parser.parse_args()
+path = args.path
 
 """Using lhc_data"""
-lines = lhc_data.openfile('sonification_reduced.txt')
+lines = lhc_data.openfile(path)
 """Using lhc_data"""
 particles = lhc_data.read_content(lines)
  
