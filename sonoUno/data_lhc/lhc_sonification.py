@@ -31,6 +31,9 @@ def set_bip():
     # Open the bip tickmark
     rate1, bip_local = wavfile.read(bip_path, mmap=False)
     bip = bip_local
+    
+def get_bip():
+    return bip
 
 def get_sine_wave(frequency, duration, sample_rate=44100, amplitude=2000):
     """
