@@ -80,6 +80,9 @@ list_notes = [note_freq['A3'], note_freq['B3'], note_freq['C4'], note_freq['D4']
 #            note_freq['G5'], note_freq['B5'], note_freq['D6'], note_freq['F6']]#, 
 # #           note_freq['A6']]
     
+sd.set_bip()
+bip = sd.get_bip()
+
 # Loop to walk the directory and sonify each data file
 now = datetime.datetime.now()
 print(now.strftime('%Y-%m-%d_%H-%M-%S'))
@@ -290,9 +293,13 @@ for filename in glob.glob(os.path.join(path, extension)):
     #     color=list_colors[7], marker='o', linestyle=''
     #     )
     
+    # play bip of the beggining
+    sd.play_sound(bip)
+    sd.array_savesound(bip)
+    time.sleep(1)
     #play the part on the left
     sd.play_sound(sound_ax1)
-    sd.array_savesound(sound_ax1)
+    sd.add_array_savesound(sound_ax1)
     count = 0
     for px in px_ax1:
         ax1.plot(px,py_ax1[count],color=list_colors[int(px/4)], marker='o', linestyle='')
@@ -318,6 +325,10 @@ for filename in glob.glob(os.path.join(path, extension)):
     plt.pause(0.5)
     time.sleep(0.5)
     ax5.plot(px_ax5,py_ax5,color='k', marker='o', linestyle='')
+    # play bip of the beggining
+    sd.play_sound(bip)
+    sd.add_array_savesound(bip)
+    time.sleep(1)
     #silence
     sd.play_sound(sd.get_silence(1))
     sd.add_array_savesound(sd.get_silence(1))
