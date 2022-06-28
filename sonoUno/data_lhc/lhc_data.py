@@ -61,6 +61,9 @@ def read_content(file):
             continue
         # Iterates through the file as many times as there are events in the file
         for line in file[iant:i]:
+            split = str(line).split()
+            if len(split) == 1 and not '------' in line:
+                particles.append(line[:-1])
             # Store each track on a list and each cluster on other list
             if 'track' in str(line):
                 particles_1_tracks.append(line)
