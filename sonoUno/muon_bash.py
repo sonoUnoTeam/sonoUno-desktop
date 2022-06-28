@@ -88,6 +88,7 @@ list_notes = [note_freq['A3'], note_freq['B3'], note_freq['C4'], note_freq['D4']
     
 sd.set_bip()
 bip = sd.get_bip()
+loop_number = 0
 
 # Loop to walk the directory and sonify each data file
 now = datetime.datetime.now()
@@ -257,7 +258,7 @@ for filename in glob.glob(os.path.join(path, extension)):
         
     list_colors = ['tab:red', 'tab:orange', 'yellow', 'tab:olive', 'tab:green', 
                    'tab:cyan', 'tab:blue', 'tab:purple']
-    
+
     # ax1.plot(
     #     (file.iloc[1:5,0].astype(float)), 
     #     (file.iloc[1:5,1].astype(float)),
@@ -373,6 +374,10 @@ for filename in glob.glob(os.path.join(path, extension)):
     sd.save_sound(wav_name)
     wav_to_mp3(wav_name, mp3_name)
     # sd.save_sound('data_muon/muon_line/'+name+'.wav')
+    key = input("Press 'Q' to close or any other key to continue...")
+    if key == 'Q' or key == 'q':
+        plt.close()
+        break
 
 plt.pause(0.5)
 # Showing the above plot
