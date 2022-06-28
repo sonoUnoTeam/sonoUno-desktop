@@ -15,6 +15,12 @@ from data_import.data_import import DataImportColumns
 import matplotlib.pyplot as plt
 import numpy as np
 from data_lhc import lhc_sonification as sd
+from pydub import AudioSegment
+
+def wav_to_mp3(wav_path, mp3_path):
+    sound = AudioSegment.from_mp3(wav_path)
+    sound.export(mp3_path, format='wav')
+
 
 open_csv = DataImportColumns()
 
@@ -119,7 +125,7 @@ for filename in glob.glob(os.path.join(path, extension)):
         ax6.plot((file.iloc[1:,0].astype(float)), (file.iloc[1:,6].astype(float)), 'bo')
         plt.pause(0.5)
         
-        plot_path = path + '\\' + os.path.basename(filename) + '_plot.png'
+        plot_path = path + '/' + os.path.basename(filename[:-4]) + '_plot.png'
         fig.savefig(plot_path)
     
     # Plot ax5
@@ -362,8 +368,10 @@ for filename in glob.glob(os.path.join(path, extension)):
     time.sleep(0.5)
     ax6.plot(px_ax6,py_ax6,color='k', marker='o', linestyle='')
     
-    wav_name = path + '\\' + os.path.basename(filename) + '_sound.wav'
+    wav_name = path + '/' + os.path.basename(filename[:-4]) + '_sound.wav'
+    mp3_name = path + '/' + os.path.basename(filename[:-4]) + '_sound.mp3'
     sd.save_sound(wav_name)
+    wav_to_mp3(wav_name, mp3_name)
     # sd.save_sound('data_muon/muon_line/'+name+'.wav')
 
 plt.pause(0.5)
