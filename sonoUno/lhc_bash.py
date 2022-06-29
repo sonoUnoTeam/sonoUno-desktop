@@ -3,11 +3,11 @@
 import argparse
 import matplotlib.pyplot as plt
 from data_lhc import lhc_data
-from pydub import AudioSegment
+# from pydub import AudioSegment
 
-def wav_to_mp3(wav_path, mp3_path):
-    sound = AudioSegment.from_mp3(wav_path)
-    sound.export(mp3_path, format='wav')
+# def wav_to_mp3(wav_path, mp3_path):
+#     sound = AudioSegment.from_mp3(wav_path)
+#     sound.export(mp3_path, format='wav')
 
 """
 calculates the square root of ( (φtrack-φcluster)squared+(θtrack-θcluster) squared)).
@@ -42,6 +42,7 @@ count = 0
 for i in range(0,len(particles),3):
     count = count + 1
     index = 0
+    reset_status = True
     print("--------------------------------")
     print("Event number: " + particles[i])
     for tracks in particles[i+1]:
@@ -50,8 +51,10 @@ for i in range(0,len(particles),3):
                                         element,
                                         particles[i+1], 
                                         particles[i+2], 
+                                        reset_status=reset_status,
                                         play_sound_status=False
                                         )
+        reset_status = False
         index = index + 1
     index = 0
     for cluster in particles[i+2]:
@@ -60,14 +63,16 @@ for i in range(0,len(particles),3):
                                         element,
                                         particles[i+1], 
                                         particles[i+2], 
+                                        reset_status=reset_status,
                                         play_sound_status=False
                                         )
+        reset_status = False
         index = index + 1
     plot_path = path[:-4] + '_' + particles[i] + '.png'
     plt.savefig(plot_path, format='png')
     # Generate the wav file with the sonification
     sound_wav = path[:-4] + '_' + particles[i] + '.wav'
-    sound_mp3 = path[:-4] + '_' + particles[i] + '.mp3'
+    # sound_mp3 = path[:-4] + '_' + particles[i] + '.mp3'
     lhc_data.lhc_sonification.save_sound(sound_wav)
-    wav_to_mp3(sound_wav, sound_mp3)
+    # wav_to_mp3(sound_wav, sound_mp3)
     lhc_data.lhc_plot.plot_reset()

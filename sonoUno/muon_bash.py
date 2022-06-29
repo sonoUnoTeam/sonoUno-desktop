@@ -13,18 +13,14 @@ import datetime
 import glob
 from data_import.data_import import DataImportColumns
 import matplotlib.pyplot as plt
-import numpy as np
 from data_lhc import lhc_sonification as sd
-from pydub import AudioSegment
+# from pydub import AudioSegment
 
-def wav_to_mp3(wav_path, mp3_path):
-    sound = AudioSegment.from_mp3(wav_path)
-    sound.export(mp3_path, format='wav')
-
+# def wav_to_mp3(wav_path, mp3_path):
+#     sound = AudioSegment.from_mp3(wav_path)
+#     sound.export(mp3_path, format='wav')
 
 open_csv = DataImportColumns()
-
-
 # The argparse library is used to pass the path and extension where the data
 # files are located
 parser = argparse.ArgumentParser()
@@ -51,60 +47,28 @@ if not path:
     exit()
 # Format the extension to use it with glob
 extension = '*.' + ext
-# Initialize a counter to show a message during each loop
-i = 1
-if plot_flag:
-    # # Create an empty figure or plot to save it
-    # cm = 1/2.54  # centimeters in inches
-    # fig = plt.figure(figsize=(15*cm, 10*cm), dpi=300)
-    # # Defining the axes so that we can plot data into it.
-    # ax = plt.axes()
-    fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3, 2)
-    fig.suptitle('Muon event 1D')
-
 # init sound
 sd.sound_init()
 note_freq = sd.get_piano_notes()
-# list_32 = [note_freq['D2'], note_freq['E2'], note_freq['F2'], note_freq['G2'], 
-#            note_freq['A2'], note_freq['B2'], note_freq['C3'], note_freq['D3'], 
-#            note_freq['E3'], note_freq['F3'], note_freq['G3'], note_freq['A3'], 
-#            note_freq['B3'], note_freq['C4'], note_freq['D4'], note_freq['E4'], 
-#            note_freq['F4'], note_freq['G4'], note_freq['A4'], note_freq['B4'], 
-#            note_freq['C5'], note_freq['D5'], note_freq['E5'], note_freq['F5'], 
-#            note_freq['G5'], note_freq['A5'], note_freq['B5'], note_freq['C6'], 
-#            note_freq['D6'], note_freq['E6'], note_freq['F6'], note_freq['G6']]#, 
-# #           note_freq['A6']]
-
 list_notes = [note_freq['A3'], note_freq['B3'], note_freq['C4'], note_freq['D4'], 
               note_freq['E4'], note_freq['F4'], note_freq['G4'], note_freq['A4'], 
               note_freq['B4'], note_freq['C5'], note_freq['D5'], note_freq['E5'], 
               note_freq['F5'], note_freq['G5'], note_freq['A5'], note_freq['B5']]
-
-# list_16 = [note_freq['D2'], note_freq['F2'], note_freq['A2'], note_freq['C3'], 
-#            note_freq['E3'], note_freq['G3'], note_freq['B3'], note_freq['D4'], 
-#            note_freq['F4'], note_freq['A4'], note_freq['C5'], note_freq['E5'], 
-#            note_freq['G5'], note_freq['B5'], note_freq['D6'], note_freq['F6']]#, 
-# #           note_freq['A6']]
-    
 sd.set_bip()
 bip = sd.get_bip()
 loop_number = 0
-
+# Initialize a counter to show a message during each loop
+i = 1
 # Loop to walk the directory and sonify each data file
 now = datetime.datetime.now()
 print(now.strftime('%Y-%m-%d_%H-%M-%S'))
+fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3, 2)
 for filename in glob.glob(os.path.join(path, extension)):
     print("Converting data file number "+str(i)+" to sound.")
     # Open each file
     file, status, msg = open_csv.set_arrayfromfile(filename, ext)
-
-# name = '5683061_1093057'
-# file, flag, msg = open_csv.set_arrayfromfile('data_muon/muon_line/'+name+'.csv', 'csv')
-
-# fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3, 2)
-# fig.suptitle('Vertically stacked subplots')
-    
     if plot_flag:
+        fig.suptitle(os.path.basename(filename[:-4]))
         ax1.cla()
         ax2.cla()
         ax3.cla()
@@ -309,7 +273,11 @@ for filename in glob.glob(os.path.join(path, extension)):
     sd.add_array_savesound(sound_ax1)
     count = 0
     for px in px_ax1:
-        ax1.plot(px,py_ax1[count],color=list_colors[int(px/4)], marker='o', linestyle='')
+        if px == 32:
+            color_index = int((px-1)/4)
+        else:
+            color_index = int(px/4)
+        ax1.plot(px,py_ax1[count],color=list_colors[color_index], marker='o', linestyle='')
         count = count + 1
     plt.pause(0.5)
     time.sleep(0.5)
@@ -318,7 +286,11 @@ for filename in glob.glob(os.path.join(path, extension)):
     count = 0
     ax1.plot(px_ax1,py_ax1,color='k', marker='o', linestyle='')
     for px in px_ax3:
-        ax3.plot(px,py_ax3[count],color=list_colors[int(px/2)], marker='o', linestyle='')
+        if px == 16:
+            color_index = int((px-1)/2)
+        else:
+            color_index = int(px/2)
+        ax3.plot(px,py_ax3[count],color=list_colors[color_index], marker='o', linestyle='')
         count = count + 1
     plt.pause(0.5)
     time.sleep(0.5)
@@ -327,11 +299,16 @@ for filename in glob.glob(os.path.join(path, extension)):
     count = 0
     ax3.plot(px_ax3,py_ax3,color='k', marker='o', linestyle='')
     for px in px_ax5:
-        ax5.plot(px,py_ax5[count],color=list_colors[int(px/4)], marker='o', linestyle='')
+        if px == 32:
+            color_index = int((px-1)/4)
+        else:
+            color_index = int(px/4)
+        ax5.plot(px,py_ax5[count],color=list_colors[color_index], marker='o', linestyle='')
         count = count + 1
     plt.pause(0.5)
     time.sleep(0.5)
     ax5.plot(px_ax5,py_ax5,color='k', marker='o', linestyle='')
+    plt.pause(0.1)
     # play bip of the beggining
     sd.play_sound(bip)
     sd.add_array_savesound(bip)
@@ -345,7 +322,11 @@ for filename in glob.glob(os.path.join(path, extension)):
     sd.add_array_savesound(sound_ax2)
     count = 0
     for px in px_ax2:
-        ax2.plot(px,py_ax2[count],color=list_colors[int(px/4)], marker='o', linestyle='')
+        if px == 32:
+            color_index = int((px-1)/4)
+        else:
+            color_index = int(px/4)
+        ax2.plot(px,py_ax2[count],color=list_colors[color_index], marker='o', linestyle='')
         count = count + 1
     plt.pause(0.5)
     time.sleep(0.5)
@@ -354,7 +335,11 @@ for filename in glob.glob(os.path.join(path, extension)):
     count = 0
     ax2.plot(px_ax2,py_ax2,color='k', marker='o', linestyle='')
     for px in px_ax4:
-        ax4.plot(px,py_ax4[count],color=list_colors[int(px/2)], marker='o', linestyle='')
+        if px == 16:
+            color_index = int((px-1)/2)
+        else:
+            color_index = int(px/2)
+        ax4.plot(px,py_ax4[count],color=list_colors[color_index], marker='o', linestyle='')
         count = count + 1
     plt.pause(0.5)
     time.sleep(0.5)
@@ -363,16 +348,20 @@ for filename in glob.glob(os.path.join(path, extension)):
     count = 0
     ax4.plot(px_ax4,py_ax4,color='k', marker='o', linestyle='')
     for px in px_ax6:
-        ax6.plot(px,py_ax6[count],color=list_colors[int(px/4)], marker='o', linestyle='')
+        if px == 32:
+            color_index = int((px-1)/4)
+        else:
+            color_index = int(px/4)
+        ax6.plot(px,py_ax6[count],color=list_colors[color_index], marker='o', linestyle='')
         count = count + 1
     plt.pause(0.5)
     time.sleep(0.5)
     ax6.plot(px_ax6,py_ax6,color='k', marker='o', linestyle='')
-    
+    plt.pause(0.1)
     wav_name = path + '/' + os.path.basename(filename[:-4]) + '_sound.wav'
-    mp3_name = path + '/' + os.path.basename(filename[:-4]) + '_sound.mp3'
+    # mp3_name = path + '/' + os.path.basename(filename[:-4]) + '_sound.mp3'
     sd.save_sound(wav_name)
-    wav_to_mp3(wav_name, mp3_name)
+    # wav_to_mp3(wav_name, mp3_name)
     # sd.save_sound('data_muon/muon_line/'+name+'.wav')
     key = input("Press 'Q' to close or any other key to continue...")
     if key == 'Q' or key == 'q':
