@@ -39,40 +39,46 @@ lhc_data.lhc_sonification.sound_init()
 lhc_data.lhc_sonification.set_bip()
 input("Press a key to continue...")
 count = 0
-for i in range(0,len(particles),2):
+for i in range(0,len(particles),3):
     count = count + 1
     index = 0
-    for tracks in particles[i]:
+    reset_status = True
+    print("--------------------------------")
+    print("Event number: " + particles[i])
+    for tracks in particles[i+1]:
         element = 'Track'
         lhc_data.particles_sonification(index,
                                         element,
-                                        particles[i], 
-                                        particles[i+1]
+                                        particles[i+1], 
+                                        particles[i+2],
+                                        reset_status=reset_status
                                         )
         plt.pause(0.5)
-        track = particles[i][index]
+        track = particles[i+1][index]
         track_elements = str(track).split()
         if int(track_elements[11])==1:
             time.sleep(5)
         else:
             time.sleep(3)
+        reset_status = False
         index = index + 1
     index = 0
-    for cluster in particles[i+1]:
+    for cluster in particles[i+2]:
         element = 'Cluster'
         lhc_data.particles_sonification(index,
                                         element,
-                                        particles[i], 
-                                        particles[i+1]
+                                        particles[i+1], 
+                                        particles[i+2],
+                                        reset_status=reset_status
                                         )
         plt.pause(0.5)
         time.sleep(3)
+        reset_status = False
         index = index + 1
-    plot_path = 'data_lhc/lhc_output/plot_dataset_' + str(count) + '.png'
+    plot_path = path[:-4] + '_' + particles[i] + '.png'
     plt.savefig(plot_path, format='png')
     # Generate the wav file with the sonification
-    sound_path = 'data_lhc/lhc_output/sound_dataset_' + str(count) + '.wav'
-    #wavfile.write(sound_path, rate=44100, data=sound_var.astype(np.int16))
+    sound_path = path[:-4] + '_' + particles[i] + '.wav'
     lhc_data.lhc_sonification.save_sound(sound_path)
     lhc_data.lhc_plot.plot_reset()
     key = input("Press 'Q' to close or any other key to continue...")
