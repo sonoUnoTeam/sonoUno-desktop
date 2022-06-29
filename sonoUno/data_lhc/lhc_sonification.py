@@ -165,6 +165,18 @@ def doubletrack_withcluster(amplitude):
     sound = np.append(sound, get_cluster(amplitude))
     return sound
 
+def muontrack_only():
+    """
+    This method generate the sound of a muon track without cluster and return 
+    the array. Include tickmarks indicating the beginning and transition 
+    between inner detector and green calorimeter.
+    """
+    sound = np.append(bip, get_innersingletrack())
+    sound = np.append(sound, get_tickmark_inner_calorimeter())
+    sound = np.append(sound, get_innersingletrack(3))
+    sound = np.append(sound, get_silence(0.5))
+    return sound
+
 def singletrack_only():
     """
     This method generate the sound of a simple track without cluster and return 
