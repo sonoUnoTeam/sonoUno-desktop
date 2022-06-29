@@ -80,7 +80,7 @@ def read_content(file):
         iant = i
     return particles
 
-def particles_sonification(index, element, track_list, cluster_list, play_sound_status=True):
+def particles_sonification(index, element, track_list, cluster_list, reset_status, play_sound_status=True):
     """
     This method allows to iterate through a given event ploting and sonifying 
     the data provided.
@@ -97,7 +97,7 @@ def particles_sonification(index, element, track_list, cluster_list, play_sound_
     global cluster_tosonify, sonified_cluster_list, sonified_tracks_list
     # If this is the first track element of the event, initialize colour counter
     # and sonified elements lists
-    if index == 0 and element == 'Track':
+    if reset_status:
         lhc_plot.set_count_colors(0)
         sonified_cluster_list = []
         sonified_tracks_list = []
@@ -219,7 +219,7 @@ def particles_sonification(index, element, track_list, cluster_list, play_sound_
                 sound = lhc_sonification.singletrack_only()
                 if int(track_elements[11])==1:
                     # The element is a muon
-                    sound = lhc_sonification.doubletrack_only()
+                    sound = lhc_sonification.muontrack_only()
             # check the flag and sonify
             if play_sound_status:
                 lhc_sonification.play_sound(sound)
@@ -258,7 +258,10 @@ def particles_sonification(index, element, track_list, cluster_list, play_sound_
             if play_sound_status:
                 lhc_sonification.play_sound(sound)
             # Store the sound to be saved later
-            lhc_sonification.add_array_savesound(sound)
+            if track_list == []:
+                lhc_sonification.array_savesound(sound)
+            else:
+                lhc_sonification.add_array_savesound(sound)
             lhc_sonification.add_array_savesound(lhc_sonification.get_silence(1))
     else:
         print("The element provided is unknown")
