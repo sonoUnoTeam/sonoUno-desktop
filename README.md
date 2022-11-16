@@ -16,6 +16,10 @@ Additionally, SonoUno allow to select a specific range of data on the ‘x’ ax
 
 Finally, the software allows the user to save the plot, a text file with the points marked on the data and a csv file with the plotted data.
 
+## News about compatibility problems!
+
+We want to let you know that sonoUno is facing problems with Python 3.10 and wxPython this days, there is an issue opened about it. I will erase this news when the probleme was fixed! SonoUno works fine with previous version of python (python 3.8 and early python 3.9).
+
 ## Installation
 
 Here we show a quick guide to install the sonoUno. Inside the sonoUno folder, there are some installation instructive, one for each operative system.
