@@ -2316,7 +2316,7 @@ class FrameDesign( wx.Frame ):
         self._openPanel.Hide()
 
         self._plotPanel = wx.ScrolledWindow(
-            parent = displaypanel,
+            parent = self._graphicPanel,
             id = wx.ID_ANY,
             pos = wx.DefaultPosition,
             size = wx.Size(400,200),
