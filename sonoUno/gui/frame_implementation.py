@@ -173,13 +173,13 @@ class SonoUnoGUI (gui.FrameDesign):
         # -Setting sound envelope
         adrs = self._datasound.reproductor.get_adsr()
         # -Set sliders, labels and plot of envelope
-        self._soundattackslider.SetValue(adrs['a']*100)
+        self._soundattackslider.SetValue(int(adrs['a']*100))
         self._actualattacktextctrl.SetValue(str(adrs['a']))
-        self._sounddecayslider.SetValue(adrs['d']*100)
+        self._sounddecayslider.SetValue(int(adrs['d']*100))
         self._actualdecaytextctrl.SetValue(str(adrs['d']))
-        self._soundreleaseslider.SetValue(adrs['r']*100)
+        self._soundreleaseslider.SetValue(int(adrs['r']*100))
         self._actualreleasetextctrl.SetValue(str(adrs['r']))
-        self._soundsustainslider.SetValue(adrs['s'])
+        self._soundsustainslider.SetValue(int(adrs['s']))
         self._actualsustaintextctrl.SetValue(str(adrs['s']))
         # -Set class variables for envelope values
         self._set_soundattack(adrs['a'])
