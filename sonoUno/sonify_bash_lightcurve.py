@@ -123,7 +123,8 @@ for filename in glob.glob(os.path.join(path, extension)):
     yhat = smooth.savitzky_golay(yl, 51, 7)
     
     
-    x, y, status = _math.normalize(sort_df.loc[:,2], sort_df.loc[:,4])
+    #x, y, status = _math.normalize(sort_df.loc[:,2], sort_df.loc[:,4])
+    #x, y, status = _math.normalize(sort_df.loc[:,2], yhat)
     if plot_flag:
         # Configure axis, plot the data and save it
         # Erase the plot
@@ -136,15 +137,45 @@ for filename in glob.glob(os.path.join(path, extension)):
         ax.invert_yaxis()
         # Separate the name file from the path to set the plot title
         head, tail = os.path.split(filename)
-        ax.set_title('CG-Cas-Cepheid')
+        #ax.set_title('CG-Cas-Cepheid')
+        ax.set_title('RW-Phe-Eclipsing Binary')
         # xnumpy = xnumpy / 10
         # ax.scatter(xnumpy, ynumpy)
         # ax.plot(sort_df.loc[:,2], sort_df.loc[:,4], 'o')
-        ax.plot(sort_df.loc[:,2], yhat)        
+        ax.scatter(sort_df.loc[:,2], yhat)        
         # Set the path to save the plot and save it
         plot_path = path + '\\' + os.path.basename(filename) + '_plot.png'
+        print(plot_path)
         fig.savefig(plot_path)
+        
+        #Tratando de invertir valores
+        linea_media = (np.nanmax(yhat) - np.nanmin(yhat))/2 + np.nanmin(yhat)
+        
+        ax.axhline(y = linea_media, xmin = 0, xmax = 2)
+        
+        cont = 0
+        for i in yhat:
+            if i > linea_media:
+                yhat[cont] = linea_media - (i - linea_media)
+            if i == linea_media:
+                yhat[cont] = i
+            if i < linea_media:
+                yhat[cont] = linea_media + (linea_media - i)
+            cont = cont + 1
+        
+        ax.scatter(sort_df.loc[:,2], yhat)
+        
+        #ax.scatter(sort_df.loc[:,2], linea_media)  
+        
+        # Set the path to save the plot and save it, se comenta porque solo se
+        # uso como control
+        plot_path = path + '\\' + os.path.basename(filename) + '_plot2.png'
+        fig.savefig(plot_path)
+        
     # Save the sound
+    
+    x, y, status = _math.normalize(sort_df.loc[:,2], yhat)
+    
     wav_name = path + '\\' + os.path.basename(filename) + '_sound.wav'
     _simplesound.save_sound(wav_name, x, y)
     now = datetime.datetime.now()
