@@ -4,6 +4,8 @@ This development is powered by CONICET-Argentina, Universidad de Mendoza-Argenti
 
 <Img src="logos/logo_conicet.png" width="100"> <Img src="logos/iteda.jpeg" width="120"> <Img src="logos/ibio.jpeg" width="70"> <Img src="logos/reinforce.png" width="150">
 
+This work is partially supported by REINFORCE Project. REINFORCE has received funding from the European Union’s Horizon 2020 project call H2020-SwafS-2018-2020 under Grant Agreement no. 872859. The content of this website does not represent the opinion of the European Commission, and the European Commission is not responsible for any use that might be made of such.
+
 ## Description
 
 <Img src="screenshot/main_screen_2021-01-29.png" width="400">
