@@ -2,7 +2,7 @@
 
 This development is powered by CONICET-Argentina, Universidad de Mendoza-Argentina and REINFORCE.
 
-<Img src="logos/logo_conicet.png" width="100"> <Img src="logos/iteda.jpeg" width="120"> <Img src="logos/ibio.jpeg" width="70"> <Img src="logos/reinforce.png" width="150">
+<Img src="logos/logo_conicet.png" width="100"> <Img src="logos/iteda.jpeg" width="120"> <Img src="logos/ibio.jpeg" width="70"> <Img src="logos/reinforce.png" width="150"> <Img src="logos/eulogo.png" width="150">
 
 This work is partially supported by REINFORCE Project. REINFORCE has received funding from the European Union’s Horizon 2020 project call H2020-SwafS-2018-2020 under Grant Agreement no. 872859. The content of this website does not represent the opinion of the European Commission, and the European Commission is not responsible for any use that might be made of such.
 
