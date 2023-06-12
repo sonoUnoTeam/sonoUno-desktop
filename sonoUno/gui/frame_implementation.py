@@ -26,9 +26,6 @@ from sound_module.simple_sound import tickMark
 from data_export.data_export import DataExport
 from data_transform.predef_math_functions import PredefMathFunctions
 from data_transform.data_opened import DataOpenedColumns
-from data_lhc import lhc_plot
-from data_lhc import lhc_sonification
-from data_lhc import lhc_data
 from data_transform import smooth
 
 class SonoUnoGUI (gui.FrameDesign):
@@ -58,13 +55,6 @@ class SonoUnoGUI (gui.FrameDesign):
             event=wx.EVT_TIMER, 
             handler=self._sonificationloop_event, 
             source=self._timer
-            )
-        # Timer to sonify LHC data
-        self._timer_lhc = wx.Timer(self)
-        self.Bind(
-            event=wx.EVT_TIMER, 
-            handler=self._sonificationloop_lhc, 
-            source=self._timer_lhc
             )
         # Second timer to sonify the sound envelope
         self._timer_envelope = wx.Timer(self)
@@ -643,6 +633,7 @@ class SonoUnoGUI (gui.FrameDesign):
             # This counter allow as to know how many lines are plotted on the
             # graph
             self._plotcounter = self._plotcounter + 1
+            self._redraw_panel = True
         except Exception as e:
             self._expdata.writeexception(e)
         # This variable indicates when the plot was updated, to send to octave
@@ -652,6 +643,9 @@ class SonoUnoGUI (gui.FrameDesign):
         if self._redraw_panel:
             self._figure.tight_layout()
             self._figure.canvas.draw()
+            self.SendSizeEvent()
+            self.Refresh()
+            
 
     def plot_positionline (self, abscisa, ordenada):
         
@@ -669,12 +663,15 @@ class SonoUnoGUI (gui.FrameDesign):
                 line.remove()
             # Plot the position line
             self.red_line = self.panel.plot(abscisa, ordenada, 'r')
+            self._redraw_panel = True
         except Exception as e:
             self._expdata.writeexception(e)
         # Finally, update the plot figure to visualize the new plot
         if self._redraw_panel:
             self._figure.tight_layout()
             self._figure.canvas.draw()
+            self.SendSizeEvent()
+            self.Refresh()
 
     def plot_markline(self, abs_markpoint, ord_markpoint):
         
@@ -692,6 +689,7 @@ class SonoUnoGUI (gui.FrameDesign):
         if self._redraw_panel:
             self._figure.tight_layout()
             self._figure.canvas.draw()
+            self.Refresh()
 
     def replot_xy (self, x, y):
         
@@ -767,37 +765,9 @@ class SonoUnoGUI (gui.FrameDesign):
             self._figure.tight_layout()
             self._figure.canvas.draw()
             self.SendSizeEvent()
+            self.Refresh()
             # Restore the value of the flag to redraw the plot on other methods
             self._redraw_panel = True
-            
-    def _sonificationloop_lhc (self, event):
-        if self.count_lhc_2 == 0:
-            lhc_plot.plot_reset()
-        if self.count_lhc_2 <= len(self.particles[self.count_lhc_1])-1:
-            element = 'Track'
-            index = self.count_lhc_2
-        elif self.count_lhc_2 <= len(self.particles[self.count_lhc_1]) + len(self.particles[self.count_lhc_1+1]) - 2:
-            element = 'Cluster'
-            index = self.count_lhc_2 - len(self.particles[self.count_lhc_1]) - 1
-        lhc_data.particles_sonification(index,
-                                        element,
-                                        self.particles[self.count_lhc_1], 
-                                        self.particles[self.count_lhc_1+1]
-                                        )
-        if self.count_lhc_2 == len(self.particles[self.count_lhc_1]) + len(self.particles[self.count_lhc_1+1]) - 2:
-            self.count_lhc_1 = self.count_lhc_1 + 2
-            self.count_lhc_2 = 0
-            self.count_lhc_3 = self.count_lhc_3 + 1
-            # actualpath = os.path.abspath(os.getcwd())
-            # plot_path = actualpath + '\\lhc_output\\plot_dataset_' + str(self.count_lhc_1) + '.png'
-            # self._figure.savefig(plot_path, format='png')
-            # # Generate the wav file with the sonification
-            # sound_path = actualpath + '\\lhc_output\\sound_dataset_' + str(self.count_lhc_1) + '.wav'
-            # lhc_sonification.save_sound(sound_path)
-        else:
-            self.count_lhc_2 = self.count_lhc_2 + 1 
-        if self.count_lhc_1 == len(self.particles) - 1:
-            self.stopMethod('lhc')
 
     def _sonificationloop_event (self, event):
         
@@ -966,10 +936,6 @@ class SonoUnoGUI (gui.FrameDesign):
         This method allow to open a dataset serching it on the computer file
         system.
         """
-        if self.actual_datatype == 'lhc':
-            self._figure.clf()
-            self.panel = self._figure.add_subplot(111)
-            self.stopMethod('2d_basic_xy')
         self.actual_datatype = datatype
         # Check if the sonification loop is running to stop it
         if self._timer.IsRunning():
@@ -1144,60 +1110,6 @@ class SonoUnoGUI (gui.FrameDesign):
                     style=wx.OK | wx.ICON_INFORMATION
                     )
                 self._expdata.writeexception(msg)
-        elif datatype == 'lhc':
-            # Prepare the GUI
-            # disable unused menu items
-            self._deleteallmarksmenuitem.Enable(False)
-            self._savemarksmenuitem.Enable(False)
-            self._markmenuitem.Enable(False)
-            self._deletelastmarkmenuitem.Enable(False)
-            # remove the menu items that can't be used
-            pos = self._menubar.FindMenu(self._menudataop.GetTitle())
-            self._menubar.Remove(pos)
-            pos = self._menubar.FindMenu(self._menuconfigpanels.GetTitle())
-            self._menubar.Remove(pos)
-            pos = self._menubar.FindMenu(self._menusettings.GetTitle())
-            self._menubar.Remove(pos)
-            # hide buttons
-            self._markPtButton.Hide()
-            self._deleteLastPtButton.Hide()
-            self._contdiscsound_display_ToggleBtn.Hide()
-            self.SendSizeEvent()
-            # Prepare the command line options
-            # without parameters
-            self.command_dict_withoutparam = {
-                'open':self.open_method,
-                'savedata':self.saveData,
-                'saveplot':self.savePlot,
-                'savesound':self.eSound,
-                'quit':self.Close,
-                'exit':self.Close,
-                'play':self.playMethod,
-                'playloop':self.playinloop,
-                'pause':self.playMethod,
-                'stop':self.stopMethod,
-                }
-            # with parameters
-            self.command_dict_withparam = {
-                'open':self.open_method,
-                'xposition':self.xposition_command,
-                'tempo':self.selecttempo_command,
-                'play_time':self.play_with_time,
-                'playloop_time':self.play_with_time_inloop,
-                'set_1min_loops':self.set_number_1min_loops
-                }
-            # Load data set
-            file = lhc_data.openfile('sonification_reduced.txt')
-            self.particles = lhc_data.read_content(file)
-            # Receive the first plot update
-            lhc_plot.plot3D_init(self._figure)
-            # Sound init
-            lhc_sonification.sound_init()
-            lhc_sonification.set_bip()
-            #Seteo el tempo dependiendo del tiempo del timer
-            self.count_lhc_1 = 0
-            self.count_lhc_2 = 0
-            self.count_lhc_3 = 0
         else:
             wx.MessageBox(
                 message=("The data type selected to open is not available "
@@ -1825,10 +1737,7 @@ class SonoUnoGUI (gui.FrameDesign):
                 self.stopMethod('2d_basic_xy')
                 wx.MessageBox("The previous reproduction of the data has been stopped to reproduce the envelope of the sound.",
                               'Information', wx.OK | wx.ICON_INFORMATION)
-            elif self._timer_lhc.IsRunning():
-                self.stopMethod('lhc')
-                wx.MessageBox("The previous reproduction of the data has been stopped to reproduce the envelope of the sound.",
-                              'Information', wx.OK | wx.ICON_INFORMATION)
+            
             if not self._timer_envelope.IsRunning():
                 self._timer_envelope.Start(10)
                 self._datasound.reproductor.set_time_base(self._timer_envelope.GetInterval()/1000.0)
@@ -1859,33 +1768,6 @@ class SonoUnoGUI (gui.FrameDesign):
                     self._timer.Stop()
                 else:
                     self._expdata.writeinfo("Error con el contador del botón Play-Pausa")
-        elif datatype == 'lhc':
-            if not self._timer_lhc.IsRunning():
-                self._expdata.printoutput("Play button is pressed.")
-                self._playButton.SetLabel("Pause")
-                self._playButton.SetValue(True)
-                self._playmenuitem.SetItemLabel('Pause' + '\t' + 'Alt+Shift+P')
-                self._playmenuitem.Check(True)
-                if self._timer_envelope.IsRunning():
-                    self._timer_envelope.Stop()
-                    self._set_timerenvelopeindex(0)
-                    self._envelopeplaytogglebtn.SetLabel('Play envelope\nsound')
-                    self._envelopeplaytogglebtn.SetValue(False)
-                if self._timer.IsRunning():
-                    self._timer.Stop()
-                    self._timerindex_space = 0
-                    self._set_timerindex(0)
-                self._timer_lhc.Start(6000)#(self._getVelocity()*2) + 10)
-                self._datasound.reproductor.set_time_base(self._timer_lhc.GetInterval()/1000.0)
-            elif self._timer_lhc.IsRunning():
-                self._expdata.printoutput("Pause button is pressed.")
-                self._playButton.SetLabel("Play")
-                self._playButton.SetValue(False)
-                self._playmenuitem.SetItemLabel('Play' + '\t' + 'Alt+Shift+P')
-                self._playmenuitem.Check(False)
-                self._timer_lhc.Stop()
-            else:
-                self._expdata.writeinfo("Error con el contador del botón Play-Pausa")
         else:
             wx.MessageBox(
                 message=("The data type selected to open is not available "
@@ -1958,12 +1840,6 @@ class SonoUnoGUI (gui.FrameDesign):
                 self._abspos_slider.SetValue(0)
                 self._absposlabel_textctrl.SetValue(str(round(self.getXActual()[self._abspos_slider.GetValue()],4)))
                 self.replot_xy(self.getXActual(), self.getYActual())
-        elif datatype == 'lhc':
-            if self._timer_lhc.IsRunning():
-                self._timer_lhc.Stop()
-                self.count_lhc_1 = 0
-                self.count_lhc_2 = 0
-                self.count_lhc_3 = 0
 
     def markPoints (self):
         if self.getXActual().any()==None or self.getYActual().any()==None:
