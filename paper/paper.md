@@ -29,7 +29,7 @@ affiliations:
  - name: Universidad Tecnológica Nacional - Regional Mendoza, Argentina
    index: 4
 date: 14 June 2023
-bibliography: paper.bib
+bibliography: paper/paper.bib
 
 ---
 
