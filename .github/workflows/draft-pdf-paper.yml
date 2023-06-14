@@ -13,6 +13,8 @@ jobs:
           journal: joss
           # This should be the path to the paper within your repo.
           paper-path: paper/paper.md
+          # Bibliography file, if existing
+          bibtex: paper/paper.bib
       - name: Upload
         uses: actions/upload-artifact@v1
         with:
