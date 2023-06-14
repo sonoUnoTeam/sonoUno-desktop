@@ -49,6 +49,10 @@ Nevertheless, in most cases, the sonification mapping of the dataset was defined
 
 In this sense and taking into account the increasing examples of sonification in astrophysics, sonoUno aims to provide an open-source platform that allows users to open different datasets, and explore them through visual and auditory display, the last permitting to adjust visual and sound settings to enhance their perception. This project is user centred from the beginning, to reach that goal at first the ISO 9241-171:2008 standard was used to analyse the accessibility of three previous software \cite{ise2a2017,ijskd2022} and construct the first Graphic User Interface (GUI) mock-up; second, a theoretical framework centred on visual disability was designed and applied to the software in development \cite{casadoetal2019}, the consequent ISO analysis to sonoUno show very good results. Finally, a focus group session was conducted with people with and without visual disabilities to test the first version of sonoUno, some recommendations and updates arise from that study \cite{casadoFG2022}. In this contribution, the final version and architecture of sonoUno were explained and the new functionalities are tested with astronomical data sets.
 
+# Previous works
+
+
+
 # Statement of need
 
 `Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
