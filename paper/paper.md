@@ -53,7 +53,7 @@ In this sense and taking into account the increasing examples of sonification in
 
 The number of projects using sonification to represent astrophysical data has grown enormously over the last 10 years. @zanella2022, after an international sound workshop held in August 2021, created a repository with existing software until December 2021, which yields a result of 98 projects developed since 1962, many of them discontinued, with lack of documentation or without evidence of applications in science. Almost 80% of the sonification projects have been carried out between 2011 and 2021. Until 2017, the date on which this sonification software development began, only 50% of the software included in the mentioned repository had started its development.
 
-![Hola.\label{fig:fig1}](figures/fig1.png){width=100%}
+![Categories and some examples of standard alone sonification software.\label{fig:fig1}](figures/fig1.png){ width=50% }
 
 # Statement of need
 
