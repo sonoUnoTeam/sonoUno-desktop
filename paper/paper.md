@@ -87,13 +87,42 @@ About the tools used to develop sonoUno, Python is a high-level programming lang
 
 The libraries used in this project are: wxPython (an open source toolkit to generate cross platforms graphic user interfaces, it presents many years of development and an active work team, the last release was in August 2022; pandas (an open source and very powerful tool devoted to data analysis and manipulation); matplotlib (allows the generation of 2D plots from a data set (Hunter, 2007) and present an easy integration with wxPython); numpy (it is a fundamental package to scientific computing); and pygame (primarily devoted to video games include modules to generate graphics and music), sonoUno project used the music module of this library). All libraries present years of maintenance and are widely used. The actual sound library and implementation on sonoUno produce sound from its sinusoidal parameters, each data point on the dataset produces a differentiated tone. This was decided based on the sound and graphic representation of each data point, ensuring, at first, the correlation between the two human sensory styles. SonoUno software's principal aim is research through sonification, it is very important to understand and correlate sonification with visualization (the actual practice to research in astronomy) in conjunction with a deeper analysis of human sound perception.
 
-Once the libraries were selected, the modular design was chosen for the software, the development tasks were divided into different modules, in order to organize the job and make the cooperative work between the team easier. Each module has predefined inputs and outputs to communicate the different modules. In the case of sonoUno, the modules are Data Input, Data Output, Data Transformation, Sonification, Graphic User Interface design, and Core (see Figure 2).
+Once the libraries were selected, the modular design was chosen for the software, the development tasks were divided into different modules, in order to organize the job and make the cooperative work between the team easier. Each module has predefined inputs and outputs to communicate the different modules. In the case of sonoUno, the modules are Data Input, Data Output, Data Transformation, Sonification, Graphic User Interface design, and Core (see \autoref{fig:fig2}).
 
 ![Modular design of SonoUno.\label{fig:fig2}](figures/fig2.png){ width=70% }
 
 ### Data Input Module
 
 This module allows the user to select a data set on the file system and place the data in a Python variable, using Numpy and Pandas libraries. To do this, the module asks for the address where the file is located and differentiates the name and the extension of the file. Then, using a conditional statement with the file extension, the specific method for each type of file is called (txt and csv at the moment). In this module, new lines of code can be implemented to read more types of data files, the only demand is to put the data in a pandas.DataFrame format to send it to the Core Module.
+
+At this moment, the software reads all columns of the data, in the case of more than two columns, the first two are selected by default to generate the plot and a dedicated panel allows users to change between the different columns. The data to be imported can be separated by "," or ";" in the case of .csv files, and tabulation or space in the case of .txt files.
+
+### Sonification module
+
+In the first stages of SonoUno using the Mingus library, MIDI sound was produced, to do that the fluidsynth synthesizer was used, but it presented limitations of range and the installation was complicated, differing between operative systems. To solve the range problem and look for a form to play sound attending the GUI needs, the sound library was changed to pygame. It was designed to produce video games, for that works very well with sound and graphic interaction.
+
+Sound is generated using a synthesizer approach, meaning the instrument tone is approximated by combining sinusoidal waveforms of relevant frequencies. At the same time, the characteristic time progression is achieved by the well-known ADSR (Attack Decay Sustain Release) envelope. This is enough to synthesize a variety of tones, which are also customizable by the user, and which frequencies are not limited to specific notes, but can play at any frequency in an essentially continuous spectrum. This design was decided somewhat in the spirit of the Moog synthesizers, from the late 1960s, in the sense that modules and filters can be added and configured by the users to create sounds that better represent the data they want to transmit to the listener.
+
+There is a great advantage of being able to represent, by sound, any value and present very small differences. It must be taken into account, nevertheless, that this freedom is limited by the maximum audible frequencies of the user, e.g.: if two variables are being sonorized at the same time, it is done using two different “voices”, which are characterized by distinct harmonic composition. If the fundamental frequency range reaches enough high frequencies, the harmonics that differentiate the voices could reach frequencies too high for the listener to hear (properly, that is), rendering both voices indistinguishable, beating the whole purpose of using different instruments.
+
+![Sound settings panels with all its elements: volume, frequency mapping, volume mapping, sound type, and envelope configuration.\label{fig:fig3}](figures/fig3.png)
+
+It is important to highlight that the software allows one to control and set all the sound parameters, it presents a settings section that is displayed in a panel at the left of the graphic display, containing buttons and slider bars, allowing to customize the frequency, volume, sound type and even the envelope waveform (\autoref{fig:fig3}).
+
+### Mathematical functions module
+
+This module encompasses the mathematical operations that sonoUno allows, by the moment it includes simple operations (like inverse, square, square root, logarithm, and smooth), horizontal axis cuts, and provides an octave bridge (\autoref{fig:fig4}).
+
+![Mathematical functions panel is shown under the principal panel. The top area represents the interface with octave and the bottom section shows the axis cut option and the list with some mathematical functions.\label{fig:fig4}](figures/fig4.png)
+
+The list of mathematical functions are operations previously preprogrammed and the user could apply them only by selection. In the case of x-axis cut, there are two slider bars to select the minimum and maximum value for the new range of x-axis; also it can be done by writing a command on the Write functionality text box (\autoref{fig:fig5}, section 1), this allows more precision and a faster way to do it.
+
+Finally, the octave bridge allows the application of octave functions to the dataset, here the oct2py library is being used. From sonoUno, when the dataset is opened, it is sent to octave automatically. Then, the user can apply octave functions to the data considering that the column name in SonoUno is the array name in octave. All operations are performed in the octave domain, if the user wants to plot the arrays into sonoUno again, they have to use the retrieve from octave section (section 3 in \autoref{fig:fig5}), indicating the x-axis name and y-axis name and pressing the button ‘Refresh the plot’.
+
+![Octave panel is divided into three sections, section 1: write functionality text entry; Section 2: octave output text box; Section 3: space to indicate what x and y axis retrieve from octave (this action is not done automatically).\label{fig:fig5}](figures/fig5.png)
+
+### Data Output module
+
 
 # Citations
 
