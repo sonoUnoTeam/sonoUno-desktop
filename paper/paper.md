@@ -119,7 +119,7 @@ The list of mathematical functions are operations previously preprogrammed and t
 
 Finally, the octave bridge allows the application of octave functions to the dataset, here the oct2py library is being used. From sonoUno, when the dataset is opened, it is sent to octave automatically. Then, the user can apply octave functions to the data considering that the column name in SonoUno is the array name in octave. All operations are performed in the octave domain, if the user wants to plot the arrays into sonoUno again, they have to use the retrieve from octave section (section 3 in \autoref{fig:fig5}), indicating the x-axis name and y-axis name and pressing the button ‘Refresh the plot’.
 
-![Octave panel is divided into three sections, section 1: write functionality text entry; Section 2: octave output text box; Section 3: space to indicate what x and y axis retrieve from octave (this action is not done automatically).\label{fig:fig5}](figures/fig5.png)
+![Octave panel is divided into three sections, section 1: write functionality text entry; Section 2: octave output text box; Section 3: space to indicate what x and y axis retrieve from octave (this action is not done automatically).\label{fig:fig5}](figures/fig5.png){ width=70% }
 
 ### Data Output module
 
@@ -144,7 +144,7 @@ As an example of use of sonoUno for discrete data, there will be presented the a
 
 A little portion of the x-axis can be selected using the slider bars in the data operation panel, in addition, the commands ‘xlowerlimit(number)’ and ‘xupperlimit(number)’ can be used in the write functionality text entry to obtain the same result. \autoref{fig:fig9} shows an example with a lower limit at 1124471483 [Unix Timestamp] and an upper limit at 1125034238. 
 
-![Plot of a range of data obtained in sonoUno from the Pierre Auger data set, in a discrete deployment as “high energy events”. The sound of this selected range of data can be heard at this \href{link}{https://bit.ly/3dcj6Pl}.\label{fig:fig9}](figures/fig9.png)
+![Plot of a range of data obtained in sonoUno from the Pierre Auger data set, in a discrete deployment as “high energy events”. The sound of this selected range of data can be heard at this \href{link}{https://bit.ly/3dcj6Pl}.\label{fig:fig9}](figures/fig9.png){ width=70% }
 
 In addition to the dataset, The Pierre Auger web page, displays a link to the \href{Analysis of the Data}{https://opendata.auger.org/analysis.php} examples. Particularly, the correlation plot obtained with the ‘fd_dEdXmax’ vs ‘fd_totalEnergy’ columns was extracted and shown in \autoref{fig:fig10}. In \autoref{fig:fig11}, the same axis was chosen inside sonoUno for the plot, in order to compare, it can be seen that the graph is the same in both cases.
 
