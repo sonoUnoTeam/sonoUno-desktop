@@ -123,17 +123,48 @@ Finally, the octave bridge allows the application of octave functions to the dat
 
 ### Data Output module
 
+This module allows the user to save a plot, the actual data plotted, the sound, and the marks made on the data opened in the software. The plot is a two-dimensional graphic, the actual data plotted can be stored in a csv file, the sound is a wav file produced with the same data and parameters of the software, and the marks are coordinates stored by the user with a button saved in a csv file.
 
-# Citations
+This module asks the user where to store the data on the file system and detects the type of data to be stored depending on the button pressed by the user. Then, it saves the specific file on the user's computer or shows a message if there were a problem with the process.
 
+### Graphic User Interface module
 
+This section began with a mock-up design and over the years has been changing until the ultimate framework (\autoref{fig:fig6}). The different sections of the GUI are: the menu at the top of the windows, the data display panel shown at the principal framework with the write functionality text element, the octave section (display the output of each octave command, it is placed under the write functionality element into the mathematical functions panel (\autoref{fig:fig7} at top of pink rectangle)), the data parameter panel (placed at the left of the principal display (\autoref{fig:fig7} at left inside yellow rectangle), display the grid with the data opened and ‘x-y’ axis select option), the cut sliders and mathematical function panel (placed at the bottom of the GUI (\autoref{fig:fig7} pink rectangle)), the input/output buttons panel (open and save, placed al the left-top of the GUI (\autoref{fig:fig7} at red rectangle)) and the configuration panel divided into sound and graphic setting (placed under the previous panel (\autoref{fig:fig7} at blue rectangle)) (It could be reproduced the next video to follow a detailed explanation: \href{https://youtu.be/7mYvU7OaTUA}).
 
-# Figures
+![New graphic user interface design on Python. The data deployed are from EGO.\label{fig:fig6}](figures/fig6.png)
 
+![Graphic User Interface with all the panel visibles.\label{fig:fig7}](figures/fig7.png)
 
+## GUI and sound tests with data from the Pierre Auger Observatory
+\label{sect:pierreauger}
 
-# Acknowledgements
+As an example of use of sonoUno for discrete data, there will be presented the application of the software to a cosmic rays data set, obtained from Pierre Auger Observatory (\href{https://opendata.auger.org/}). The webpage of Pierre Auger presents information about the observatory and an open data section. The CSV file for the analysis was extracted from the zip file downloaded from the Pierre Auger web page and is available here (\href{https://bit.ly/3yf2hNw}). This CSV file was opened directly with the sonoUno desktop version, to the plot in \autoref{fig:fig8} ‘gpstime’ was selected as ‘x-axis’ and ‘sd_energy’ as ‘y-axis’, the titles of each axis, and the general plot was changed inside the program using the text entry element from ‘data parameters’ panel.
 
+![Display of Pierre Auger Observatory public dataset in the sonoUno GUI for the desktop version (discrete “high energy events”). The sound of this data set can be heard at \href{https://bit.ly/3IOxITS}.\label{fig:fig8}](figures/fig8.png)
 
+A little portion of the x-axis can be selected using the slider bars in the data operation panel, in addition, the commands ‘xlowerlimit(number)’ and ‘xupperlimit(number)’ can be used in the write functionality text entry to obtain the same result. \autoref{fig:fig9} shows an example with a lower limit at 1124471483 [Unix Timestamp] and an upper limit at 1125034238. 
 
-# References
+![Plot of a range of data obtained in sonoUno from the Pierre Auger data set, in a discrete deployment as “high energy events”. The sound of this selected range of data can be heard at \href{https://bit.ly/3dcj6Pl}.\label{fig:fig9}](figures/fig9.png)
+
+In addition to the dataset, The Pierre Auger web page, displays a link to the Analysis of the Data examples\footnote{https://opendata.auger.org/analysis.php}. Particularly, the correlation plot obtained with the ‘fd_dEdXmax’ vs ‘fd_totalEnergy’ columns was extracted and shown in \autoref{fig:fig10}. In \autoref{fig:fig11}, the same axis was chosen inside sonoUno for the plot, in order to compare, it can be seen that the graph is the same in both cases.
+
+![Example of data plot produced from the Pierre Auger Observatory dataset extracted from their web page (\href{https://bit.ly/3DNRw61}).\label{fig:fig10}](figures/fig10.png)
+
+![Plot obtained with sonoUno desktop with the same axis of the previous example extracted from the Pierre Auger Observatory web page.\label{fig:fig11}](figures/fig11.png)
+
+# Discussion
+
+As a first result after the use of sonoUno in its triple functioning: graphic deployment, sonorization of the data, and use of mathematical function, we observe that the tool is sufficient for the purpose of the inclusion in general: a) it is possible to deploy data sets in the same way that the proposed by the data owners; b) the sonification is precise and detects the data features, permitting: marking over the plot, changing intervals, volume, pitch, frequency and adapting the output to the perception of each user; c) it is possible to apply mathematical functions to the data: predetermined (smooth, logarithmic, square, between others) or using a line of commands communicated with the octave program. The output of the software: graph, sound, marks, and data plotted, can be saved and reopened for future or more detailed analysis, even using another tool.
+
+In addition, modular design allows programmers to work on different modules and the final integration works properly. Furthermore, the graphic user interface was modified according to the user testing activities following a user centred design framework from the beginning. The software test with Pierre Auger dataset (\autoref{sect:pierreauger}) plots the same graph of the example downloaded from the web page of Pierre Auger, the sound takes too much time because the sonification method reproduces data point by data point and there are near 30000 data points in this data set. Remember this tool is centered in data analysis, so it is needed to investigate if quicker sonification methods is useful to it, and what is the better approach to produce it.
+
+According to @wandatesis2013, sonification could enhance the actual data display and, @iau367;@casadoFG2022’s work reinforces that assumption. In addition, in the previous section, it was shown that astronomical datasets could be displayed in sonoUno in the same form as other visualization tools, with the benefit of sonification and allowing it to be used by people with different learning styles.
+
+# Conclusions
+
+The use of sound to communicate, detect or analyze data features has been used for many years, but the use of sonification (use of sound to represent data) formally began in the 90s. Maybe, it is too early to compare it with the visual display, especially since we have used visual tools for centuries and learned about visual display since elementary school, but the first approach to sound display usually occurs when people already have a degree or as a consequence of a disability. Perception studies and an earlier approximation to this technique are needed.
+
+It is important to mention that our experience shows that the use of more than one sense improves the detection of specific features in the data. In any case and in order to acquire a deep comprehension of multimodal analysis, training courses are needed. Besides, in order to know the sonification process better and investigate how it can be used in the research field, new sound perception experiments need to be done, with available tools like sonoUno and with different datasets, including the input of sound.
+
+The authors expect to encourage more people to help with future steps and software maintenance, taking into account that this development is completely open source and the sonification technique is part of the new approach to the study of nature.
+
