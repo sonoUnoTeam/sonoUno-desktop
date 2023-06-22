@@ -113,7 +113,7 @@ It is important to highlight that the software allows one to control and set all
 
 This module encompasses the mathematical operations that sonoUno allows, by the moment it includes simple operations (like inverse, square, square root, logarithm, and smooth), horizontal axis cuts, and provides an octave bridge (\autoref{fig:fig4}).
 
-![Mathematical functions panel is shown under the principal panel. The top area represents the interface with octave and the bottom section shows the axis cut option and the list with some mathematical functions.\label{fig:fig4}](figures/fig4.png)
+![Mathematical functions panel is shown under the principal panel. The top area represents the interface with octave and the bottom section shows the axis cut option and the list with some mathematical functions.\label{fig:fig4}](figures/fig4.png){ width=70% }
 
 The list of mathematical functions are operations previously preprogrammed and the user could apply them only by selection. In the case of x-axis cut, there are two slider bars to select the minimum and maximum value for the new range of x-axis; also it can be done by writing a command on the Write functionality text box (\autoref{fig:fig5}, section 1), this allows more precision and a faster way to do it.
 
