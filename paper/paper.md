@@ -105,7 +105,7 @@ Sound is generated using a synthesizer approach, meaning the instrument tone is 
 
 There is a great advantage of being able to represent, by sound, any value and present very small differences. It must be taken into account, nevertheless, that this freedom is limited by the maximum audible frequencies of the user, e.g.: if two variables are being sonorized at the same time, it is done using two different “voices”, which are characterized by distinct harmonic composition. If the fundamental frequency range reaches enough high frequencies, the harmonics that differentiate the voices could reach frequencies too high for the listener to hear (properly, that is), rendering both voices indistinguishable, beating the whole purpose of using different instruments.
 
-![Sound settings panels with all its elements: volume, frequency mapping, volume mapping, sound type, and envelope configuration.\label{fig:fig3}](figures/fig3.png)
+![Sound settings panels with all its elements: volume, frequency mapping, volume mapping, sound type, and envelope configuration.\label{fig:fig3}](figures/fig3.png){ width=70% }
 
 It is important to highlight that the software allows one to control and set all the sound parameters, it presents a settings section that is displayed in a panel at the left of the graphic display, containing buttons and slider bars, allowing to customize the frequency, volume, sound type and even the envelope waveform (\autoref{fig:fig3}).
 
