@@ -168,3 +168,10 @@ It is important to mention that our experience shows that the use of more than o
 
 The authors expect to encourage more people to help with future steps and software maintenance, taking into account that this development is completely open source and the sonification technique is part of the new approach to the study of nature.
 
+# Acknowledgements
+
+The authors want to give their thanks to the people who tested the tool, participated in the training activities, and shared their experiences, ideas, suggestions, and comments. The contributions and feedback of Julieta Carricondo Robino, Aldana Palma, Carlos Morales Socorro, Richard Green, Poshak Gandhi, Gaston Jaren, Southampton Sight, students at the University of Mendoza and ITeDA, and many volunteers at the Focus Groups and beyond testing the software are deeply appreciated. In addition, thanks to IAU Office of Astronomy for Development-SAAO-South Africa and the University of Southampton for all their support to this development.
+
+This work was funded by the National Council of Scientific Research of Argentina (CONICET) and has been performed partially under the Project REINFORCE (GA 872859) with the support of the EC Research Innovation Action under the H2020 Programme SwafS-2019-1.
+
+# References
