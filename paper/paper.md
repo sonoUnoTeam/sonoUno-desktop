@@ -53,7 +53,7 @@ Another important point was the actual sound library and implementation on sonoU
 
 ![Graphic User Interface with all the panels visible.\label{fig:fig1}](figures/fig7.png)
 
-![The first framework of the GUI, the data deployed is a galaxy spectrum downloaded from the SDSS database\footnote{\url{https://skyserver.sdss.org/dr12/en/tools/explore/Summary.aspx?ra=179.689293428354&dec=-0.454379056007667}}.\label{fig:fig2}](figures/fig6.png)
+![The first framework of the GUI, the data deployed is a galaxy spectrum downloaded from the \href{https://skyserver.sdss.org/dr12/en/tools/explore/Summary.aspx?ra=179.689293428354&dec=-0.454379056007667}{SDSS database}.\label{fig:fig2}](figures/fig6.png)
 
 # Statement of need
 
