@@ -47,13 +47,13 @@ Nevertheless, in most cases, the sonification mapping of the dataset was defined
 
 In this sense and taking into account the increasing examples of sonification in astrophysics, sonoUno is a sonification software to translate data from two or more column tables into sound.  It is an open-source program with a modular design, that allows users to open different datasets, and explore them through visual and auditory display, the last permitting them to adjust visual and sound settings to enhance their perception (a full view of the Graphic User Interface (GUI) is shown in \autoref{fig:fig1}). This project is user centred from the beginning, to reach that goal at first the ISO 9241-171:2008 standard was used to analyze the accessibility of three previous software [@ise2a2017; @ijskd2022] and construct the first GUI mock-up; second, a theoretical framework centred on visual disability was designed and applied to the software in development [@casadoetal2019], the consequent ISO analysis to sonoUno show very good results. Finally, a focus group session was conducted with people with and without visual disabilities to test the first version of sonoUno, some recommendations and updates arise from that study [@casadoFG2022] (the first view of the GUI after all the updates was shown in \autoref{fig:fig2}).
 
-![Graphic User Interface with all the panels visible.\label{fig:fig1}](figures/fig7.png)
-
-![The first framework of the GUI, the data deployed is a galaxy spectrum downloaded from the SDSS database\footnote{\url{https://skyserver.sdss.org/dr12/en/tools/explore/Summary.aspx?ra=179.689293428354&dec=-0.454379056007667}.\label{fig:fig2}](figures/fig6.png)
-
 SonoUno was programmed purely in Python, its modular design with the use of agile methodology, allows programmers to divide the tasks, organize the job and make the cooperative work between the team easier. In this case, the modules are Data Input, Data Output, Data Transformation, Sonification, Graphic User Interface design, and Core. One important remark is the possibility of using each module alone without the need of the graphic user interface (GUI), so some users could import the sound module from bash to produce sonification without installing the whole program.
 
 Another important point was the actual sound library and implementation on sonoUno, it produces sound from its sinusoidal parameters without any additional feature, each data point on the dataset produces a differentiated tone that faithfully represents the numerical data. In addition, the sonification of each point ensures a good correlation between the visual and sound representation, in consequence, a good match between the two human sensory styles. SonoUno software's principal aim is research through sonification, it is very important to understand and correlate sonification with visualization (the actual practice to research in astronomy) in conjunction with a deeper analysis of human sound perception.
+
+![Graphic User Interface with all the panels visible.\label{fig:fig1}](figures/fig7.png)
+
+![The first framework of the GUI, the data deployed is a galaxy spectrum downloaded from the SDSS database\footnote{\url{https://skyserver.sdss.org/dr12/en/tools/explore/Summary.aspx?ra=179.689293428354&dec=-0.454379056007667}.\label{fig:fig2}](figures/fig6.png)
 
 # Statement of need
 
