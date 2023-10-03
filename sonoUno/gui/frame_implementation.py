@@ -17,8 +17,6 @@ import oct2py
 import re
 import webbrowser
 import os
-import time
-import sys
 
 import gui.frame_design as gui
 from data_import.data_import import DataImport
@@ -50,7 +48,6 @@ class SonoUnoGUI (gui.FrameDesign):
         self._tickmark = tickMark()
         self._matfunc = PredefMathFunctions()
         self._dataopened_columns = DataOpenedColumns()
-        
         # wx.timer events
         # First timer to sonify the data
         self._timer = wx.Timer(self)
@@ -791,7 +788,6 @@ class SonoUnoGUI (gui.FrameDesign):
             # Get the x and y array plotted
             x=self.getXActual()
             y=self.getYActual()
-
             # If the current point to sonify is a nan value don't sonify and
             # don't update the plot
             if np.isnan(x[timer_index]) or np.isnan(y[timer_index]):
@@ -862,10 +858,6 @@ class SonoUnoGUI (gui.FrameDesign):
                 self._expdata.writeexception(e)
             # Increment the timer index
             self._set_timerindex(timer_index + 1)
-            self.t1 = time.time()
-            print(self.t1-self.t0, file=sys.stderr)
-            self.t0 = self.t1
-
             # Check if the timer index reach the end
             if timer_index==(x.size-1):
                 # If loop is enable, play the tickmark and restart the 
@@ -1594,7 +1586,6 @@ class SonoUnoGUI (gui.FrameDesign):
                 self._envelopeplaytogglebtn.SetLabel('Play envelope\nsound')
                 self._envelopeplaytogglebtn.SetValue(False)
             if not self._timer.IsRunning():
-                self.t0 = time.time()
                 # try:
                 #     waveform = self._swaveformlistbox.GetString(self._swaveformlistbox.GetSelection())
                 #     self._datasound.reproductor.set_waveform(waveform)
@@ -1729,9 +1720,6 @@ class SonoUnoGUI (gui.FrameDesign):
                     
                 #Seteo el tempo dependiendo del tiempo del timer
                 self._timer.Start((self._getVelocity()*2) + 50)
-                self.t1 = time.time()
-                print(self.t1-self.t0, file=sys.stderr)
-                self.t0 = self.t1
                 self._datasound.reproductor.set_time_base(self._timer.GetInterval()/1000.0)
             else:
                 self._expdata.printoutput("The timer is alredy on when the user press Play button.")
@@ -1971,7 +1959,7 @@ class SonoUnoGUI (gui.FrameDesign):
     def tempo(self):
         if self._timer.IsRunning():
             self._timer.Stop()
-            self._timer.Start((self._getVelocity()*2) + 50)                
+            self._timer.Start((self._getVelocity()*2) + 50)
             self._datasound.reproductor.sound.stop()
             self._datasound.reproductor.set_time_base(self._timer.GetInterval()/1000.0)
 
