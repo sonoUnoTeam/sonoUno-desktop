@@ -778,7 +778,7 @@ class SonoUnoGUI (gui.FrameDesign):
         time for loop functionality after play the tickmark.
         """
         if self._timer.GetInterval()==self._waitonloop and self.playinloop_state:
-            self._timer.Start((self._getVelocity()*2) + 10)
+            self._timer.Start((self._getVelocity()*2) + 50)
         if self.getXActual().any()==None or self.getYActual().any()==None:
             self._expdata.writeinfo("The data has not been imported yet.")
         else:
@@ -1719,7 +1719,7 @@ class SonoUnoGUI (gui.FrameDesign):
                     self._expdata.writeexception(e)
                     
                 #Seteo el tempo dependiendo del tiempo del timer
-                self._timer.Start((self._getVelocity()*2) + 10)
+                self._timer.Start((self._getVelocity()*2) + 50)
                 self._datasound.reproductor.set_time_base(self._timer.GetInterval()/1000.0)
             else:
                 self._expdata.printoutput("The timer is alredy on when the user press Play button.")
@@ -1959,7 +1959,7 @@ class SonoUnoGUI (gui.FrameDesign):
     def tempo(self):
         if self._timer.IsRunning():
             self._timer.Stop()
-            self._timer.Start((self._getVelocity()*2) + 10)
+            self._timer.Start((self._getVelocity()*2) + 50)
             self._datasound.reproductor.sound.stop()
             self._datasound.reproductor.set_time_base(self._timer.GetInterval()/1000.0)
 
@@ -2289,7 +2289,7 @@ class SonoUnoGUI (gui.FrameDesign):
             self._expdata.printoutput("Horizontal line marker of the line was selected.")
         elif self._getMarkerStyleIndex() == 22:
             self._set_markerchar('')
-            self._expdata.printoutput("Any marker line was selected.")
+            self._expdata.printoutput("Line marker off.")
         else:
             self._set_markerchar('')
             self._expdata.printoutput("The line marker style was unknow, any marker line was selected by default.")

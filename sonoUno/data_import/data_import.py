@@ -160,6 +160,10 @@ class DataImport(object):
         # it delete it.
         for i in range (0, data.shape[1]):
             data.iloc[0,i] = data.iloc[0,i].replace(' ','')
+
+        # sort data by abcissa value (first column).
+        data.iloc[1:] = data.iloc[1:].sort_values(by=[data.columns[0]])
+        
         msg = 'The data was correctly imported.'
         return data, True, msg
     
@@ -256,6 +260,7 @@ class DataImportColumns (object):
             msg = 'The data type provided is unknow.'
             self._export_error_info.printoutput(msg)
             return None, False, msg
+        
         # If the data are imported correctly, continue checking the columns
         # names.
         if type(data.loc[0,0]) is not str:
@@ -270,5 +275,9 @@ class DataImportColumns (object):
         # it delete it.
         for i in range (0, data.shape[1]):
             data.iloc[0,i] = data.iloc[0,i].replace(' ','')
+
+        # sort data by abcissa value (first column).
+        data.iloc[1:] = data.iloc[1:].sort_values(by=[data.columns[0]])
+            
         msg = 'The data was correctly imported.'
         return data, True, msg

@@ -2199,7 +2199,7 @@ class FrameDesign( wx.Frame ):
         self._markerTextCtrl.SetEditable(0)
         _configPlotFgSizer.Add( self._markerTextCtrl, 0, wx.ALL, 5 )
         #Crea el cuadro de seleccion entre opciones de estilo de marcadores para el grafico, setea una eleccion por defecto y lo agrega al sizer del panel de configuraciones del grafico
-        _markerStyleChoiceChoices = [ u"Point", u"Pixel", u"Circle", u"Triangle down", u"Triangle up", u"Triangle left", u"Triangle right", u"Tri down", u"Tri up", u"Tri left", u"Tri right", u"Square", u"Pentagon", u"Star", u"Hexagon 1", u"Hexagon 2", u"Plus", u"X", u"Diamond", u"Thin diamond", u"Vertical line", u"Horizontal line", u"Any" ]
+        _markerStyleChoiceChoices = [ u"Point", u"Pixel", u"Circle", u"Triangle down", u"Triangle up", u"Triangle left", u"Triangle right", u"Tri down", u"Tri up", u"Tri left", u"Tri right", u"Square", u"Pentagon", u"Star", u"Hexagon 1", u"Hexagon 2", u"Plus", u"X", u"Diamond", u"Thin diamond", u"Vertical line", u"Horizontal line", u"None" ]
         self._markerStyleChoice = wx.Choice( self._configPlotPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, _markerStyleChoiceChoices, 0 )
         self._markerStyleChoice.Bind( wx.EVT_CHOICE, self._eventMarkerStyleConfig )
         self._markerStyleChoice.SetSelection( 22 )
