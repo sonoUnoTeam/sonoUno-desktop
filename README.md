@@ -10,7 +10,7 @@ This work is partially supported by REINFORCE Project. REINFORCE has received fu
 
 <Img src="screenshot/main_screen_2021-01-29.png" width="400">
 
-SonoUno is a sonification software for astronomical data presented on a table (txt or csv files). The software is being developed based on the study of other software (Sonification Sandbox, MathTrax and xSonify) and standards of accessibility like the ISO 9241-171:2008 (Guidance on software accessibility). In order to develop the first approach of a graphical user interface, we perform a theoretical framework based on bibliography of user cases, focused on blind and visual impairment people.
+SonoUno is a sonification software for astronomical data presented on a table (txt or csv files). It has a dedicated webpage with information, manuals and gallery (https://www.sonouno.org.ar/). The software is being developed based on the study of other software (Sonification Sandbox, MathTrax and xSonify) and standards of accessibility like the ISO 9241-171:2008 (Guidance on software accessibility). In order to develop the first approach of a graphical user interface, we perform a theoretical framework based on bibliography of user cases, focused on blind and visual impairment people.
 
 The develop language is Python and we use modular design, in order to do collaborative work. The sonoUno now is multiplatform, tested on windows 10, Ubuntu (16.04 and 18.04), CentOS 7 and Mac (Mojave and Catalina); the development team work continuously to maintain this benefit. The principal goal of the SonoUno is to allow the user to open data files (txt or csv extension), show the plot and sonify the data. At the moment, the sonification is perform by variation of pitch and the sonification settings allow to change the volume and the timbre.
 
@@ -20,7 +20,7 @@ Finally, the software allows the user to save the plot, a text file with the poi
 
 ## Installation
 
-Here we show a quick guide to install the sonoUno. Inside the sonoUno folder, there are some installation instructive, one for each operative system.
+Here we show a quick guide to install the sonoUno. Inside the sonoUno folder, there are some installation instructive, one for each operative system. 
 
 1.	Install octave
 
@@ -60,22 +60,15 @@ Ubuntu: ```sudo apt install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-
 Centos: ```yum install SDL```\
 ```pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/centos-7 wxPython```
 
-5.	If you want to download the software from the repository install git, if not you can use the version on Pypi.
+5.	If you want to download the software from the repository install git or download the zip folder.
+
+In addition, you could access the user manual in the web page from: https://www.sonouno.org.ar/usermanual/
 
 ## Opening the software with Graphic User Interface
-
-### From Pypi (only Linux and Mac)
-
-Install with pip:\
-```python3 -m pip install sonoUno```
-
-To open the sonoUno software:\
-```sonouno```
 
 ### From github
 
 Download from the webpage: https://github.com/sonoUnoTeam/sonoUno . Go to Downloads and unzip the file.
-
 
 The other option is to clone the git repository from the terminal with:\
 ```git clone https://github.com/sonoUnoTeam/sonoUno.git```
