@@ -3362,7 +3362,7 @@ class SonoUnoGUI (gui.FrameDesign):
         # message = "The user manual of the software is located in the software root folder in PDF format, or in the next link (copy and paste on the browser): \n"
         # url = "https://drive.google.com/file/d/1RtI1bG5Q-PjpT3LBcmWJfW88YfbqCCg1/view?usp=sharing"
         # dialogs.scrolledMessageDialog(parent=self, message=message+url, title='Information', pos=wx.DefaultPosition, size=(500, 150))
-        webbrowser.open("http://sion.frm.utn.edu.ar/sonoUno/", new=2, autoraise=True)
+        webbrowser.open("https://www.sonouno.org.ar/usermanual/", new=2, autoraise=True)
 
     def _eventclose( self, event ):
 #        try:
