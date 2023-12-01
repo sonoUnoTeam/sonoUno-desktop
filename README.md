@@ -111,4 +111,13 @@ About the sound the presets are:
     *Celesta as the waveform
     *A time base of 0.05
     We continue working to allow to change this preset from the command line.
-    
+
+
+# How to contribute to the software 
+
+All help is welcomed and needed!
+If you want to contribute contact us at sonounoteam@gmail.com
+
+# Report issues or problems with the software
+
+All people could report a problem opening an issue here on GitHub or contact us by email: sonounoteam@gmail.com
