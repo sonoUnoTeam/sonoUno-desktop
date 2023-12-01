@@ -62,9 +62,11 @@ Centos: ```yum install SDL```\
 
 5.	If you want to download the software from the repository install git or download the zip folder.
 
-In addition, you could access the user manual in the web page from: https://www.sonouno.org.ar/usermanual/
+In addition, you can access the user manual on the web page from: https://www.sonouno.org.ar/usermanual/
 
-## Opening the software with Graphic User Interface
+## Installing and opening the software with Graphic User Interface
+
+The pip version was outdated and throwing an error, so we recommend doing one of the following options:
 
 ### From github
 
