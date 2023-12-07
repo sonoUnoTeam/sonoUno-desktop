@@ -65,18 +65,19 @@ Another important feature is the actual sound library and implementation on Sono
 
 Most tools that produce data sonification are centered on specific data and devoted to outreach. But sonoUno principal aim’s is research, and moreover, a multimodal approach to knowledge, allowing people with disabilities to explore scientific data and carry out reasearch. sonoUno has three main functionalities: graphic deployment, sonorization of the data, and use of mathematical function. During our user tests it was observed that the tool allows for (a) deployment of data sets, (b) precise sonification to detects the data features, permitting: marking over the plot, changing intervals, volume, pitch, frequency and adapting the output to the perception of each user and (c) application of math functions. The output of the software (graph, sound, marks, and data plotted) can be saved and reopened for future or more detailed analysis, even using another tool. Finally, the graphic user interface was modified according to the user testing activities following a user centred design framework from the beginning [@casadoFG2022]. 
 
-According to @wandatesis2013, sonification could enhance the actual data display, and, Casado et al. (@yearcasadoetal2019, Y@casadoFG2022) work reinforces that assumption. In addition, it was tested that astronomical datasets could be displayed in sonoUno in the same form as other visualization tools, with the benefit of sonification and allowing it to be used by people with different learning styles.
+According to @wandatesis2013, sonification could enhance the actual data display, and, Casado et al. [@casadoetal2019;@casadoFG2022] works reinforces that assumption. In addition, it was tested that astronomical datasets could be displayed in sonoUno in the same form as other visualization tools, with the benefit of sonification and allowing it to be used by people with different learning styles.
 
 # Cases of use
 
 In addition to tests inside the research team, sonoUno has been used by other research groups with their own datasets. Some examples are:
 
-\begin{itemize}
-  \item The work of Carlos Morales Socorro with variables star, in CEP Las Palmas, Spain, where a training program using sonification was conducted, and a blind student could discover a variable star for the first time in history\footnote{\url{https://astronomiayeducacion.org/taller-2-de-sonificacion-descubriendo-el-universo/}}.
+The work of Carlos Morales Socorro with variables star, in CEP Las Palmas, Spain, where a training program using sonification was conducted, and a blind student could discover a variable star for the first time in history\footnote{\url{https://astronomiayeducacion.org/taller-2-de-sonificacion-descubriendo-el-universo/}}.
+
 The ``Sensing the Dynamic Universe'' project, led by a research group at Harvard [@wanda2019], display a web page with information about variables star and use sonoUno to generate the videos of data visualizations and sonification\footnote{\url{https://lweb.cfa.harvard.edu/sdu/rrlyrae.html}}, even in this project a fork of the sonoUno code was created to make some updates\footnote{\url{https://github.com/joepalmo/sonoUno}}.
-  \item The GitHub repository “SonoUno-Raspberry-Pi”\footnote{\url{https://github.com/Physicslibrary/SonoUno-Raspberry-Pi}} of Hartwell Fong, where it is shown the possibility of using sonoUno in a Raspberry Pi, also this user contacted us asking for the possibility to include some tactile technology in the software, that could be implemented in a near future.
-  \item ``The Sound of BEARS''\footnote{\url{https://stephenserjeant.github.io/sounds-of-bears/}} is a web page that uses sonoUno web version to display a video with the sonification of ALMA data, reinforcing the need to make astronomy more accessible.
-\end{itemize}
+
+The GitHub repository “SonoUno-Raspberry-Pi”\footnote{\url{https://github.com/Physicslibrary/SonoUno-Raspberry-Pi}} of Hartwell Fong, where it is shown the possibility of using sonoUno in a Raspberry Pi, also this user contacted us asking for the possibility to include some tactile technology in the software, that could be implemented in a near future.
+
+The Sound of BEARS''\footnote{\url{https://stephenserjeant.github.io/sounds-of-bears/}} is a web page that uses sonoUno web version to display a video with the sonification of ALMA data, reinforcing the need to make astronomy more accessible.
 
 # Conclusions
 
