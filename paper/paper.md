@@ -69,7 +69,7 @@ According to @wandatesis2013, sonification could enhance the actual data display
 
 # Cases of use
 
-In addition to tests inside the research team, sonoUno has been used by other research groups with their own datasets.
+In addition to tests inside the research team, sonoUno has been used by other research groups with their own datasets. Some examples are detailed below.
 
 The work of Carlos Morales Socorro with variables star, in CEP Las Palmas, Spain, where a training program using sonification was conducted, and a blind student could discover a variable star for the first time in history\footnote{\url{https://astronomiayeducacion.org/taller-2-de-sonificacion-descubriendo-el-universo/}}.
 
