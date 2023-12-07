@@ -65,11 +65,11 @@ Another important feature is the actual sound library and implementation on Sono
 
 Most tools that produce data sonification are centered on specific data and devoted to outreach. But sonoUno principal aim’s is research, and moreover, a multimodal approach to knowledge, allowing people with disabilities to explore scientific data and carry out reasearch. sonoUno has three main functionalities: graphic deployment, sonorization of the data, and use of mathematical function. During our user tests it was observed that the tool allows for (a) deployment of data sets, (b) precise sonification to detects the data features, permitting: marking over the plot, changing intervals, volume, pitch, frequency and adapting the output to the perception of each user and (c) application of math functions. The output of the software (graph, sound, marks, and data plotted) can be saved and reopened for future or more detailed analysis, even using another tool. Finally, the graphic user interface was modified according to the user testing activities following a user centred design framework from the beginning [@casadoFG2022]. 
 
-According to @wandatesis2013, sonification could enhance the actual data display, and, Casado et al. [@casadoetal2019;@casadoFG2022] works reinforces that assumption. In addition, it was tested that astronomical datasets could be displayed in sonoUno in the same form as other visualization tools, with the benefit of sonification and allowing it to be used by people with different learning styles.
+According to @wandatesis2013, sonification could enhance the actual data display, and, Casado et al. works reinforces that assumption [@casadoetal2019;@casadoFG2022]. In addition, it was tested that astronomical datasets could be displayed in sonoUno in the same form as other visualization tools, with the benefit of sonification and allowing it to be used by people with different learning styles.
 
 # Cases of use
 
-In addition to tests inside the research team, sonoUno has been used by other research groups with their own datasets. Some examples are:
+In addition to tests inside the research team, sonoUno has been used by other research groups with their own datasets.
 
 The work of Carlos Morales Socorro with variables star, in CEP Las Palmas, Spain, where a training program using sonification was conducted, and a blind student could discover a variable star for the first time in history\footnote{\url{https://astronomiayeducacion.org/taller-2-de-sonificacion-descubriendo-el-universo/}}.
 
