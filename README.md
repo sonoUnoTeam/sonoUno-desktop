@@ -8,6 +8,9 @@ This work is partially supported by REINFORCE Project. REINFORCE has received fu
 
 ## Description
 
+Our recent paper published on JOSS: 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.05819/status.svg)](https://doi.org/10.21105/joss.05819)
+
 <Img src="screenshot/main_screen_2021-01-29.png" width="400">
 
 SonoUno is a sonification software for astronomical data presented on a table (txt or csv files). It has a dedicated webpage with information, manuals and gallery (https://www.sonouno.org.ar/). The software is being developed based on the study of other software (Sonification Sandbox, MathTrax and xSonify) and standards of accessibility like the ISO 9241-171:2008 (Guidance on software accessibility). In order to develop the first approach of a graphical user interface, we perform a theoretical framework based on bibliography of user cases, focused on blind and visual impairment people.
